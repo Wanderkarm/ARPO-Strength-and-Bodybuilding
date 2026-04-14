@@ -2,7 +2,7 @@ import * as Crypto from "expo-crypto";
 import { getDb, initializeSchema } from "./database";
 import { exercises as exerciseSeedData, templates as templateSeedData } from "./seed-data";
 import { getCategoryWeight, type BaselineWeights } from "@/utils/categoryWeightMap";
-import { calculateNextWeekTargets } from "@/utils/progressionAlgorithm";
+import { calculateNextWeekTargets, getRepTarget, type GoalType } from "@/utils/progressionAlgorithm";
 
 function generateId(): string {
   return Crypto.randomUUID();
@@ -211,6 +211,7 @@ export interface WorkoutPlan {
   currentWeek: number;
   currentDay: number;
   isActive: boolean;
+  goalType: GoalType;
   template: Template;
   logs: WorkoutLog[];
 }
@@ -411,7 +412,8 @@ export async function createUser(
 export async function createWorkoutPlan(
   userId: string,
   templateId: string,
-  exerciseSwaps?: Record<string, string>
+  exerciseSwaps?: Record<string, string>,
+  goalType: GoalType = "hypertrophy"
 ): Promise<WorkoutPlan> {
   const db = getDb();
   const template = await getTemplateWithDays(templateId);
@@ -428,8 +430,8 @@ export async function createWorkoutPlan(
 
   const planId = generateId();
   await db.runAsync(
-    "INSERT INTO workout_plans (id, user_id, template_id, current_week, current_day) VALUES (?, ?, ?, 1, 1)",
-    [planId, userId, templateId]
+    "INSERT INTO workout_plans (id, user_id, template_id, current_week, current_day, goal_type) VALUES (?, ?, ?, 1, 1, ?)",
+    [planId, userId, templateId, goalType]
   );
 
   const rir = RIR_SCHEDULE[1];
@@ -465,11 +467,12 @@ export async function createWorkoutPlan(
         [logId, planId, exerciseId, day.dayNumber, targetSets, targetWeight, rir]
       );
 
+      const repTarget = getRepTarget(exerciseCategory, goalType);
       for (let s = 1; s <= targetSets; s++) {
         const setId = generateId();
         await db.runAsync(
-          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, 10)",
-          [setId, logId, s, targetWeight]
+          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
+          [setId, logId, s, targetWeight, repTarget]
         );
       }
     }
@@ -481,7 +484,7 @@ export async function createWorkoutPlan(
 export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null> {
   const db = getDb();
   const plan = await db.getFirstAsync<{
-    id: string; user_id: string; template_id: string; current_week: number; current_day: number; is_active: number;
+    id: string; user_id: string; template_id: string; current_week: number; current_day: number; is_active: number; goal_type: string;
   }>("SELECT * FROM workout_plans WHERE id = ?", [planId]);
 
   if (!plan) return null;
@@ -540,6 +543,7 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
     currentWeek: plan.current_week,
     currentDay: plan.current_day,
     isActive: plan.is_active === 1,
+    goalType: (plan.goal_type as GoalType) ?? "hypertrophy",
     template,
     logs,
   };
@@ -589,9 +593,11 @@ export async function skipSession(
   const db = getDb();
 
   const plan = await db.getFirstAsync<{
-    id: string; template_id: string; current_week: number;
-  }>("SELECT id, template_id, current_week FROM workout_plans WHERE id = ?", [workoutPlanId]);
+    id: string; template_id: string; current_week: number; goal_type: string;
+  }>("SELECT id, template_id, current_week, goal_type FROM workout_plans WHERE id = ?", [workoutPlanId]);
   if (!plan) throw new Error("Plan not found");
+
+  const skipGoalType: GoalType = (plan.goal_type as GoalType) ?? "hypertrophy";
 
   const totalDaysResult = await db.getFirstAsync<{ count: number }>(
     "SELECT COUNT(*) as count FROM template_days WHERE template_id = ?",
@@ -695,6 +701,7 @@ export async function skipSession(
           repsCompleted: Math.round(avgRepsResult?.avg_reps || 10),
           repGoal: repGoal1,
           sorenessRating: sorenessResult?.soreness_rating ?? 0,
+          goalType: skipGoalType,
         });
         nextSets = targets.targetSets;
         nextWeight = targets.targetWeight;
@@ -707,11 +714,12 @@ export async function skipSession(
         [logId, workoutPlanId, log.exercise_id, nextWeek, log.day_number, nextSets, nextWeight, rir]
       );
 
+      const skipRepTarget = getRepTarget(exercise?.category || "HORIZONTAL PUSH", skipGoalType);
       for (let s = 1; s <= nextSets; s++) {
         const setId = generateId();
         await db.runAsync(
-          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, 10)",
-          [setId, logId, s, nextWeight]
+          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
+          [setId, logId, s, nextWeight, skipRepTarget]
         );
       }
     }
@@ -872,12 +880,13 @@ export async function completeWorkout(
   exercisesData: {
     logId: string;
     exerciseId: string;
+    exerciseName?: string;
     category: string;
     targetSets: number;
     targetWeight: number;
     targetRIR: string;
     sorenessRating: number;
-    sets: { setLogId: string; repsCompleted: number; weightUsed: number }[];
+    sets: { setLogId: string; repsCompleted: number; weightUsed: number; targetReps?: number }[];
   }[]
 ): Promise<{
   nextWeekTargets: any[];
@@ -890,10 +899,12 @@ export async function completeWorkout(
   const db = getDb();
 
   const plan = await db.getFirstAsync<{
-    id: string; template_id: string; current_week: number;
-  }>("SELECT id, template_id, current_week FROM workout_plans WHERE id = ?", [workoutPlanId]);
+    id: string; template_id: string; current_week: number; goal_type: string;
+  }>("SELECT id, template_id, current_week, goal_type FROM workout_plans WHERE id = ?", [workoutPlanId]);
 
   if (!plan) throw new Error("Plan not found");
+
+  const planGoalType: GoalType = (plan.goal_type as GoalType) ?? "hypertrophy";
 
   const totalDaysResult = await db.getFirstAsync<{ count: number }>(
     "SELECT COUNT(*) as count FROM template_days WHERE template_id = ?",
@@ -904,7 +915,8 @@ export async function completeWorkout(
   const nextWeekTargets: any[] = [];
   let totalVolume = 0;
 
-  for (const ex of exercisesData) {
+  for (let i = 0; i < exercisesData.length; i++) {
+    const ex = exercisesData[i];
     for (const set of ex.sets) {
       await db.runAsync(
         "UPDATE set_logs SET reps_completed = ?, weight_used = ?, completed_at = ? WHERE id = ?",
@@ -944,8 +956,16 @@ export async function completeWorkout(
       repsCompleted: avgReps,
       repGoal: repGoal2,
       sorenessRating: ex.sorenessRating,
+      goalType: planGoalType,
     });
-    nextWeekTargets.push(nextTargets);
+    nextWeekTargets.push({
+      ...nextTargets,
+      exerciseName: ex.exerciseName ?? `Exercise ${i + 1}`,
+      thisWeekWeight: actualWeight2,
+      thisWeekSets: ex.sets.filter(s => s.weightUsed > 0).length,
+      thisWeekReps: avgReps,
+      thisWeekRIR: ex.targetRIR,
+    });
   }
 
   const completedDaysResult = await db.getAllAsync<{ day_number: number }>(
@@ -1028,6 +1048,7 @@ export async function completeWorkout(
         repsCompleted: avgReps,
         repGoal: repGoal3,
         sorenessRating: log.soreness_rating ?? 0,
+        goalType: planGoalType,
       });
 
       const logId = generateId();
@@ -1040,8 +1061,8 @@ export async function completeWorkout(
       for (let s = 1; s <= targets.targetSets; s++) {
         const setId = generateId();
         await db.runAsync(
-          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, 10)",
-          [setId, logId, s, targets.targetWeight]
+          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
+          [setId, logId, s, targets.targetWeight, targets.targetReps]
         );
       }
     }
