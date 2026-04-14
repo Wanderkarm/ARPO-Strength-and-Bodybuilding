@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary SEO -->
+    <title>ARPO — Free Hypertrophy & Strength Training App | No Subscription</title>
+    <meta name="description" content="ARPO is a free workout app with auto-regulated progressive overload, mesocycle programming, and 80+ exercises. A powerful no-subscription alternative to RP Hypertrophy, JeFit & Dr. Muscle. Available on iOS." />
+    <meta name="keywords" content="free progressive overload app, hypertrophy app no subscription, RP hypertrophy alternative, workout app mesocycle, auto progressive overload, RIR training app, bodybuilding app free, strength training app offline, workout tracker iOS, JeFit alternative free, Dr Muscle alternative, free workout app iPhone" />
+    <meta name="author" content="ARPO Strength and Bodybuilding" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/" />
+
+    <!-- Open Graph (Facebook, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/" />
+    <meta property="og:title" content="ARPO — Free Hypertrophy & Strength Training App | No Subscription" />
+    <meta property="og:description" content="Auto-regulated progressive overload workout app. Mesocycles, 80+ exercises, science-backed training — completely free, no subscription. A powerful alternative to RP Hypertrophy and JeFit." />
+    <meta property="og:image" content="https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/assets/og-image.png" />
+    <meta property="og:site_name" content="ARPO Strength and Bodybuilding" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ARPO — Free Hypertrophy & Strength Training App" />
+    <meta name="twitter:description" content="Auto-regulated progressive overload. Mesocycles. 80+ exercises. No subscription. A free alternative to RP Hypertrophy & JeFit." />
+    <meta name="twitter:image" content="https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/assets/og-image.png" />
+
+    <!-- App-specific meta -->
+    <meta name="apple-itunes-app" content="app-id=6762088008" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Structured Data: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "ARPO Strength and Bodybuilding",
+      "operatingSystem": "iOS",
+      "applicationCategory": "HealthApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "ARPO is a free, offline-first workout app that uses Auto-Regulated Progressive Overload (ARPO) and mesocycle programming to automatically adjust your training week-to-week based on performance. Features 80+ exercises, 7 training splits, anatomy maps, and science-backed education — with no subscription required.",
+      "url": "https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/",
+      "downloadUrl": "https://testflight.apple.com/join/pSH5dJ8C",
+      "featureList": [
+        "Auto-Regulated Progressive Overload (ARPO)",
+        "Mesocycle-based programming with deload weeks",
+        "80+ exercise library with anatomy maps",
+        "7 pre-built training splits",
+        "Custom routine builder",
+        "RIR periodization",
+        "Adaptive Recovery Rating (ARR)",
+        "Home workout mode",
+        "Fully offline, no account required",
+        "Science-backed rest timer education"
+      ],
+      "screenshot": "https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/assets/og-image.png",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "ratingCount": "1"
+      }
+    }
+    </script>
+
+    <!-- Structured Data: FAQPage for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is ARPO free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. ARPO is completely free to download and use. There is no subscription, no paywalled features, and no ads. All features are included at no cost."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is Auto-Regulated Progressive Overload (ARPO)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ARPO is a training methodology that automatically adjusts your workout volume, intensity, and weight week-to-week based on your performance ratings and recovery feedback — so your program always matches your current fitness level."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is ARPO different from RP Hypertrophy or JeFit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ARPO offers similar auto-regulated, science-backed programming to apps like RP Hypertrophy and JeFit — but completely free with no subscription. It works fully offline with no account required and stores all data on your device."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does ARPO work without internet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. ARPO is 100% offline. All your workout data, exercise library, and training history are stored locally on your device. No internet connection is ever required."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --black: #000000;
+        --red: #DC2626;
+        --red-hover: #b91c1c;
+        --white: #ffffff;
+        --grey: #a0a0a0;
+        --dark-grey: #111111;
+        --border: #222222;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: 'Rubik', sans-serif;
+        background: var(--black);
+        color: var(--white);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 40px;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-logo {
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: var(--white);
+        text-decoration: none;
+      }
+
+      .nav-logo span {
+        color: var(--red);
+      }
+
+      .nav-cta {
+        display: inline-block;
+        padding: 10px 22px;
+        background: var(--red);
+        color: var(--white);
+        font-family: 'Rubik', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .nav-cta:hover {
+        background: var(--red-hover);
+      }
+
+      /* ── HERO ── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 120px 24px 80px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(220,38,38,0.12) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .hero-eyebrow {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 24px;
+        padding: 6px 14px;
+        border: 1px solid var(--red);
+      }
+
+      .hero h1 {
+        font-size: clamp(56px, 12vw, 120px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin-bottom: 16px;
+      }
+
+      .hero h1 span {
+        color: var(--red);
+      }
+
+      .hero-sub {
+        font-size: clamp(16px, 2.5vw, 22px);
+        font-weight: 400;
+        color: var(--grey);
+        max-width: 560px;
+        margin: 0 auto 48px;
+      }
+
+      .hero-sub strong {
+        color: var(--white);
+        font-weight: 600;
+      }
+
+      .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 36px;
+        background: var(--red);
+        color: var(--white);
+        font-family: 'Rubik', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .btn-primary:hover {
+        background: var(--red-hover);
+      }
+
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 36px;
+        background: transparent;
+        color: var(--white);
+        font-family: 'Rubik', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+      }
+
+      .btn-secondary:hover {
+        border-color: var(--grey);
+        color: var(--white);
+      }
+
+      .hero-note {
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--grey);
+      }
+
+      .hero-note span {
+        color: var(--red);
+      }
+
+      /* ── PROOF BAR ── */
+      .proof-bar {
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        background: var(--dark-grey);
+      }
+
+      .proof-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--grey);
+      }
+
+      .proof-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--red);
+        flex-shrink: 0;
+      }
+
+      /* ── SECTIONS ── */
+      section {
+        padding: 100px 24px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .section-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 16px;
+      }
+
+      .section-title {
+        font-size: clamp(28px, 4vw, 48px);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin-bottom: 20px;
+      }
+
+      .section-body {
+        font-size: 17px;
+        color: var(--grey);
+        max-width: 600px;
+        line-height: 1.7;
+      }
+
+      .section-body strong {
+        color: var(--white);
+      }
+
+      /* ── PROBLEM ── */
+      .problem {
+        border-top: 1px solid var(--border);
+      }
+
+      .problem-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        margin-top: 60px;
+      }
+
+      .problem-card {
+        background: var(--black);
+        padding: 40px;
+      }
+
+      .problem-card.bad {
+        opacity: 0.5;
+      }
+
+      .problem-card-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+
+      .problem-card.bad .problem-card-label {
+        color: var(--grey);
+      }
+
+      .problem-card.good .problem-card-label {
+        color: var(--red);
+      }
+
+      .problem-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        line-height: 1.2;
+      }
+
+      .problem-card p {
+        font-size: 15px;
+        color: var(--grey);
+        line-height: 1.6;
+      }
+
+      /* ── FEATURES ── */
+      .features {
+        border-top: 1px solid var(--border);
+      }
+
+      .features-header {
+        margin-bottom: 60px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--border);
+      }
+
+      .feature-card {
+        background: var(--black);
+        padding: 48px 40px;
+        border-left: 3px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      .feature-card:hover {
+        border-left-color: var(--red);
+      }
+
+      .feature-icon {
+        font-size: 28px;
+        margin-bottom: 20px;
+      }
+
+      .feature-card h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
+      }
+
+      .feature-card p {
+        font-size: 15px;
+        color: var(--grey);
+        line-height: 1.65;
+      }
+
+      /* ── HOW IT WORKS ── */
+      .how {
+        border-top: 1px solid var(--border);
+      }
+
+      .how-header {
+        margin-bottom: 60px;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+      }
+
+      .step {
+        background: var(--black);
+        padding: 48px 36px;
+        position: relative;
+      }
+
+      .step-num {
+        font-size: 72px;
+        font-weight: 900;
+        color: var(--border);
+        line-height: 1;
+        margin-bottom: 24px;
+        letter-spacing: -0.04em;
+      }
+
+      .step h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .step p {
+        font-size: 15px;
+        color: var(--grey);
+        line-height: 1.65;
+      }
+
+      .step-arrow {
+        display: none;
+      }
+
+      /* ── ALGORITHM CALLOUT ── */
+      .algo {
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        background: var(--dark-grey);
+        padding: 80px 24px;
+      }
+
+      .algo-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        align-items: center;
+      }
+
+      .algo-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+      }
+
+      .metric {
+        background: var(--dark-grey);
+        padding: 32px 28px;
+      }
+
+      .metric-value {
+        font-size: 48px;
+        font-weight: 900;
+        color: var(--red);
+        line-height: 1;
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
+      }
+
+      .metric-label {
+        font-size: 13px;
+        color: var(--grey);
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      /* ── CTA ── */
+      .cta-section {
+        border-top: 1px solid var(--border);
+        text-align: center;
+        padding: 120px 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cta-section::before {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 60%;
+        background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(220,38,38,0.1) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .cta-section .section-title {
+        max-width: 700px;
+        margin: 0 auto 20px;
+      }
+
+      .cta-section .section-body {
+        margin: 0 auto 48px;
+        max-width: 480px;
+        text-align: center;
+      }
+
+      .cta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--grey);
+        margin-bottom: 32px;
+      }
+
+      .cta-badge .dot {
+        width: 8px;
+        height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      .apple-icon {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+        flex-shrink: 0;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .footer-logo {
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: var(--white);
+        text-decoration: none;
+      }
+
+      .footer-logo span {
+        color: var(--red);
+      }
+
+      .footer-copy {
+        font-size: 13px;
+        color: var(--grey);
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        nav {
+          padding: 16px 20px;
+        }
+
+        .problem-grid,
+        .features-grid,
+        .steps,
+        .algo-inner,
+        .algo-metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .proof-bar {
+          padding: 16px 20px;
+          gap: 20px;
+        }
+
+        section {
+          padding: 70px 20px;
+        }
+
+        .feature-card,
+        .step,
+        .problem-card {
+          padding: 32px 24px;
+        }
+
+        .algo {
+          padding: 60px 20px;
+        }
+
+        footer {
+          padding: 32px 20px;
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav>
+      <a href="#" class="nav-logo">ARPO<span>.</span></a>
+      <a href="https://testflight.apple.com/join/pSH5dJ8C" class="nav-cta" target="_blank" rel="noopener">
+        Join Beta
+      </a>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">Now in Beta · iOS TestFlight</div>
+      <h1>TRAIN<br /><span>SMARTER.</span></h1>
+      <p class="hero-sub">
+        <strong>Auto-Regulated Progressive Overload.</strong> The workout app that reads your performance and adjusts your training — week after week, automatically.
+      </p>
+      <div class="hero-buttons">
+        <a href="https://testflight.apple.com/join/pSH5dJ8C" class="btn-primary" target="_blank" rel="noopener">
+          <svg class="apple-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+          </svg>
+          Join TestFlight Beta
+        </a>
+        <a href="#features" class="btn-secondary">See Features</a>
+      </div>
+      <p class="hero-note">Free during beta · iOS only · Android coming soon</p>
+    </div>
+
+    <!-- PROOF BAR -->
+    <div class="proof-bar">
+      <div class="proof-item"><div class="proof-dot"></div>80+ Exercises</div>
+      <div class="proof-item"><div class="proof-dot"></div>Auto-Progressive Overload</div>
+      <div class="proof-item"><div class="proof-dot"></div>7 Training Splits</div>
+      <div class="proof-item"><div class="proof-dot"></div>Mesocycle Programming</div>
+      <div class="proof-item"><div class="proof-dot"></div>100% Offline</div>
+      <div class="proof-item"><div class="proof-dot"></div>Science-Backed</div>
+    </div>
+
+    <!-- PROBLEM / SOLUTION -->
+    <section class="problem">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-title">Most apps track.<br />ARPO <span style="color:var(--red)">adapts.</span></h2>
+      <p class="section-body">You've outgrown apps that just log reps and weights. You need a program that thinks — one that knows when to push and when to back off.</p>
+
+      <div class="problem-grid">
+        <div class="problem-card bad">
+          <div class="problem-card-label">Other Apps</div>
+          <h3>Static programs that don't know you</h3>
+          <p>Same sets, same reps, every week. No adjustment for fatigue, soreness, or plateaus. You're left guessing when to add weight.</p>
+        </div>
+        <div class="problem-card good">
+          <div class="problem-card-label">ARPO</div>
+          <h3>Training that reacts to your performance</h3>
+          <p>After every set, ARPO reads how you felt. It adjusts next week's weight, sets, and intensity automatically — no guesswork required.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features" id="features">
+      <div class="features-header">
+        <div class="section-label">Features</div>
+        <h2 class="section-title">Everything you need.<br />Nothing you don't.</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📈</div>
+          <h3>Auto-Regulated Progressive Overload</h3>
+          <p>ARPO's algorithm adjusts your sets, weight, and RIR (Reps In Reserve) week-to-week based on your performance ratings and recovery feedback. No spreadsheets. No manual calculations.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗓</div>
+          <h3>Mesocycle-Based Programming</h3>
+          <p>Train in structured 4-week mesocycles with built-in deload weeks. Choose from 7 pre-built splits — Upper/Lower, Push Pull Legs, Full Body — or build your own custom routine.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💪</div>
+          <h3>80+ Exercise Library</h3>
+          <p>Every exercise includes an interactive anatomy map, muscle activation breakdown, and step-by-step instructions. Swap any exercise mid-workout for another in the same muscle group.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>Science-Backed Education</h3>
+          <p>Your rest timer isn't wasted time. ARPO surfaces real clinical research during rest periods — hypertrophy science, nutrition facts, and recovery insights — with links to source papers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏠</div>
+          <h3>Home Workout Mode</h3>
+          <p>No gym? No problem. ARPO automatically swaps barbell and machine exercises for dumbbell and bodyweight alternatives so you never miss a session.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Fully Offline. Completely Private.</h3>
+          <p>All your data lives on your device. No account required. No data sent to servers. ARPO works with zero internet connection — your training history is yours alone.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how">
+      <div class="how-header">
+        <div class="section-label">How It Works</div>
+        <h2 class="section-title">Up and running<br />in 3 steps.</h2>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Set Your Baseline</h3>
+          <p>Complete a quick onboarding. Enter your bodyweight, gender, and experience level. ARPO estimates your starting weights for every major lift automatically.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Choose Your Split</h3>
+          <p>Pick from 7 pre-built training templates or build a fully custom routine. Choose your training days, muscle groups, and exercises from the 80+ exercise library.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Train. Rate. Progress.</h3>
+          <p>Log each set, rate your recovery after each exercise, and ARPO handles the rest. Every week your program evolves based on how you actually performed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALGORITHM CALLOUT -->
+    <div class="algo">
+      <div class="algo-inner">
+        <div>
+          <div class="section-label">The Algorithm</div>
+          <h2 class="section-title">RIR Periodization.<br />Adaptive Recovery.<br /><span style="color:var(--red)">Real Results.</span></h2>
+          <p class="section-body" style="margin-top:20px;">
+            ARPO uses <strong>Reps In Reserve (RIR) periodization</strong> — training at 3→2→1 RIR across your mesocycle before a structured deload. Combined with per-exercise <strong>Adaptive Recovery Ratings (ARR)</strong>, the algorithm knows exactly when to push harder and when to pull back.
+          </p>
+        </div>
+        <div class="algo-metrics">
+          <div class="metric">
+            <div class="metric-value">4</div>
+            <div class="metric-label">Week mesocycles with auto deload</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">80+</div>
+            <div class="metric-label">Exercises with full metadata</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">7</div>
+            <div class="metric-label">Pre-built training splits</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">0</div>
+            <div class="metric-label">Data sent off your device</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPETITOR COMPARISON -->
+    <section class="how" style="border-top: 1px solid var(--border);">
+      <div class="how-header">
+        <div class="section-label">Why ARPO</div>
+        <h2 class="section-title">All the science.<br /><span style="color:var(--red)">None of the subscription.</span></h2>
+        <p class="section-body" style="margin-top:16px;">Apps like RP Hypertrophy and JeFit charge $10–$20/month for auto-regulated programming. ARPO gives you the same science-backed approach — completely free, forever.</p>
+      </div>
+
+      <div style="background:var(--border); display:grid; grid-template-columns:1fr; gap:1px;">
+        <!-- Header row -->
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--dark-grey); padding:16px 24px; gap:8px;">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey);">Feature</div>
+          <div style="font-size:13px; font-weight:800; color:var(--red); text-align:center;">ARPO</div>
+          <div style="font-size:13px; font-weight:600; color:var(--grey); text-align:center;">RP Hypertrophy</div>
+          <div style="font-size:13px; font-weight:600; color:var(--grey); text-align:center;">JeFit</div>
+        </div>
+        <!-- Rows -->
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--black); padding:16px 24px; gap:8px; align-items:center;">
+          <div style="font-size:15px; color:var(--white);">Auto-Regulated Progressive Overload</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:var(--grey); font-size:18px;">✗</div>
+        </div>
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--dark-grey); padding:16px 24px; gap:8px; align-items:center;">
+          <div style="font-size:15px; color:var(--white);">Mesocycle Programming + Deload</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:var(--grey); font-size:18px;">✗</div>
+        </div>
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--black); padding:16px 24px; gap:8px; align-items:center;">
+          <div style="font-size:15px; color:var(--white);">Free — No Subscription</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:var(--grey); font-size:14px;">$19.99/mo</div>
+          <div style="text-align:center; color:var(--grey); font-size:14px;">$7.99/mo</div>
+        </div>
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--dark-grey); padding:16px 24px; gap:8px; align-items:center;">
+          <div style="font-size:15px; color:var(--white);">Fully Offline — No Account</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:var(--grey); font-size:18px;">✗</div>
+          <div style="text-align:center; color:var(--grey); font-size:18px;">✗</div>
+        </div>
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--black); padding:16px 24px; gap:8px; align-items:center;">
+          <div style="font-size:15px; color:var(--white);">RIR-Based Periodization</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:var(--grey); font-size:18px;">✗</div>
+        </div>
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; background:var(--dark-grey); padding:16px 24px; gap:8px; align-items:center;">
+          <div style="font-size:15px; color:var(--white);">Custom Routine Builder</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+          <div style="text-align:center; color:#22c55e; font-size:18px;">✓</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ (SEO) -->
+    <section style="border-top: 1px solid var(--border);">
+      <div class="section-label">FAQ</div>
+      <h2 class="section-title" style="margin-bottom:48px;">Common questions.</h2>
+
+      <div style="display:flex; flex-direction:column; gap:1px; background:var(--border);">
+        <div style="background:var(--black); padding:36px 40px;">
+          <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">Is ARPO really free? No hidden costs?</h3>
+          <p style="font-size:15px; color:var(--grey); line-height:1.65;">Yes — completely free. No subscription, no in-app purchases, no ads, no paywalled features. Everything is included. Free during beta and the plan is to keep core features free.</p>
+        </div>
+        <div style="background:var(--dark-grey); padding:36px 40px;">
+          <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">How is ARPO different from RP Hypertrophy or JeFit?</h3>
+          <p style="font-size:15px; color:var(--grey); line-height:1.65;">RP Hypertrophy charges ~$19.99/month and JeFit ~$7.99/month for auto-regulated training. ARPO delivers the same science — auto-progressive overload, RIR periodization, mesocycle programming — at zero cost. It also works 100% offline with no account needed, which neither competitor offers.</p>
+        </div>
+        <div style="background:var(--black); padding:36px 40px;">
+          <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">What is Auto-Regulated Progressive Overload (ARPO)?</h3>
+          <p style="font-size:15px; color:var(--grey); line-height:1.65;">ARPO is a training methodology where your program automatically adjusts volume, intensity, and weight based on how you actually performed — not a fixed schedule. After each set you rate your recovery, and the algorithm recalculates next week's targets. No guesswork, no plateau.</p>
+        </div>
+        <div style="background:var(--dark-grey); padding:36px 40px;">
+          <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">Does it work without an internet connection?</h3>
+          <p style="font-size:15px; color:var(--grey); line-height:1.65;">Yes. ARPO is 100% offline-first. Your entire exercise library, workout history, and training data live on your device. No account, no cloud sync, no internet required — ever.</p>
+        </div>
+        <div style="background:var(--black); padding:36px 40px;">
+          <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">Is Android supported?</h3>
+          <p style="font-size:15px; color:var(--grey); line-height:1.65;">Not yet. ARPO is currently iOS only, available via TestFlight beta. Android support is planned for a future release. Sign up to be notified when it launches.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="cta-badge">
+        <div class="dot"></div>
+        Live on TestFlight — iOS Beta
+      </div>
+      <h2 class="section-title">Ready to train<br /><span style="color:var(--red)">with intelligence?</span></h2>
+      <p class="section-body">
+        Join the beta and be among the first to experience training that actually adapts to you. Free during the beta period.
+      </p>
+      <a href="https://testflight.apple.com/join/pSH5dJ8C" class="btn-primary" target="_blank" rel="noopener" style="font-size:18px; padding:20px 48px;">
+        <svg class="apple-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Join TestFlight Beta
+      </a>
+      <p class="hero-note" style="margin-top:20px;">iOS only · Android coming soon · <span>Free during beta</span></p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <a href="#" class="footer-logo">ARPO<span>.</span></a>
+      <p class="footer-copy">© 2025 ARPO Strength & Bodybuilding. All rights reserved.</p>
+    </footer>
+
+  </body>
+</html>
