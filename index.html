@@ -105,6 +105,14 @@
             "@type": "Answer",
             "text": "Yes. ARPO is 100% offline. All your workout data, exercise library, and training history are stored locally on your device. No internet connection is ever required."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the difference between Strength, Powerbuilding, and Hypertrophy goals?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ARPO offers three training goals that adjust rep targets, RIR periodization, and weight increments. Strength uses 1–5 reps and a 2→1→0 RIR progression for peak force. Hypertrophy uses 8–15 reps with 3→2→1 RIR to maximise muscle growth. Powerbuilding bridges both — 5–8 reps on compounds, 8–10 on isolation — building strength and size simultaneously. Any template works with any goal."
+          }
         }
       ]
     }
@@ -660,6 +668,99 @@
         color: var(--grey);
       }
 
+      /* ── GOALS SECTION ── */
+      .goals {
+        border-top: 1px solid var(--border);
+      }
+
+      .goals-header {
+        margin-bottom: 60px;
+      }
+
+      .goals-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+      }
+
+      .goal-card {
+        background: var(--black);
+        padding: 48px 36px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .goal-card.featured {
+        background: #0d0d0d;
+      }
+
+      .goal-badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--red);
+        border: 1px solid var(--red);
+        padding: 3px 8px;
+        margin-bottom: 20px;
+        width: fit-content;
+      }
+
+      .goal-name {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin-bottom: 12px;
+      }
+
+      .goal-reps {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 20px;
+      }
+
+      .goal-desc {
+        font-size: 15px;
+        color: var(--grey);
+        line-height: 1.65;
+        margin-bottom: 28px;
+        flex-grow: 1;
+      }
+
+      .goal-specs {
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .goal-spec {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+      }
+
+      .goal-spec-label {
+        color: var(--grey);
+        font-weight: 500;
+      }
+
+      .goal-spec-value {
+        color: var(--white);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+      }
+
       /* ── RESPONSIVE ── */
       @media (max-width: 768px) {
         nav {
@@ -668,6 +769,7 @@
 
         .problem-grid,
         .features-grid,
+        .goals-grid,
         .steps,
         .algo-inner,
         .algo-metrics {
@@ -736,6 +838,7 @@
       <div class="proof-item"><div class="proof-dot"></div>No Subscription Ever</div>
       <div class="proof-item"><div class="proof-dot"></div>80+ Exercises</div>
       <div class="proof-item"><div class="proof-dot"></div>Auto-Progressive Overload</div>
+      <div class="proof-item"><div class="proof-dot"></div>3 Training Goals</div>
       <div class="proof-item"><div class="proof-dot"></div>7 Training Splits</div>
       <div class="proof-item"><div class="proof-dot"></div>Mesocycle Programming</div>
       <div class="proof-item"><div class="proof-dot"></div>100% Offline</div>
@@ -772,72 +875,35 @@
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon">
-            <!-- Trend line / progressive overload -->
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4,32 13,20 20,25 29,10 36,14"/>
-              <polyline points="28,10 36,10 36,18"/>
-            </svg>
+            <img src="assets/icon-progression.png" alt="Progressive Overload" width="40" height="40" style="object-fit:contain;" />
           </div>
           <h3>Auto-Regulated Progressive Overload</h3>
           <p>ARPO's algorithm adjusts your sets, weight, and RIR (Reps In Reserve) week-to-week based on your performance ratings and recovery feedback. No spreadsheets. No manual calculations.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
-            <!-- Calendar / mesocycle -->
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="5" y="8" width="30" height="27" rx="0"/>
-              <line x1="5" y1="16" x2="35" y2="16"/>
-              <line x1="13" y1="5" x2="13" y2="11"/>
-              <line x1="27" y1="5" x2="27" y2="11"/>
-              <rect x="10" y="21" width="5" height="5" stroke-width="1.2" fill="currentColor"/>
-              <rect x="23" y="21" width="5" height="5" stroke-width="1.2"/>
-              <rect x="10" y="29" width="5" height="0" stroke-width="1.2"/>
-              <line x1="10" y1="30" x2="30" y2="30"/>
-            </svg>
+            <img src="assets/icon-periodization.png" alt="Mesocycle Programming" width="40" height="40" style="object-fit:contain;" />
           </div>
           <h3>Mesocycle-Based Programming</h3>
           <p>Train in structured 4-week mesocycles with built-in deload weeks. Choose from 7 pre-built splits — Upper/Lower, Push Pull Legs, Full Body — or build your own custom routine.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
-            <!-- Dumbbell -->
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="20" x2="28" y2="20"/>
-              <rect x="3" y="15" width="4" height="10"/>
-              <rect x="7" y="17" width="4" height="6"/>
-              <rect x="29" y="17" width="4" height="6"/>
-              <rect x="33" y="15" width="4" height="10"/>
-            </svg>
+            <img src="assets/icon-exercises.png" alt="Exercise Library" width="40" height="40" style="object-fit:contain;" />
           </div>
           <h3>80+ Exercise Library</h3>
           <p>Every exercise includes an interactive anatomy map, muscle activation breakdown, and step-by-step instructions. Swap any exercise mid-workout for another in the same muscle group.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
-            <!-- Brain -->
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 34 C20 34 9 30 7 22 C5 15 9 9 14 8 C16 7 18 8 20 9"/>
-              <path d="M20 34 C20 34 31 30 33 22 C35 15 31 9 26 8 C24 7 22 8 20 9"/>
-              <path d="M20 9 L20 34"/>
-              <path d="M7 20 C9 18 11 19 12 21"/>
-              <path d="M33 20 C31 18 29 19 28 21"/>
-              <path d="M10 27 C12 26 14 27 14 29"/>
-              <path d="M30 27 C28 26 26 27 26 29"/>
-            </svg>
+            <img src="assets/icon-science.png" alt="Science-Backed" width="40" height="40" style="object-fit:contain;" />
           </div>
           <h3>Science-Backed Education</h3>
           <p>Your rest timer isn't wasted time. ARPO surfaces real clinical research during rest periods — hypertrophy science, nutrition facts, and recovery insights — with links to source papers.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
-            <!-- House -->
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4,19 20,5 36,19"/>
-              <polyline points="8,16 8,36 32,36 32,16"/>
-              <rect x="15" y="25" width="10" height="11"/>
-              <line x1="14" y1="5" x2="14" y2="11"/>
-              <line x1="14" y1="5" x2="20" y2="5"/>
-            </svg>
+            <img src="assets/icon-algorithm.png" alt="Smart Algorithm" width="40" height="40" style="object-fit:contain;" />
           </div>
           <h3>Home Workout Mode</h3>
           <p>No gym? No problem. ARPO automatically swaps barbell and machine exercises for dumbbell and bodyweight alternatives so you never miss a session.</p>
@@ -845,7 +911,7 @@
         <div class="feature-card">
           <div class="feature-icon">
             <!-- Shield / offline lock -->
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;color:var(--white);">
               <path d="M20 4 L34 9 L34 21 C34 29 20 36 20 36 C20 36 6 29 6 21 L6 9 Z"/>
               <rect x="14" y="19" width="12" height="9" stroke-width="1.3"/>
               <path d="M15 19 L15 15 C15 12 25 12 25 15 L25 19"/>
@@ -873,8 +939,8 @@
         </div>
         <div class="step">
           <div class="step-num">02</div>
-          <h3>Choose Your Split</h3>
-          <p>Pick from 7 pre-built training templates or build a fully custom routine. Choose your training days, muscle groups, and exercises from the 80+ exercise library.</p>
+          <h3>Set Your Goal &amp; Split</h3>
+          <p>Choose your training goal — Strength, Powerbuilding, or Hypertrophy — then pick from 7 pre-built templates or build a fully custom routine from the 80+ exercise library.</p>
         </div>
         <div class="step">
           <div class="step-num">03</div>
@@ -884,14 +950,109 @@
       </div>
     </section>
 
+    <!-- CHOOSE YOUR GOAL -->
+    <section class="goals">
+      <div class="goals-header">
+        <div class="section-label">Training Goals</div>
+        <h2 class="section-title">Pick your goal.<br />ARPO builds the program.</h2>
+        <p class="section-body" style="margin-top:16px;">Any training split. Any template. Three distinct goals — each with its own rep ranges, RIR periodization, and progressive overload strategy.</p>
+      </div>
+
+      <div class="goals-grid">
+        <!-- STRENGTH -->
+        <div class="goal-card">
+          <div class="goal-badge">Strength</div>
+          <div class="goal-name">MAX FORCE</div>
+          <div class="goal-reps">1–5 reps · Low RIR</div>
+          <p class="goal-desc">
+            Train to move heavy weight. Lower rep ranges build peak strength through neural adaptation — your muscles learn to fire harder, not just bigger. Best for powerlifters, athletes, and anyone who wants to hit new PRs every mesocycle.
+          </p>
+          <div class="goal-specs">
+            <div class="goal-spec">
+              <span class="goal-spec-label">Compounds</span>
+              <span class="goal-spec-value">1–5 reps</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">Isolation</span>
+              <span class="goal-spec-value">4–6 reps</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">RIR Progression</span>
+              <span class="goal-spec-value">2 → 1 → 0</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">Weight Increment</span>
+              <span class="goal-spec-value">Smaller steps</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- POWERBUILDING -->
+        <div class="goal-card featured">
+          <div class="goal-badge">Powerbuilding</div>
+          <div class="goal-name">STRONG &amp; BIG</div>
+          <div class="goal-reps">5–8 reps · Moderate RIR</div>
+          <p class="goal-desc">
+            The middle ground. Heavier compound lifts build strength while moderate rep ranges accumulate enough volume for real muscle growth. You don't have to choose between looking strong and being strong.
+          </p>
+          <div class="goal-specs">
+            <div class="goal-spec">
+              <span class="goal-spec-label">Compounds</span>
+              <span class="goal-spec-value">5–8 reps</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">Isolation</span>
+              <span class="goal-spec-value">8–10 reps</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">RIR Progression</span>
+              <span class="goal-spec-value">3 → 2 → 1</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">Weight Increment</span>
+              <span class="goal-spec-value">Standard steps</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HYPERTROPHY -->
+        <div class="goal-card">
+          <div class="goal-badge">Hypertrophy</div>
+          <div class="goal-name">MAX MUSCLE</div>
+          <div class="goal-reps">8–12 reps · Higher RIR</div>
+          <p class="goal-desc">
+            Optimised for muscle growth. Higher rep ranges with controlled RIR create the metabolic stress and mechanical tension that drive hypertrophy. Deload weeks let your body supercompensate and come back stronger.
+          </p>
+          <div class="goal-specs">
+            <div class="goal-spec">
+              <span class="goal-spec-label">Compounds</span>
+              <span class="goal-spec-value">8–12 reps</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">Isolation</span>
+              <span class="goal-spec-value">10–15 reps</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">RIR Progression</span>
+              <span class="goal-spec-value">3 → 2 → 1</span>
+            </div>
+            <div class="goal-spec">
+              <span class="goal-spec-label">Weight Increment</span>
+              <span class="goal-spec-value">Standard steps</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ALGORITHM CALLOUT -->
     <div class="algo">
       <div class="algo-inner">
         <div>
           <div class="section-label">The Algorithm</div>
-          <h2 class="section-title">RIR Periodization.<br />Adaptive Recovery.<br /><span style="color:var(--red)">Real Results.</span></h2>
+          <h2 class="section-title">RIR Periodization.<br />Adaptive Recovery.<br /><span style="color:var(--red)">Three Goals.</span></h2>
           <p class="section-body" style="margin-top:20px;">
-            ARPO uses <strong>Reps In Reserve (RIR) periodization</strong> — training at 3→2→1 RIR across your mesocycle before a structured deload. Combined with per-exercise <strong>Adaptive Recovery Ratings (ARR)</strong>, the algorithm knows exactly when to push harder and when to pull back.
+            ARPO uses <strong>Reps In Reserve (RIR) periodization</strong> — training at progressive RIR across your mesocycle before a structured deload. The algorithm adapts rep targets, weight increments, and intensity thresholds per your goal: <strong>Strength</strong> (2→1→0 RIR), <strong>Powerbuilding</strong>, or <strong>Hypertrophy</strong> (3→2→1 RIR). Combined with per-exercise <strong>Adaptive Recovery Ratings (ARR)</strong>, it knows exactly when to push harder and when to pull back.
           </p>
         </div>
         <div class="algo-metrics">
@@ -992,6 +1153,10 @@
         <div style="background:var(--dark-grey); padding:36px 40px;">
           <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">Does it work without an internet connection?</h3>
           <p style="font-size:15px; color:var(--grey); line-height:1.65;">Yes. ARPO is 100% offline-first. Your entire exercise library, workout history, and training data live on your device. No account, no cloud sync, no internet required — ever.</p>
+        </div>
+        <div style="background:var(--dark-grey); padding:36px 40px;">
+          <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">What's the difference between Strength, Powerbuilding, and Hypertrophy?</h3>
+          <p style="font-size:15px; color:var(--grey); line-height:1.65;">These are the three training goals you choose when starting a program. <strong style="color:var(--white)">Strength</strong> trains heavy with 1–5 reps and lower RIR — optimised for peak force output and neural adaptation. <strong style="color:var(--white)">Hypertrophy</strong> uses 8–15 reps with a higher RIR window to maximise muscle growth through volume and metabolic stress. <strong style="color:var(--white)">Powerbuilding</strong> sits in between — 5–8 reps on compounds, 8–10 on isolation — building strength and size simultaneously. Any template works with any goal.</p>
         </div>
         <div style="background:var(--black); padding:36px 40px;">
           <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">Is Android supported?</h3>
