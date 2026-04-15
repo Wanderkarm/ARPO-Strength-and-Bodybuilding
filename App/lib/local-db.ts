@@ -471,10 +471,12 @@ export async function createWorkoutPlan(
       }
 
       const logId = generateId();
+      // original_exercise_id = the template's exercise (before any in-session swaps)
+      const originalExerciseId = te.exercise.id;
       await db.runAsync(
-        `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
-         VALUES (?, ?, ?, 1, ?, ?, ?, ?)`,
-        [logId, planId, exerciseId, day.dayNumber, targetSets, targetWeight, rir]
+        `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, original_exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
+         VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)`,
+        [logId, planId, exerciseId, originalExerciseId, day.dayNumber, targetSets, targetWeight, rir]
       );
 
       const repTarget = getRepTarget(exerciseCategory, goalType);
@@ -833,11 +835,7 @@ export async function getCompletedWorkoutHistory(): Promise<HistoryEntry[]> {
   return history;
 }
 
-export async function swapExercise(logId: string, newExerciseId: string): Promise<WorkoutLog | null> {
-  const db = getDb();
-  const log = await db.getFirstAsync<{ id: string }>("SELECT id FROM workout_logs WHERE id = ?", [logId]);
-  if (!log) return null;
-
+async function applyExerciseSwapToLog(db: any, logId: string, newExerciseId: string): Promise<WorkoutLog | null> {
   await db.runAsync("UPDATE workout_logs SET exercise_id = ? WHERE id = ?", [newExerciseId, logId]);
   await db.runAsync(
     "UPDATE set_logs SET reps_completed = NULL, weight_used = NULL, completed_at = NULL WHERE workout_log_id = ?",
@@ -848,10 +846,7 @@ export async function swapExercise(logId: string, newExerciseId: string): Promis
   const setRows = await db.getAllAsync<{
     id: string; set_number: number; target_weight: number; target_reps: number;
     reps_completed: number | null; weight_used: number | null; completed_at: string | null;
-  }>(
-    "SELECT * FROM set_logs WHERE workout_log_id = ? ORDER BY set_number ASC",
-    [logId]
-  );
+  }>("SELECT * FROM set_logs WHERE workout_log_id = ? ORDER BY set_number ASC", [logId]);
 
   const updatedLog = await db.getFirstAsync<{
     id: string; exercise_id: string; week_number: number; day_number: number;
@@ -882,6 +877,49 @@ export async function swapExercise(logId: string, newExerciseId: string): Promis
       completedAt: s.completed_at,
     })),
   };
+}
+
+export async function swapExercise(
+  logId: string,
+  newExerciseId: string,
+  scope: 'once' | 'permanent' = 'once'
+): Promise<WorkoutLog | null> {
+  const db = getDb();
+  const log = await db.getFirstAsync<{
+    id: string; workout_plan_id: string; day_number: number; original_exercise_id: string | null;
+  }>("SELECT id, workout_plan_id, day_number, original_exercise_id FROM workout_logs WHERE id = ?", [logId]);
+  if (!log) return null;
+
+  if (scope === 'permanent' && log.original_exercise_id) {
+    // Update all future uncompleted logs for the same exercise slot (same plan + day + original exercise)
+    await db.runAsync(
+      `UPDATE workout_logs SET exercise_id = ?
+       WHERE workout_plan_id = ? AND day_number = ? AND original_exercise_id = ?
+       AND completed_at IS NULL AND id != ?`,
+      [newExerciseId, log.workout_plan_id, log.day_number, log.original_exercise_id, logId]
+    );
+  }
+
+  return applyExerciseSwapToLog(db, logId, newExerciseId);
+}
+
+export async function resetExerciseToOriginal(logId: string): Promise<WorkoutLog | null> {
+  const db = getDb();
+  const log = await db.getFirstAsync<{ original_exercise_id: string | null }>(
+    "SELECT original_exercise_id FROM workout_logs WHERE id = ?", [logId]
+  );
+  if (!log?.original_exercise_id) return null;
+  return applyExerciseSwapToLog(db, logId, log.original_exercise_id);
+}
+
+export async function resetAllExercisesToOriginal(planId: string): Promise<void> {
+  const db = getDb();
+  // Restore all logs that have a known original and haven't been completed yet
+  await db.runAsync(
+    `UPDATE workout_logs SET exercise_id = original_exercise_id
+     WHERE workout_plan_id = ? AND original_exercise_id IS NOT NULL AND completed_at IS NULL`,
+    [planId]
+  );
 }
 
 export async function completeWorkout(

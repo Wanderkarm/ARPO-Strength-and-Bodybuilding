@@ -33,6 +33,8 @@ import {
   updateSorenessRating,
   resetWorkoutDay,
   swapExercise as swapExerciseDb,
+  resetExerciseToOriginal as resetExerciseToOriginalDb,
+  resetAllExercisesToOriginal as resetAllExercisesToOriginalDb,
   completeWorkout,
   updateExercise,
   type WorkoutPlan,
@@ -131,6 +133,9 @@ export default function WorkoutScreen() {
   const [allExercisesList, setAllExercisesList] = useState<Exercise[]>([]);
   const [resetModalVisible, setResetModalVisible] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [pendingSwapExerciseId, setPendingSwapExerciseId] = useState<string | null>(null);
+  const [swapScopeVisible, setSwapScopeVisible] = useState(false);
+  const [restoringExercise, setRestoringExercise] = useState(false);
   const [incompleteModalVisible, setIncompleteModalVisible] = useState(false);
   const [restTimerVisible, setRestTimerVisible] = useState(false);
   const [restTimerSeconds, setRestTimerSeconds] = useState(90);
@@ -607,14 +612,21 @@ export default function WorkoutScreen() {
     return true;
   });
 
-  async function handleSwapExercise(newExerciseId: string) {
+  function handleSelectForSwap(newExerciseId: string) {
+    setPendingSwapExerciseId(newExerciseId);
+    setSwapModalVisible(false);
+    setSwapScopeVisible(true);
+  }
+
+  async function handleConfirmSwap(scope: 'once' | 'permanent') {
+    if (!pendingSwapExerciseId) return;
     const logId = exerciseStates[currentExerciseIndex]?.logId;
     if (!logId) return;
     setSwapping(true);
+    setSwapScopeVisible(false);
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      const updated = await swapExerciseDb(logId, newExerciseId);
-
+      const updated = await swapExerciseDb(logId, pendingSwapExerciseId, scope);
       if (updated) {
         setExerciseStates((prev) => {
           const next = [...prev];
@@ -636,13 +648,66 @@ export default function WorkoutScreen() {
           return next;
         });
       }
-
-      setSwapModalVisible(false);
       setHomeGymOnly(false);
+      setPendingSwapExerciseId(null);
     } catch (err) {
       console.error(err);
     } finally {
       setSwapping(false);
+    }
+  }
+
+  async function handleRestoreThisExercise() {
+    const logId = exerciseStates[currentExerciseIndex]?.logId;
+    if (!logId) return;
+    setRestoringExercise(true);
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const updated = await resetExerciseToOriginalDb(logId);
+      if (updated) {
+        setExerciseStates((prev) => {
+          const next = [...prev];
+          next[currentExerciseIndex] = {
+            ...next[currentExerciseIndex],
+            exerciseId: updated.exerciseId,
+            exercise: updated.exercise,
+            sets: (updated.sets || []).map((s) => ({
+              setLogId: s.id,
+              setNumber: s.setNumber,
+              targetWeight: s.targetWeight,
+              targetReps: s.targetReps,
+              repsCompleted: s.repsCompleted !== null ? String(s.repsCompleted) : "",
+              weightUsed: s.weightUsed !== null ? String(s.weightUsed) : "",
+              feedback: null,
+            })),
+          };
+          return next;
+        });
+      }
+      setResetModalVisible(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRestoringExercise(false);
+    }
+  }
+
+  async function handleRestoreAllExercises() {
+    const storedPlanId = await AsyncStorage.getItem("activePlanId");
+    if (!storedPlanId) return;
+    setRestoringExercise(true);
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await resetAllExercisesToOriginalDb(storedPlanId);
+      setResetModalVisible(false);
+      // Reload plan — useEffect will re-derive exerciseStates
+      const p = await getWorkoutPlan(storedPlanId);
+      setPlan(p);
+      setCurrentExerciseIndex(0);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRestoringExercise(false);
     }
   }
 
@@ -1117,45 +1182,164 @@ export default function WorkoutScreen() {
         animationType="fade"
         onRequestClose={() => setResetModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
-          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, width: "100%", padding: 24 }}>
-            <Ionicons name="warning" size={32} color={Colors.primary} style={{ alignSelf: "center", marginBottom: 12 }} />
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
-              Reset Workout?
-            </Text>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 18, marginBottom: 24 }}>
-              This will clear all reps, weights, and recovery ratings you've entered for today's session. This cannot be undone.
-            </Text>
-            <Pressable
-              testID="confirm-reset-btn"
-              onPress={handleResetWorkout}
-              disabled={resetting}
-              style={({ pressed }) => ({
-                backgroundColor: Colors.primary,
-                paddingVertical: 14,
-                alignItems: "center",
-                marginBottom: 10,
-                opacity: pressed || resetting ? 0.7 : 1,
-              })}
-            >
-              {resetting ? (
-                <ActivityIndicator color={Colors.text} size="small" />
-              ) : (
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Yes, Reset
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, width: "100%" }}>
+
+            {/* ── RESET SESSION DATA ── */}
+            <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+                Reset Session Data
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
+                Clear all reps, weights, and recovery ratings entered today. Cannot be undone.
+              </Text>
+              <Pressable
+                testID="confirm-reset-btn"
+                onPress={handleResetWorkout}
+                disabled={resetting}
+                style={({ pressed }) => ({
+                  backgroundColor: Colors.primary,
+                  paddingVertical: 14,
+                  alignItems: "center",
+                  opacity: pressed || resetting ? 0.7 : 1,
+                })}
+              >
+                {resetting ? (
+                  <ActivityIndicator color={Colors.text} size="small" />
+                ) : (
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                    Reset Session Data
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+
+            {/* ── RESTORE EXERCISES ── */}
+            <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+                Restore Original Exercises
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
+                Undo exercise swaps and restore the template's original selections.
+              </Text>
+              <Pressable
+                onPress={handleRestoreThisExercise}
+                disabled={restoringExercise}
+                style={({ pressed }) => ({
+                  borderWidth: 1,
+                  borderColor: Colors.border,
+                  paddingVertical: 13,
+                  alignItems: "center",
+                  marginBottom: 8,
+                  opacity: pressed || restoringExercise ? 0.7 : 1,
+                })}
+              >
+                {restoringExercise ? (
+                  <ActivityIndicator color={Colors.text} size="small" />
+                ) : (
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                    Restore This Exercise
+                  </Text>
+                )}
+              </Pressable>
+              <Pressable
+                onPress={handleRestoreAllExercises}
+                disabled={restoringExercise}
+                style={({ pressed }) => ({
+                  borderWidth: 1,
+                  borderColor: Colors.border,
+                  paddingVertical: 13,
+                  alignItems: "center",
+                  opacity: pressed || restoringExercise ? 0.7 : 1,
+                })}
+              >
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                  Restore All Exercises
                 </Text>
-              )}
-            </Pressable>
+              </Pressable>
+            </View>
+
+            {/* ── CANCEL ── */}
             <Pressable
               testID="cancel-reset-btn"
               onPress={() => setResetModalVisible(false)}
               style={({ pressed }) => ({
-                borderWidth: 1,
-                borderColor: Colors.border,
-                paddingVertical: 14,
+                padding: 18,
                 alignItems: "center",
                 opacity: pressed ? 0.7 : 1,
               })}
+            >
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── SWAP SCOPE PICKER ── */}
+      <Modal
+        visible={swapScopeVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => { setSwapScopeVisible(false); setPendingSwapExerciseId(null); }}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border }}>
+            <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>
+                Apply change to...
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                How long should this swap last?
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => handleConfirmSwap('once')}
+              disabled={swapping}
+              style={({ pressed }) => ({
+                padding: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.border,
+                opacity: pressed || swapping ? 0.7 : 1,
+              })}
+            >
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                Just this session
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                Next session reverts to the original exercise
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => handleConfirmSwap('permanent')}
+              disabled={swapping}
+              style={({ pressed }) => ({
+                padding: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.border,
+                opacity: pressed || swapping ? 0.7 : 1,
+              })}
+            >
+              {swapping ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                    Every session from now on
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                    Updates all future sessions in this plan
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => { setSwapScopeVisible(false); setPendingSwapExerciseId(null); }}
+              style={({ pressed }) => ({ padding: 18, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
                 Cancel
@@ -1230,7 +1414,7 @@ export default function WorkoutScreen() {
                 renderItem={({ item }) => (
                   <Pressable
                     testID={`swap-option-${item.id}`}
-                    onPress={() => handleSwapExercise(item.id)}
+                    onPress={() => handleSelectForSwap(item.id)}
                     style={({ pressed }) => ({
                       flexDirection: "row",
                       alignItems: "center",
