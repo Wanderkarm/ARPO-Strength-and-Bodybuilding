@@ -580,6 +580,72 @@
         line-height: 1.4;
       }
 
+      /* ── RESEARCH ── */
+      .research {
+        border-top: 1px solid var(--border);
+      }
+
+      .research-header {
+        margin-bottom: 40px;
+      }
+
+      .research-intro {
+        font-size: 15px;
+        color: var(--grey);
+        max-width: 640px;
+        line-height: 1.7;
+        margin-top: 12px;
+      }
+
+      .research-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--border);
+      }
+
+      .research-group {
+        background: var(--black);
+        padding: 36px 40px;
+      }
+
+      .research-group-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--red);
+        margin-bottom: 20px;
+      }
+
+      .research-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .research-item {
+        padding-left: 16px;
+        border-left: 2px solid var(--border);
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--grey);
+      }
+
+      .research-item strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--white);
+        margin-bottom: 2px;
+      }
+
+      .research-item em {
+        font-style: italic;
+        color: #777;
+      }
+
       /* ── CTA ── */
       .cta-section {
         border-top: 1px solid var(--border);
@@ -770,6 +836,7 @@
         .problem-grid,
         .features-grid,
         .goals-grid,
+        .research-grid,
         .steps,
         .algo-inner,
         .algo-metrics {
@@ -1161,6 +1228,81 @@
         <div style="background:var(--black); padding:36px 40px;">
           <h3 style="font-size:18px; font-weight:700; margin-bottom:10px;">Is Android supported?</h3>
           <p style="font-size:15px; color:var(--grey); line-height:1.65;">Not yet. ARPO is currently iOS only, available via TestFlight beta. Android support is planned for a future release. Sign up to be notified when it launches.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESEARCH -->
+    <section class="research">
+      <div class="research-header">
+        <div class="section-label">Science</div>
+        <h2 class="section-title">Research-backed.<br />Not marketing.</h2>
+        <p class="research-intro">ARPO's algorithm is built on peer-reviewed exercise science — not trends. Every training parameter has a citation behind it.</p>
+      </div>
+
+      <div class="research-grid">
+        <div class="research-group">
+          <div class="research-group-title">Progressive Overload &amp; Rep Ranges</div>
+          <ul class="research-list">
+            <li class="research-item">
+              <strong>Schoenfeld et al. (2017)</strong>
+              Strength and hypertrophy adaptations between low- vs. high-load resistance training. <em>Journal of Strength &amp; Conditioning Research.</em>
+            </li>
+            <li class="research-item">
+              <strong>Kraemer &amp; Ratamess (2004)</strong>
+              Fundamentals of resistance training: Progression and exercise prescription. <em>Medicine &amp; Science in Sports &amp; Exercise.</em>
+            </li>
+            <li class="research-item">
+              <strong>Morton et al. (2016)</strong>
+              Neither load nor systemic hormones determine hypertrophy — muscle protein synthesis is similar across heavy and light loads taken to failure. <em>Applied Physiology, Nutrition, and Metabolism.</em>
+            </li>
+          </ul>
+        </div>
+
+        <div class="research-group" style="background:var(--dark-grey);">
+          <div class="research-group-title">RIR &amp; Autoregulation</div>
+          <ul class="research-list">
+            <li class="research-item">
+              <strong>Zourdos et al. (2016)</strong>
+              Novel resistance training-specific RPE scale measuring repetitions in reserve. <em>Journal of Strength &amp; Conditioning Research.</em>
+            </li>
+            <li class="research-item">
+              <strong>Helms et al. (2016)</strong>
+              RPE and percentage 1RM autoregulation in powerlifting: practical applications. <em>PeerJ.</em>
+            </li>
+          </ul>
+        </div>
+
+        <div class="research-group" style="background:var(--dark-grey);">
+          <div class="research-group-title">Hypertrophy Mechanisms</div>
+          <ul class="research-list">
+            <li class="research-item">
+              <strong>Schoenfeld (2010)</strong>
+              The mechanisms of muscle hypertrophy and their application to resistance training — mechanical tension, metabolic stress, and muscle damage. <em>Journal of Strength &amp; Conditioning Research.</em>
+            </li>
+            <li class="research-item">
+              <strong>Schoenfeld et al. (2021)</strong>
+              Moderate loads produce both strength and hypertrophy — evidence for powerbuilding rep ranges (6–10 reps). <em>Journal of Human Kinetics.</em>
+            </li>
+          </ul>
+        </div>
+
+        <div class="research-group">
+          <div class="research-group-title">Periodisation &amp; Deload</div>
+          <ul class="research-list">
+            <li class="research-item">
+              <strong>Rhea &amp; Alderman (2004)</strong>
+              Meta-analysis confirming periodised programming produces superior strength gains vs. static volume. <em>Journal of Strength &amp; Conditioning Research.</em>
+            </li>
+            <li class="research-item">
+              <strong>Moritani &amp; deVries (1979)</strong>
+              Neural vs. hypertrophic contributions to strength gains — foundational evidence that early-phase strength is primarily neural. <em>American Journal of Physical Medicine.</em>
+            </li>
+            <li class="research-item">
+              <strong>Zatsiorsky &amp; Kraemer</strong>
+              Supercompensation theory and structured deload application. <em>Science and Practice of Strength Training.</em>
+            </li>
+          </ul>
         </div>
       </div>
     </section>
