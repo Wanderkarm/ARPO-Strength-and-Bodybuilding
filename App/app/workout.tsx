@@ -986,7 +986,14 @@ export default function WorkoutScreen() {
 
         {/* Per-exercise ratings — appear inline as soon as all sets are complete */}
         {isExerciseComplete(currentEx) && (
-          <View style={{ marginHorizontal: 20, marginTop: 20, borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
+          <View
+            onLayout={(e) => {
+              // Auto-scroll to the rating strip the moment it first appears
+              const y = e.nativeEvent.layout.y;
+              setTimeout(() => scrollRef.current?.scrollTo({ y: y - 16, animated: true }), 80);
+            }}
+            style={{ marginHorizontal: 20, marginTop: 20, borderWidth: 1, borderColor: Colors.primary + "66", padding: 16 }}
+          >
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14 }}>
               Rate This Exercise
             </Text>
