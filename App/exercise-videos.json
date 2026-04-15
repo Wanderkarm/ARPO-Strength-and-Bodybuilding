@@ -1,0 +1,614 @@
+[
+  {
+    "name": "High Bar Squat",
+    "category": "QUADS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/2-o_-HTPhv8"
+  },
+  {
+    "name": "Leg Press",
+    "category": "QUADS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/mJSsWpuyiCM"
+  },
+  {
+    "name": "Hack Squat",
+    "category": "QUADS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/EdtaJRBqwes"
+  },
+  {
+    "name": "Leg Extension",
+    "category": "QUADS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/YyvSfVjQeL0"
+  },
+  {
+    "name": "Front Squat",
+    "category": "QUADS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/m4ytaCJZpl0"
+  },
+  {
+    "name": "Dumbbell Goblet Squat",
+    "category": "QUADS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/MeIiIdhvXT4"
+  },
+  {
+    "name": "Dumbbell Bulgarian Split Squat",
+    "category": "QUADS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/2C-uNgKwPLE"
+  },
+  {
+    "name": "Dumbbell Lunges",
+    "category": "QUADS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/D7KaRcUTQeE"
+  },
+  {
+    "name": "Bodyweight Sissy Squat",
+    "category": "QUADS",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/pY7X2qGAMGY"
+  },
+  {
+    "name": "Dumbbell Step Ups",
+    "category": "QUADS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/dQqApCGd5Ss"
+  },
+  {
+    "name": "Barbell Hip Thrust",
+    "category": "GLUTES",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/xDmFkJxPzeM"
+  },
+  {
+    "name": "Barbell Romanian Deadlift",
+    "category": "GLUTES",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/JCXUYuzwNrM"
+  },
+  {
+    "name": "Cable Pull Through",
+    "category": "GLUTES",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/ArPaAX_-TRg"
+  },
+  {
+    "name": "Hip Abduction Machine",
+    "category": "GLUTES",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/FE4WljMwbdU"
+  },
+  {
+    "name": "Dumbbell Hip Thrust",
+    "category": "GLUTES",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/SEdqd1n0cvg"
+  },
+  {
+    "name": "Dumbbell Romanian Deadlift",
+    "category": "GLUTES",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/FQKfr1YDhEk"
+  },
+  {
+    "name": "Bodyweight Glute Bridge",
+    "category": "GLUTES",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/OUgsJ8-Vi0E"
+  },
+  {
+    "name": "Dumbbell Sumo Deadlift",
+    "category": "GLUTES",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/1uDiW5--rAE"
+  },
+  {
+    "name": "Lying Leg Curl",
+    "category": "HAMSTRINGS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/1Tq3QdYUuHs"
+  },
+  {
+    "name": "Seated Leg Curl",
+    "category": "HAMSTRINGS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/Orxowest56U"
+  },
+  {
+    "name": "Barbell Stiff Leg Deadlift",
+    "category": "HAMSTRINGS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/1uDiW5--rAE"
+  },
+  {
+    "name": "Glute Ham Raise",
+    "category": "HAMSTRINGS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/N9sC2sKlJNA"
+  },
+  {
+    "name": "Dumbbell Stiff Leg Deadlift",
+    "category": "HAMSTRINGS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/cYKYGwcg0U8"
+  },
+  {
+    "name": "Dumbbell Single Leg Deadlift",
+    "category": "HAMSTRINGS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/iDKmW_5kCNI"
+  },
+  {
+    "name": "Bodyweight Nordic Curl",
+    "category": "HAMSTRINGS",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/d8VoiKoEe_Q"
+  },
+  {
+    "name": "Dumbbell Lying Leg Curl",
+    "category": "HAMSTRINGS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/SNLA25hP04E"
+  },
+  {
+    "name": "Medium Grip Bench Press",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/Dl-by6_vATQ"
+  },
+  {
+    "name": "Machine Chest Press",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/NwzUje3z0qY"
+  },
+  {
+    "name": "Cable Fly",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/Iwe6AmxVf7o"
+  },
+  {
+    "name": "Pec Deck Machine",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/Z57CtFmRMxA"
+  },
+  {
+    "name": "Dumbbell Flat Bench Press",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/VmB1G1K7v94"
+  },
+  {
+    "name": "Dumbbell Fly",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/eozdVDA78K0"
+  },
+  {
+    "name": "Bodyweight Push Up",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/IODxDxX7oi4"
+  },
+  {
+    "name": "Dumbbell Squeeze Press",
+    "category": "HORIZONTAL PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/DIzziGJI0nk"
+  },
+  {
+    "name": "Incline Barbell Bench Press",
+    "category": "INCLINE PUSH",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/SrqOu55lrYU"
+  },
+  {
+    "name": "Incline Machine Press",
+    "category": "INCLINE PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/NwzUje3z0qY"
+  },
+  {
+    "name": "Low to High Cable Fly",
+    "category": "INCLINE PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/Iwe6AmxVf7o"
+  },
+  {
+    "name": "Dumbbell Incline Bench Press",
+    "category": "INCLINE PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/8iPEnn-ltC8"
+  },
+  {
+    "name": "Dumbbell Incline Fly",
+    "category": "INCLINE PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/bDaIL_wFcuo"
+  },
+  {
+    "name": "Bodyweight Incline Push Up",
+    "category": "INCLINE PUSH",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/cfns5VDVVvk"
+  },
+  {
+    "name": "Standing Barbell Shoulder Press",
+    "category": "VERTICAL PUSH",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/n9RZ6FEthGU"
+  },
+  {
+    "name": "Seated Barbell Shoulder Press",
+    "category": "VERTICAL PUSH",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/oBGeXxnigsQ"
+  },
+  {
+    "name": "Machine Shoulder Press",
+    "category": "VERTICAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/Wqq43dKnIBs"
+  },
+  {
+    "name": "Machine Lateral Raise",
+    "category": "VERTICAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/FeJP4E4Z-PY"
+  },
+  {
+    "name": "Cable Lateral Raise",
+    "category": "VERTICAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/PPrzBWZDOhA"
+  },
+  {
+    "name": "Dumbbell Shoulder Press",
+    "category": "VERTICAL PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/qEwKCR5JCog"
+  },
+  {
+    "name": "Dumbbell Lateral Raise",
+    "category": "VERTICAL PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/3VcKaXpzqRo"
+  },
+  {
+    "name": "Dumbbell Arnold Press",
+    "category": "VERTICAL PUSH",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/6Z15_WdXmVw"
+  },
+  {
+    "name": "Bodyweight Pike Push Up",
+    "category": "VERTICAL PUSH",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/sposDXWEB0A"
+  },
+  {
+    "name": "Barbell Bent Over Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/o2qSVwxiFk4"
+  },
+  {
+    "name": "Seated Cable Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/GZbfZ033f74"
+  },
+  {
+    "name": "T-Bar Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/j3Igk5nyZE4"
+  },
+  {
+    "name": "Machine Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/ECFMcGAx5LI"
+  },
+  {
+    "name": "Chest Supported Row Machine",
+    "category": "HORIZONTAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/H75im9fAUMc"
+  },
+  {
+    "name": "Dumbbell Single Arm Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/pYcpY20QaE8"
+  },
+  {
+    "name": "Dumbbell Bent Over Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/6TSP1TRMUzs"
+  },
+  {
+    "name": "Bodyweight Inverted Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/KOaCM1HMwU0"
+  },
+  {
+    "name": "Dumbbell Seal Row",
+    "category": "HORIZONTAL BACK",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/_7GE0jhgagg"
+  },
+  {
+    "name": "Normal Grip Pulldown",
+    "category": "VERTICAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/gQ179IUjMsQ"
+  },
+  {
+    "name": "Wide Grip Pulldown",
+    "category": "VERTICAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/JEb-dwU3VNI"
+  },
+  {
+    "name": "Close Grip Pulldown",
+    "category": "VERTICAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/ecRF8ERf2q4"
+  },
+  {
+    "name": "Straight Arm Pulldown",
+    "category": "VERTICAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/AjCCGN2qvP0"
+  },
+  {
+    "name": "Bodyweight Pull Up",
+    "category": "VERTICAL BACK",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/eGo4IYlbE5g"
+  },
+  {
+    "name": "Bodyweight Chin Up",
+    "category": "VERTICAL BACK",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/brhRXlOhjai"
+  },
+  {
+    "name": "Dumbbell Pullover",
+    "category": "VERTICAL BACK",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/FK4rHfWKEac"
+  },
+  {
+    "name": "Bodyweight Lat Pulldown (Band)",
+    "category": "VERTICAL BACK",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/LLwVTRq3tBo"
+  },
+  {
+    "name": "Barbell Curl",
+    "category": "BICEPS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/kwG2ipFRgfo"
+  },
+  {
+    "name": "EZ Bar Curl",
+    "category": "BICEPS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/zG2xJ0Q5QtI"
+  },
+  {
+    "name": "Cable Curl",
+    "category": "BICEPS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/NFzTWp2qpiE"
+  },
+  {
+    "name": "Preacher Curl Machine",
+    "category": "BICEPS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/fIWP-FRFNU0"
+  },
+  {
+    "name": "Dumbbell Bicep Curl",
+    "category": "BICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/ykJmrZ5v0Oo"
+  },
+  {
+    "name": "Dumbbell Hammer Curl",
+    "category": "BICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/zC3nLlEvin4"
+  },
+  {
+    "name": "Dumbbell Incline Curl",
+    "category": "BICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/soxrZlIl35U"
+  },
+  {
+    "name": "Dumbbell Concentration Curl",
+    "category": "BICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/Jvj2wV0vOYU"
+  },
+  {
+    "name": "Close Grip Bench Press",
+    "category": "TRICEPS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/nEF0bv2FW94"
+  },
+  {
+    "name": "Cable Tricep Pushdown",
+    "category": "TRICEPS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/2-LAMcpzODU"
+  },
+  {
+    "name": "Cable Overhead Tricep Extension",
+    "category": "TRICEPS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/kiuVA0gs3EI"
+  },
+  {
+    "name": "Tricep Dip Machine",
+    "category": "TRICEPS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/7VpW50n8jcY"
+  },
+  {
+    "name": "Dumbbell Overhead Tricep Extension",
+    "category": "TRICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/_gsUck-7M74"
+  },
+  {
+    "name": "Dumbbell Skull Crusher",
+    "category": "TRICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/d_KZxkY_0cM"
+  },
+  {
+    "name": "Dumbbell Kickback",
+    "category": "TRICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/ZO81bExngMI"
+  },
+  {
+    "name": "Bodyweight Diamond Push Up",
+    "category": "TRICEPS",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/J0DnG1_S3li"
+  },
+  {
+    "name": "Dips",
+    "category": "TRICEPS",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/2z8JmcrW-As"
+  },
+  {
+    "name": "Calves on Leg Press",
+    "category": "CALVES",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/KTi2hk2McfY"
+  },
+  {
+    "name": "Single Leg Dumbbell Calf Raise",
+    "category": "CALVES",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/3UWi44yN-wM"
+  },
+  {
+    "name": "Standing Calf Raise",
+    "category": "CALVES",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/YMmgqO8Jo-k"
+  },
+  {
+    "name": "Seated Calf Raise",
+    "category": "CALVES",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/JbyjNymZOt0"
+  },
+  {
+    "name": "Barbell Shrug",
+    "category": "TRAPS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/cJRVVxmytaM"
+  },
+  {
+    "name": "Dumbbell Shrug",
+    "category": "TRAPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/cJRVVxmytaM"
+  },
+  {
+    "name": "Cable Facepull",
+    "category": "REAR DELTS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/rep-qVOkqgk"
+  },
+  {
+    "name": "Dumbbell Rear Lateral Raise",
+    "category": "REAR DELTS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/EA7u4Q_8HQ0"
+  },
+  {
+    "name": "Reverse Pec Deck",
+    "category": "REAR DELTS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/5YK4bgzXDp0"
+  },
+  {
+    "name": "Machine Crunch",
+    "category": "ABS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/2fbujeH3F0E"
+  },
+  {
+    "name": "Cable Crunch",
+    "category": "ABS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/AV5PmrJqTvE"
+  },
+  {
+    "name": "Hanging Leg Raise",
+    "category": "ABS",
+    "equipment": "BODYWEIGHT",
+    "defaultVideoUrl": "https://youtu.be/hdng3Nm1x_E"
+  },
+  {
+    "name": "Conventional Deadlift",
+    "category": "GLUTES",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/op9kVnSso6Q"
+  },
+  {
+    "name": "Sumo Deadlift",
+    "category": "GLUTES",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/LGIS92W8Hzs"
+  },
+  {
+    "name": "Barbell Walking Lunge",
+    "category": "QUADS",
+    "equipment": "BARBELL",
+    "defaultVideoUrl": "https://youtu.be/L8fvypPrzzs"
+  },
+  {
+    "name": "45 Degree Back Raise",
+    "category": "HAMSTRINGS",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/ph3pddpKzzw"
+  },
+  {
+    "name": "Underhand Pulldown",
+    "category": "VERTICAL BACK",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/ecRF8ERf2q4"
+  },
+  {
+    "name": "Cable Upright Row",
+    "category": "VERTICAL PUSH",
+    "equipment": "MACHINE",
+    "defaultVideoUrl": "https://youtu.be/um3VVzqunPU"
+  },
+  {
+    "name": "Dumbbell Twist Curl",
+    "category": "BICEPS",
+    "equipment": "DUMBBELL",
+    "defaultVideoUrl": "https://youtu.be/ykJmrZ5v0Oo"
+  }
+]

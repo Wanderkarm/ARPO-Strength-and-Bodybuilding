@@ -25,6 +25,7 @@ import {
   switchGymType,
   getAllExercises,
   getWorkoutPlan,
+  getNutritionProfile,
   type GymType,
 } from "@/lib/local-db";
 import type { GoalType } from "@/utils/volumeLandmarks";
@@ -109,6 +110,7 @@ export default function SettingsScreen() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
+  const [nutritionConfigured, setNutritionConfigured] = useState(false);
 
   // User profile
   const [gender, setGender] = useState("MALE");
@@ -142,6 +144,8 @@ export default function SettingsScreen() {
           setExperience(profile.experience);
           setBodyweightInput(profile.bodyweight ? String(profile.bodyweight) : "");
         }
+        const nutrition = await getNutritionProfile(uid);
+        setNutritionConfigured(!!(nutrition?.heightCm && nutrition?.age));
       }
 
       const pid = await AsyncStorage.getItem("activePlanId");
@@ -519,6 +523,62 @@ export default function SettingsScreen() {
             </View>
           </>
         )}
+
+        {/* ── Nutrition ── */}
+        <SectionHeader title="Nutrition" />
+        <Pressable
+          onPress={() => router.push(nutritionConfigured ? "/nutrition" : "/nutrition-setup")}
+          style={({ pressed }) => ({
+            borderWidth: 1,
+            borderColor: Colors.border,
+            padding: 14,
+            marginBottom: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{
+              width: 34,
+              height: 34,
+              backgroundColor: Colors.bgAccent,
+              borderWidth: 1,
+              borderColor: Colors.border,
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Ionicons name="nutrition-outline" size={18} color={Colors.primary} />
+            </View>
+            <View>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                Nutrition Targets
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                {nutritionConfigured
+                  ? "Calories, macros & meal examples"
+                  : "Set up your calorie & macro targets"}
+              </Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            {!nutritionConfigured && (
+              <View style={{
+                backgroundColor: Colors.primary + "22",
+                borderWidth: 1,
+                borderColor: Colors.primary + "55",
+                paddingHorizontal: 7,
+                paddingVertical: 3,
+              }}>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                  New
+                </Text>
+              </View>
+            )}
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </View>
+        </Pressable>
 
         {/* ── Profile ── */}
         <SectionHeader title="Profile" />

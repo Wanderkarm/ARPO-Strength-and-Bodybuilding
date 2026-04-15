@@ -416,7 +416,7 @@ export default function ProgressScreen() {
                 >
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                      {landmarks.displayName}
+                      {muscleLandmarks.displayName}
                     </Text>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                       <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text }}>

@@ -415,6 +415,72 @@ export async function updateUserBodyweight(userId: string, bodyweight: number): 
   await db.runAsync("UPDATE users SET bodyweight = ? WHERE id = ?", [bodyweight, userId]);
 }
 
+export interface NutritionProfile {
+  heightCm: number | null;
+  age: number | null;
+  activityLevel: string;
+  bodyGoal: string;
+  targetWeightKg: number | null;
+  weeksToGoal: number | null;
+}
+
+export async function getNutritionProfile(userId: string): Promise<NutritionProfile | null> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{
+    height_cm: number | null;
+    age: number | null;
+    activity_level: string;
+    body_goal: string;
+    target_weight_kg: number | null;
+    weeks_to_goal: number | null;
+  }>(
+    "SELECT height_cm, age, activity_level, body_goal, target_weight_kg, weeks_to_goal FROM users WHERE id = ?",
+    [userId]
+  );
+  if (!row) return null;
+  return {
+    heightCm: row.height_cm,
+    age: row.age,
+    activityLevel: row.activity_level ?? "moderate",
+    bodyGoal: row.body_goal ?? "recomp",
+    targetWeightKg: row.target_weight_kg,
+    weeksToGoal: row.weeks_to_goal,
+  };
+}
+
+export async function updateNutritionProfile(
+  userId: string,
+  profile: {
+    heightCm: number;
+    age: number;
+    activityLevel: string;
+    bodyGoal: string;
+    targetWeightKg?: number | null;
+    weeksToGoal?: number | null;
+  }
+): Promise<void> {
+  const db = getDb();
+  await db.runAsync(
+    `UPDATE users SET
+      height_cm = ?,
+      age = ?,
+      activity_level = ?,
+      body_goal = ?,
+      target_weight_kg = ?,
+      weeks_to_goal = ?
+    WHERE id = ?`,
+    [
+      profile.heightCm,
+      profile.age,
+      profile.activityLevel,
+      profile.bodyGoal,
+      profile.targetWeightKg ?? null,
+      profile.weeksToGoal ?? null,
+      userId,
+    ]
+  );
+}
+
 export async function updatePlanGoalType(planId: string, goalType: GoalType): Promise<void> {
   const db = getDb();
   await db.runAsync("UPDATE workout_plans SET goal_type = ? WHERE id = ?", [goalType, planId]);
@@ -803,9 +869,10 @@ export async function skipSession(
     for (const log of allWeekLogs) {
       let nextSets = log.target_sets;
       let nextWeight = log.target_weight;
+      let exercise: { category: string } | null | undefined = undefined;
 
       if (log.is_skipped === 0) {
-        const exercise = await db.getFirstAsync<{ category: string }>(
+        exercise = await db.getFirstAsync<{ category: string }>(
           "SELECT category FROM exercises WHERE id = ?",
           [log.exercise_id]
         );
@@ -974,7 +1041,7 @@ export async function getCompletedWorkoutHistory(): Promise<HistoryEntry[]> {
   return history;
 }
 
-async function applyExerciseSwapToLog(db: any, logId: string, newExerciseId: string): Promise<WorkoutLog | null> {
+async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: string, newExerciseId: string): Promise<WorkoutLog | null> {
   await db.runAsync("UPDATE workout_logs SET exercise_id = ? WHERE id = ?", [newExerciseId, logId]);
   await db.runAsync(
     "UPDATE set_logs SET reps_completed = NULL, weight_used = NULL, completed_at = NULL WHERE workout_log_id = ?",

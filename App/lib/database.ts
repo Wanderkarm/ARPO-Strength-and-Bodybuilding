@@ -29,6 +29,12 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN is_permanent_swap INTEGER NOT NULL DEFAULT 0`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN pump_rating INTEGER`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN gym_type TEXT NOT NULL DEFAULT 'GYM'`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN height_cm REAL`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN age INTEGER`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN activity_level TEXT NOT NULL DEFAULT 'moderate'`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN body_goal TEXT NOT NULL DEFAULT 'recomp'`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN target_weight_kg REAL`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN weeks_to_goal INTEGER`).catch(() => {});
 
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS users (

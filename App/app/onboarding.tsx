@@ -264,7 +264,7 @@ export default function OnboardingScreen() {
                 </View>
                 <Text
                   style={{
-                    fontFamily: "Rubik_900Black" ?? "Rubik_700Bold",
+                    fontFamily: "Rubik_700Bold",
                     fontSize: 32,
                     color: weightUnit === "lbs" ? Colors.primary : Colors.textMuted,
                     letterSpacing: -1,
