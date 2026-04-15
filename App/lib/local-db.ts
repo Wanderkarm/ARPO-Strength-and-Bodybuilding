@@ -198,6 +198,8 @@ export interface WorkoutLog {
   targetWeight: number;
   targetRIR: string;
   sorenessRating: number | null;
+  /** Pump quality 1–5: 1=no pump, 3=sweet spot, 5=extreme pump */
+  pumpRating: number | null;
   completedAt: string | null;
   isSkipped: boolean;
   exercise: Exercise;
@@ -507,7 +509,8 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
   const logRows = await db.getAllAsync<{
     id: string; exercise_id: string; week_number: number; day_number: number;
     target_sets: number; target_weight: number; target_rir: string;
-    soreness_rating: number | null; completed_at: string | null; is_skipped: number;
+    soreness_rating: number | null; pump_rating: number | null;
+    completed_at: string | null; is_skipped: number;
   }>(
     "SELECT * FROM workout_logs WHERE workout_plan_id = ? ORDER BY week_number ASC, day_number ASC",
     [planId]
@@ -533,6 +536,7 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
       targetWeight: log.target_weight,
       targetRIR: log.target_rir,
       sorenessRating: log.soreness_rating,
+      pumpRating: log.pump_rating,
       completedAt: log.completed_at,
       isSkipped: log.is_skipped === 1,
       exercise: exercise!,
@@ -577,6 +581,11 @@ export async function updateSetLog(
 export async function updateSorenessRating(logId: string, sorenessRating: number): Promise<void> {
   const db = getDb();
   await db.runAsync("UPDATE workout_logs SET soreness_rating = ? WHERE id = ?", [sorenessRating, logId]);
+}
+
+export async function updatePumpRating(logId: string, pumpRating: number): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE workout_logs SET pump_rating = ? WHERE id = ?", [pumpRating, logId]);
 }
 
 export async function resetWorkoutDay(planId: string, weekNumber: number, dayNumber: number): Promise<void> {
@@ -851,7 +860,8 @@ async function applyExerciseSwapToLog(db: any, logId: string, newExerciseId: str
   const updatedLog = await db.getFirstAsync<{
     id: string; exercise_id: string; week_number: number; day_number: number;
     target_sets: number; target_weight: number; target_rir: string;
-    soreness_rating: number | null; completed_at: string | null;
+    soreness_rating: number | null; pump_rating: number | null;
+    completed_at: string | null; is_skipped: number;
   }>("SELECT * FROM workout_logs WHERE id = ?", [logId]);
 
   if (!updatedLog || !exercise) return null;
@@ -865,7 +875,9 @@ async function applyExerciseSwapToLog(db: any, logId: string, newExerciseId: str
     targetWeight: updatedLog.target_weight,
     targetRIR: updatedLog.target_rir,
     sorenessRating: updatedLog.soreness_rating,
+    pumpRating: updatedLog.pump_rating,
     completedAt: updatedLog.completed_at,
+    isSkipped: updatedLog.is_skipped === 1,
     exercise,
     sets: setRows.map(s => ({
       id: s.id,
@@ -940,6 +952,8 @@ export async function completeWorkout(
     targetWeight: number;
     targetRIR: string;
     sorenessRating: number;
+    /** Pump quality 1–5 collected from the post-session modal */
+    pumpRating?: number | null;
     sets: { setLogId: string; repsCompleted: number; weightUsed: number; targetReps?: number }[];
   }[]
 ): Promise<{
@@ -980,8 +994,8 @@ export async function completeWorkout(
     }
 
     await db.runAsync(
-      "UPDATE workout_logs SET soreness_rating = ?, completed_at = ? WHERE id = ?",
-      [ex.sorenessRating, new Date().toISOString(), ex.logId]
+      "UPDATE workout_logs SET soreness_rating = ?, pump_rating = ?, completed_at = ? WHERE id = ?",
+      [ex.sorenessRating, ex.pumpRating ?? null, new Date().toISOString(), ex.logId]
     );
 
     const avgReps = ex.sets.length > 0
@@ -1010,6 +1024,7 @@ export async function completeWorkout(
       repsCompleted: avgReps,
       repGoal: repGoal2,
       sorenessRating: ex.sorenessRating,
+      pumpRating: ex.pumpRating ?? null,
       goalType: planGoalType,
     });
     nextWeekTargets.push({
@@ -1052,11 +1067,11 @@ export async function completeWorkout(
       exercise_id: string; original_exercise_id: string | null;
       is_permanent_swap: number; day_number: number; target_sets: number;
       target_weight: number; target_rir: string; soreness_rating: number | null;
-      category: string;
+      pump_rating: number | null; category: string;
     }>(
       `SELECT wl.exercise_id, wl.original_exercise_id, wl.is_permanent_swap,
               wl.day_number, wl.target_sets, wl.target_weight,
-              wl.target_rir, wl.soreness_rating, e.category
+              wl.target_rir, wl.soreness_rating, wl.pump_rating, e.category
        FROM workout_logs wl
        JOIN exercises e ON wl.exercise_id = e.id
        WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.completed_at IS NOT NULL`,
@@ -1104,6 +1119,7 @@ export async function completeWorkout(
         repsCompleted: avgReps,
         repGoal: repGoal3,
         sorenessRating: log.soreness_rating ?? 0,
+        pumpRating: log.pump_rating ?? null,
         goalType: planGoalType,
       });
 
@@ -1235,6 +1251,108 @@ export async function getMesoStats(planId: string): Promise<MesoStats> {
   };
 }
 
+export interface ExerciseWeightPoint {
+  weekNumber: number;
+  /** Best weight used in any set this week */
+  maxWeight: number;
+}
+
+export interface ExerciseWeightHistory {
+  exerciseId: string;
+  exerciseName: string;
+  category: string;
+  dataPoints: ExerciseWeightPoint[];
+}
+
+export interface MuscleVolumeData {
+  category: string;
+  /** Total sets performed this current meso week */
+  setsThisWeek: number;
+  /** Total sets this entire current meso (all completed weeks) */
+  setsMeso: number;
+}
+
+export async function getProgressData(planId: string): Promise<{
+  exerciseHistory: ExerciseWeightHistory[];
+  muscleVolume: MuscleVolumeData[];
+  currentWeek: number;
+}> {
+  const db = getDb();
+
+  const plan = await db.getFirstAsync<{ current_week: number }>(
+    "SELECT current_week FROM workout_plans WHERE id = ?",
+    [planId]
+  );
+  const currentWeek = plan?.current_week ?? 1;
+
+  // --- Exercise weight history ---
+  const weightRows = await db.getAllAsync<{
+    exercise_id: string; exercise_name: string; category: string;
+    week_number: number; max_weight: number;
+  }>(
+    `SELECT wl.exercise_id, e.name as exercise_name, e.category,
+            wl.week_number,
+            COALESCE(MAX(sl.weight_used), wl.target_weight) as max_weight
+     FROM workout_logs wl
+     JOIN exercises e ON wl.exercise_id = e.id
+     LEFT JOIN set_logs sl ON sl.workout_log_id = wl.id AND sl.weight_used > 0
+     WHERE wl.workout_plan_id = ? AND wl.completed_at IS NOT NULL AND wl.is_skipped = 0
+     GROUP BY wl.exercise_id, wl.week_number
+     ORDER BY wl.exercise_id, wl.week_number ASC`,
+    [planId]
+  );
+
+  const exerciseMap = new Map<string, ExerciseWeightHistory>();
+  for (const row of weightRows) {
+    if (!exerciseMap.has(row.exercise_id)) {
+      exerciseMap.set(row.exercise_id, {
+        exerciseId: row.exercise_id,
+        exerciseName: row.exercise_name,
+        category: row.category,
+        dataPoints: [],
+      });
+    }
+    const entry = exerciseMap.get(row.exercise_id)!;
+    // Merge weeks (keep highest weight per week)
+    const existing = entry.dataPoints.find(p => p.weekNumber === row.week_number);
+    if (existing) {
+      if (row.max_weight > existing.maxWeight) existing.maxWeight = row.max_weight;
+    } else {
+      entry.dataPoints.push({ weekNumber: row.week_number, maxWeight: row.max_weight });
+    }
+  }
+  const exerciseHistory = [...exerciseMap.values()].filter(e => e.dataPoints.length >= 1);
+
+  // --- Muscle volume (sets per category this week + this meso) ---
+  const volumeRows = await db.getAllAsync<{
+    category: string; week_number: number; set_count: number;
+  }>(
+    `SELECT e.category, wl.week_number, COUNT(sl.id) as set_count
+     FROM workout_logs wl
+     JOIN exercises e ON wl.exercise_id = e.id
+     JOIN set_logs sl ON sl.workout_log_id = wl.id
+     WHERE wl.workout_plan_id = ? AND wl.completed_at IS NOT NULL AND wl.is_skipped = 0
+       AND sl.reps_completed IS NOT NULL AND sl.reps_completed > 0
+     GROUP BY e.category, wl.week_number`,
+    [planId]
+  );
+
+  const muscleMap = new Map<string, MuscleVolumeData>();
+  for (const row of volumeRows) {
+    if (!muscleMap.has(row.category)) {
+      muscleMap.set(row.category, { category: row.category, setsThisWeek: 0, setsMeso: 0 });
+    }
+    const entry = muscleMap.get(row.category)!;
+    entry.setsMeso += row.set_count;
+    if (row.week_number === currentWeek) {
+      entry.setsThisWeek += row.set_count;
+    }
+  }
+  const muscleVolume = [...muscleMap.values()].sort((a, b) => b.setsMeso - a.setsMeso);
+
+  return { exerciseHistory, muscleVolume, currentWeek };
+}
+
 export async function createWorkoutPlanFromPrevious(
   oldPlanId: string
 ): Promise<WorkoutPlan> {
@@ -1245,22 +1363,27 @@ export async function createWorkoutPlanFromPrevious(
   }>("SELECT id, user_id, template_id FROM workout_plans WHERE id = ?", [oldPlanId]);
   if (!oldPlan) throw new Error("Old plan not found");
 
+  // Use actual lifted weights (not targets) from weeks 2-3 of the meso for best accuracy
   const progressionWeeks = await db.getAllAsync<{
-    exercise_id: string; category: string; target_weight: number; week_number: number;
+    exercise_id: string; category: string; best_weight: number; week_number: number;
   }>(
-    `SELECT wl.exercise_id, e.category, wl.target_weight, wl.week_number
+    `SELECT wl.exercise_id, e.category, wl.week_number,
+            COALESCE(MAX(sl.weight_used), wl.target_weight) as best_weight
      FROM workout_logs wl
      JOIN exercises e ON wl.exercise_id = e.id
-     WHERE wl.workout_plan_id = ? AND wl.completed_at IS NOT NULL
+     LEFT JOIN set_logs sl ON sl.workout_log_id = wl.id AND sl.weight_used > 0
+     WHERE wl.workout_plan_id = ? AND wl.completed_at IS NOT NULL AND wl.is_skipped = 0
      AND (((wl.week_number - 1) % 4) + 1) IN (2, 3)
-     ORDER BY wl.target_weight DESC`,
+     GROUP BY wl.exercise_id, wl.week_number
+     ORDER BY best_weight DESC`,
     [oldPlanId]
   );
 
   const bestWeights = new Map<string, { weight: number; category: string }>();
   for (const row of progressionWeeks) {
-    if (!bestWeights.has(row.exercise_id)) {
-      bestWeights.set(row.exercise_id, { weight: row.target_weight, category: row.category });
+    const existing = bestWeights.get(row.exercise_id);
+    if (!existing || row.best_weight > existing.weight) {
+      bestWeights.set(row.exercise_id, { weight: row.best_weight, category: row.category });
     }
   }
 

@@ -37,6 +37,7 @@ import {
   resetAllExercisesToOriginal as resetAllExercisesToOriginalDb,
   completeWorkout,
   updateExercise,
+  updatePumpRating,
   type WorkoutPlan,
   type Exercise,
 } from "@/lib/local-db";
@@ -59,6 +60,7 @@ interface ExerciseState {
   targetWeight: number;
   targetRIR: string;
   sorenessRating: number | null;
+  pumpRating: number | null;
   sets: SetState[];
 }
 
@@ -127,6 +129,8 @@ export default function WorkoutScreen() {
   const [dayNumber, setDayNumber] = useState(1);
   const [recoveryModalVisible, setRecoveryModalVisible] = useState(false);
   const [sessionRating, setSessionRating] = useState<number | null>(null);
+  const [recoveryStep, setRecoveryStep] = useState<1 | 2>(1);
+  const [sessionPumpRating, setSessionPumpRating] = useState<number | null>(null);
   const [swapModalVisible, setSwapModalVisible] = useState(false);
   const [homeGymOnly, setHomeGymOnly] = useState(false);
   const [swapping, setSwapping] = useState(false);
@@ -199,6 +203,7 @@ export default function WorkoutScreen() {
         targetWeight: log.targetWeight,
         targetRIR: log.targetRIR,
         sorenessRating: log.sorenessRating,
+        pumpRating: log.pumpRating,
         sets: (log.sets || []).map((s) => {
           const hasData = s.repsCompleted !== null && s.weightUsed !== null;
           return {
@@ -497,11 +502,21 @@ export default function WorkoutScreen() {
       return;
     }
     setSessionRating(null);
+    setSessionPumpRating(null);
+    setRecoveryStep(1);
     setRecoveryModalVisible(true);
   }
 
   async function handleConfirmRecovery() {
-    if (sessionRating === null) return;
+    // Step 1: advance to pump rating
+    if (recoveryStep === 1) {
+      if (sessionRating === null) return;
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setRecoveryStep(2);
+      return;
+    }
+    // Step 2: complete session
+    if (sessionPumpRating === null) return;
     const planId = await AsyncStorage.getItem("activePlanId");
     if (!planId) return;
     setRecoveryModalVisible(false);
@@ -517,7 +532,8 @@ export default function WorkoutScreen() {
         targetSets: ex.targetSets,
         targetWeight: ex.targetWeight,
         targetRIR: ex.targetRIR,
-        sorenessRating: ex.sorenessRating !== null ? ex.sorenessRating : sessionRating,
+        sorenessRating: ex.sorenessRating !== null ? ex.sorenessRating : (sessionRating ?? 0),
+        pumpRating: ex.pumpRating !== null ? ex.pumpRating : sessionPumpRating,
         sets: ex.sets.map((s) => ({
           setLogId: s.setLogId,
           repsCompleted: parseInt(s.repsCompleted) || 0,
@@ -644,6 +660,7 @@ export default function WorkoutScreen() {
               feedback: null,
             })),
             sorenessRating: null,
+            pumpRating: null,
           };
           return next;
         });
@@ -1066,63 +1083,140 @@ export default function WorkoutScreen() {
       >
         <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.75)" }}>
           <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 24 + bottomInset }}>
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-              Session Recovery
-            </Text>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 24 }}>
-              How fresh did your target muscles feel going into today's workout?
-            </Text>
-            <View style={{ flexDirection: "row", gap: 6, marginBottom: 28 }}>
-              {RECOVERY_OPTIONS.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => {
-                    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setSessionRating(opt.value);
-                  }}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    borderWidth: 1,
-                    borderColor: sessionRating === opt.value
-                      ? opt.value >= 1 ? Colors.success : opt.value <= -1 ? Colors.danger : Colors.text
-                      : Colors.border,
-                    backgroundColor: sessionRating === opt.value ? Colors.bgAccent : Colors.bg,
-                    paddingVertical: 12,
-                    alignItems: "center",
-                    opacity: pressed ? 0.8 : 1,
-                  })}
-                >
-                  <Text style={{
-                    fontFamily: "Rubik_700Bold",
-                    fontSize: 18,
-                    color: sessionRating === opt.value
-                      ? opt.value >= 1 ? Colors.success : opt.value <= -1 ? Colors.danger : Colors.text
-                      : Colors.textMuted,
-                  }}>
-                    {opt.label}
-                  </Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 8, color: Colors.textMuted, marginTop: 3, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {opt.desc}
-                  </Text>
-                </Pressable>
+            {/* Step indicator */}
+            <View style={{ flexDirection: "row", gap: 4, marginBottom: 20 }}>
+              {[1, 2].map((step) => (
+                <View key={step} style={{ flex: 1, height: 2, backgroundColor: recoveryStep >= step ? Colors.primary : Colors.border }} />
               ))}
             </View>
-            <Pressable
-              onPress={handleConfirmRecovery}
-              disabled={sessionRating === null}
-              style={({ pressed }) => ({
-                backgroundColor: sessionRating === null ? Colors.bgAccent : Colors.primary,
-                borderWidth: 1,
-                borderColor: sessionRating === null ? Colors.border : Colors.primary,
-                paddingVertical: 16,
-                alignItems: "center",
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: sessionRating === null ? Colors.textMuted : Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                {sessionRating === null ? "Select a Rating" : "Complete Session"}
-              </Text>
-            </Pressable>
+
+            {recoveryStep === 1 ? (
+              <>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+                  Session Recovery
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 24 }}>
+                  How fresh did your target muscles feel going into today's workout?
+                </Text>
+                <View style={{ flexDirection: "row", gap: 6, marginBottom: 28 }}>
+                  {RECOVERY_OPTIONS.map((opt) => (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => {
+                        if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSessionRating(opt.value);
+                      }}
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        borderWidth: 1,
+                        borderColor: sessionRating === opt.value
+                          ? opt.value >= 1 ? Colors.success : opt.value <= -1 ? Colors.danger : Colors.text
+                          : Colors.border,
+                        backgroundColor: sessionRating === opt.value ? Colors.bgAccent : Colors.bg,
+                        paddingVertical: 12,
+                        alignItems: "center",
+                        opacity: pressed ? 0.8 : 1,
+                      })}
+                    >
+                      <Text style={{
+                        fontFamily: "Rubik_700Bold",
+                        fontSize: 18,
+                        color: sessionRating === opt.value
+                          ? opt.value >= 1 ? Colors.success : opt.value <= -1 ? Colors.danger : Colors.text
+                          : Colors.textMuted,
+                      }}>
+                        {opt.label}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 8, color: Colors.textMuted, marginTop: 3, textTransform: "uppercase", letterSpacing: 1 }}>
+                        {opt.desc}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable
+                  onPress={handleConfirmRecovery}
+                  disabled={sessionRating === null}
+                  style={({ pressed }) => ({
+                    backgroundColor: sessionRating === null ? Colors.bgAccent : Colors.primary,
+                    borderWidth: 1,
+                    borderColor: sessionRating === null ? Colors.border : Colors.primary,
+                    paddingVertical: 16,
+                    alignItems: "center",
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: sessionRating === null ? Colors.textMuted : Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                    {sessionRating === null ? "Select a Rating" : "Next →"}
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+                  Pump Quality
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 24 }}>
+                  How was the muscle pump during your working sets? This calibrates next week's volume.
+                </Text>
+                <View style={{ flexDirection: "row", gap: 6, marginBottom: 28 }}>
+                  {[
+                    { value: 1, label: "1", desc: "No Pump" },
+                    { value: 2, label: "2", desc: "Mild" },
+                    { value: 3, label: "3", desc: "Good" },
+                    { value: 4, label: "4", desc: "Great" },
+                    { value: 5, label: "5", desc: "Extreme" },
+                  ].map((opt) => (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => {
+                        if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSessionPumpRating(opt.value);
+                      }}
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        borderWidth: 1,
+                        borderColor: sessionPumpRating === opt.value
+                          ? opt.value <= 2 ? Colors.warning : opt.value >= 5 ? Colors.danger : Colors.primary
+                          : Colors.border,
+                        backgroundColor: sessionPumpRating === opt.value ? Colors.bgAccent : Colors.bg,
+                        paddingVertical: 12,
+                        alignItems: "center",
+                        opacity: pressed ? 0.8 : 1,
+                      })}
+                    >
+                      <Text style={{
+                        fontFamily: "Rubik_700Bold",
+                        fontSize: 18,
+                        color: sessionPumpRating === opt.value
+                          ? opt.value <= 2 ? Colors.warning : opt.value >= 5 ? Colors.danger : Colors.primary
+                          : Colors.textMuted,
+                      }}>
+                        {opt.label}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 8, color: Colors.textMuted, marginTop: 3, textTransform: "uppercase", letterSpacing: 1 }}>
+                        {opt.desc}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable
+                  onPress={handleConfirmRecovery}
+                  disabled={sessionPumpRating === null}
+                  style={({ pressed }) => ({
+                    backgroundColor: sessionPumpRating === null ? Colors.bgAccent : Colors.primary,
+                    borderWidth: 1,
+                    borderColor: sessionPumpRating === null ? Colors.border : Colors.primary,
+                    paddingVertical: 16,
+                    alignItems: "center",
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: sessionPumpRating === null ? Colors.textMuted : Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                    {sessionPumpRating === null ? "Select a Rating" : "Complete Session"}
+                  </Text>
+                </Pressable>
+              </>
+            )}
           </View>
         </View>
       </Modal>

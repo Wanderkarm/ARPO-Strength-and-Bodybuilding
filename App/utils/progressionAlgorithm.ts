@@ -55,6 +55,8 @@ interface WorkoutResult {
   repsCompleted: number | null;
   repGoal: number;
   sorenessRating: number | null;
+  /** Pump quality 1–5: 1=no pump, 3=sweet spot, 5=extreme/painful pump */
+  pumpRating?: number | null;
   goalType?: GoalType;
 }
 
@@ -92,11 +94,40 @@ export function calculateNextWeekTargets(result: WorkoutResult): NextWeekTargets
   let nextWeight = result.actualWeight;
   let nextSets = result.targetSets;
 
-  // Set adjustment based on recovery
-  if (soreness >= 1) {
+  // Combined pump + soreness volume signal
+  // sorenessRating: -2 (very fatigued) → +2 (very fresh)
+  // pumpRating: 1 (no pump) → 5 (extreme/painful pump)
+  const pump = result.pumpRating ?? null;
+
+  type VolumeSignal = "add" | "hold" | "reduce";
+  let volumeSignal: VolumeSignal = "hold";
+
+  if (pump !== null) {
+    // Pump-informed decision (backed by Hirono et al. 2022, Schoenfeld & Contreras 2014)
+    if (pump <= 2 && soreness >= 0) {
+      // Under-stimulated + well-recovered → add volume
+      volumeSignal = "add";
+    } else if (pump >= 5 || soreness <= -2) {
+      // Over-stimulated or severely fatigued → reduce volume
+      volumeSignal = "reduce";
+    } else if (pump === 4 && soreness <= -1) {
+      // High pump + some fatigue → err on side of recovery
+      volumeSignal = "reduce";
+    } else {
+      // Sweet spot (pump 3-4, soreness -1 to +2) → maintain
+      volumeSignal = "hold";
+    }
+  } else {
+    // Fallback: soreness-only (original logic)
+    if (soreness >= 1) volumeSignal = "add";
+    else if (soreness <= -1) volumeSignal = "reduce";
+  }
+
+  // Apply volume adjustment
+  if (volumeSignal === "add") {
     nextSets = Math.min(result.targetSets + 1, 6);
-  } else if (soreness <= -1) {
-    const drop = soreness === -2 ? 2 : 1;
+  } else if (volumeSignal === "reduce") {
+    const drop = (pump !== null && pump >= 5) || soreness <= -2 ? 2 : 1;
     nextSets = Math.max(result.targetSets - drop, 1);
   }
 
