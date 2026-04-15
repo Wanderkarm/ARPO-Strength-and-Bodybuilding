@@ -891,14 +891,20 @@ export async function swapExercise(
   if (!log) return null;
 
   if (scope === 'permanent' && log.original_exercise_id) {
-    // Update all future uncompleted logs for the same exercise slot (same plan + day + original exercise)
+    // Update all future uncompleted logs for the same exercise slot and mark them permanent
     await db.runAsync(
-      `UPDATE workout_logs SET exercise_id = ?
+      `UPDATE workout_logs SET exercise_id = ?, is_permanent_swap = 1
        WHERE workout_plan_id = ? AND day_number = ? AND original_exercise_id = ?
        AND completed_at IS NULL AND id != ?`,
       [newExerciseId, log.workout_plan_id, log.day_number, log.original_exercise_id, logId]
     );
   }
+
+  // Mark this log's swap scope
+  await db.runAsync(
+    "UPDATE workout_logs SET is_permanent_swap = ? WHERE id = ?",
+    [scope === 'permanent' ? 1 : 0, logId]
+  );
 
   return applyExerciseSwapToLog(db, logId, newExerciseId);
 }
@@ -1043,11 +1049,13 @@ export async function completeWorkout(
     const rir = RIR_SCHEDULE[((nextWeek - 1) % 4) + 1] || "3 RIR";
 
     const allWeekLogs = await db.getAllAsync<{
-      exercise_id: string; day_number: number; target_sets: number;
+      exercise_id: string; original_exercise_id: string | null;
+      is_permanent_swap: number; day_number: number; target_sets: number;
       target_weight: number; target_rir: string; soreness_rating: number | null;
       category: string;
     }>(
-      `SELECT wl.exercise_id, wl.day_number, wl.target_sets, wl.target_weight,
+      `SELECT wl.exercise_id, wl.original_exercise_id, wl.is_permanent_swap,
+              wl.day_number, wl.target_sets, wl.target_weight,
               wl.target_rir, wl.soreness_rating, e.category
        FROM workout_logs wl
        JOIN exercises e ON wl.exercise_id = e.id
@@ -1100,10 +1108,18 @@ export async function completeWorkout(
       });
 
       const logId = generateId();
+      // For one-off swaps: next week reverts to the original exercise.
+      // For permanent swaps (or no swap): carry the current exercise forward.
+      const nextExerciseId = (log.is_permanent_swap === 0 && log.original_exercise_id)
+        ? log.original_exercise_id
+        : targets.exerciseId;
+      // Carry original_exercise_id forward so future weeks can still reset to template
+      const nextOriginalId = log.original_exercise_id ?? nextExerciseId;
+
       await db.runAsync(
-        `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [logId, workoutPlanId, targets.exerciseId, nextWeek, log.day_number, targets.targetSets, targets.targetWeight, rir]
+        `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, original_exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [logId, workoutPlanId, nextExerciseId, nextOriginalId, nextWeek, log.day_number, targets.targetSets, targets.targetWeight, rir]
       );
 
       for (let s = 1; s <= targets.targetSets; s++) {
