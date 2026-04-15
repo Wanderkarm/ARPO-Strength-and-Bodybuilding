@@ -563,6 +563,12 @@ export async function createWorkoutPlan(
     baselineMap[b.category] = b.weight;
   }
 
+  // Deactivate any previously active plans for this user
+  await db.runAsync(
+    "UPDATE workout_plans SET is_active = 0 WHERE user_id = ? AND is_active = 1",
+    [userId]
+  );
+
   const planId = generateId();
   await db.runAsync(
     "INSERT INTO workout_plans (id, user_id, template_id, current_week, current_day, goal_type, gym_type) VALUES (?, ?, ?, 1, 1, ?, ?)",

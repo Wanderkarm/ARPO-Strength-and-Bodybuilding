@@ -19,6 +19,7 @@ import {
   getPreBuiltTemplates,
   getCustomTemplates,
   getAllExercises,
+  getWorkoutPlan,
   createWorkoutPlan,
   type Template,
   type Exercise,
@@ -40,6 +41,11 @@ export default function TemplatesScreen() {
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Existing plan guard
+  const [activePlanInfo, setActivePlanInfo] = useState<{ name: string; week: number } | null>(null);
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+  const [pendingIsHome, setPendingIsHome] = useState(false);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -53,6 +59,14 @@ export default function TemplatesScreen() {
       setAllExercises(await getAllExercises());
       if (uid) {
         setCustomTemplatesList(await getCustomTemplates(uid));
+      }
+      // Load current active plan so we can warn before switching
+      const pid = await AsyncStorage.getItem("activePlanId");
+      if (pid) {
+        const plan = await getWorkoutPlan(pid);
+        if (plan && plan.isActive) {
+          setActivePlanInfo({ name: plan.template.name, week: plan.currentWeek });
+        }
       }
     } catch (err) {
       console.error(err);
@@ -70,6 +84,19 @@ export default function TemplatesScreen() {
 
   async function handleGymChoice(isHome: boolean) {
     if (!selectedTemplate) return;
+    // If there's already an active plan, ask for confirmation first
+    if (activePlanInfo) {
+      setPendingIsHome(isHome);
+      setShowGymModal(false);
+      setShowSwitchConfirm(true);
+      return;
+    }
+    await doCreatePlan(isHome);
+  }
+
+  async function doCreatePlan(isHome: boolean) {
+    if (!selectedTemplate) return;
+    setShowSwitchConfirm(false);
     setCreating(true);
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -648,6 +675,68 @@ export default function TemplatesScreen() {
                 <ActivityIndicator color={Colors.primary} size="large" />
               </View>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Switch Plan Confirmation ── */}
+      <Modal
+        visible={showSwitchConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSwitchConfirm(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, width: "100%", padding: 24 }}>
+            <Ionicons name="warning-outline" size={28} color={Colors.warning} style={{ alignSelf: "center", marginBottom: 12 }} />
+
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
+              End Current Plan?
+            </Text>
+
+            {activePlanInfo && (
+              <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.warning, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 16 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                  {activePlanInfo.name}
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                  Week {activePlanInfo.week} · In progress
+                </Text>
+              </View>
+            )}
+
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
+              Starting a new plan will end this mesocycle. Your completed workout history is saved, but targets and progression will reset to the new template.
+            </Text>
+
+            <Pressable
+              onPress={() => doCreatePlan(pendingIsHome)}
+              disabled={creating}
+              style={({ pressed }) => ({
+                backgroundColor: Colors.danger,
+                paddingVertical: 14,
+                alignItems: "center",
+                marginBottom: 10,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              {creating ? (
+                <ActivityIndicator color={Colors.text} />
+              ) : (
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                  Start New Plan
+                </Text>
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => setShowSwitchConfirm(false)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignItems: "center", paddingVertical: 8 })}
+            >
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                Keep Current Plan
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Modal>

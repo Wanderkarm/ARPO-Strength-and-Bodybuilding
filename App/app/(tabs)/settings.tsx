@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
 import { GOAL_META } from "@/utils/volumeLandmarks";
@@ -409,6 +409,31 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
+
+            {/* Change plan */}
+            <Pressable
+              onPress={() => router.push("/templates")}
+              style={({ pressed }) => ({
+                borderWidth: 1,
+                borderColor: Colors.border,
+                padding: 14,
+                marginBottom: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <View>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                  Change Plan
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                  Browse templates and start a new mesocycle
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </Pressable>
 
             {/* Gym type toggle */}
             <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
