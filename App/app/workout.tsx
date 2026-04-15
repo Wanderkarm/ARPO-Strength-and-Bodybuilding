@@ -7,7 +7,6 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
-  Linking,
   Modal,
   Switch,
   FlatList,
@@ -21,6 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import ExerciseGuide from "@/components/ExerciseGuide";
+import ExerciseVideoPlayer from "@/components/ExerciseVideoPlayer";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
 import RestTimer from "@/components/RestTimer";
@@ -142,6 +142,7 @@ export default function WorkoutScreen() {
   const [editName, setEditName] = useState("");
   const [editVideoUrl, setEditVideoUrl] = useState("");
   const [editSaving, setEditSaving] = useState(false);
+  const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const exerciseStatesRef = useRef<ExerciseState[]>([]);
   const { height: screenHeight } = useWindowDimensions();
@@ -811,7 +812,7 @@ export default function WorkoutScreen() {
               {currentEx.exercise.defaultVideoUrl ? (
                 <Pressable
                   testID="video-link-btn"
-                  onPress={() => Linking.openURL(currentEx.exercise.defaultVideoUrl!)}
+                  onPress={() => setVideoPlayerVisible(true)}
                   hitSlop={10}
                   style={{ width: 32, height: 32, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}
                 >
@@ -1649,6 +1650,16 @@ export default function WorkoutScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Inline video player */}
+      {currentEx?.exercise.defaultVideoUrl && (
+        <ExerciseVideoPlayer
+          visible={videoPlayerVisible}
+          onClose={() => setVideoPlayerVisible(false)}
+          videoUrl={currentEx.exercise.defaultVideoUrl}
+          exerciseName={currentEx.exercise.name}
+        />
+      )}
     </View>
   );
 }
