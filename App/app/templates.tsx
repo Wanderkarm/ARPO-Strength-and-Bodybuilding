@@ -302,27 +302,54 @@ export default function TemplatesScreen() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-          <Pressable
-            testID="create-custom-routine"
-            onPress={() => router.push("/custom-builder")}
-            style={({ pressed }) => ({
-              borderWidth: 1,
-              borderColor: Colors.primary,
-              paddingVertical: 16,
-              marginBottom: 24,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
-              opacity: pressed ? 0.9 : 1,
-            })}
-          >
-            <Ionicons name="add" size={20} color={Colors.primary} />
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2 }}>
-              Create Custom Routine
-            </Text>
-          </Pressable>
+          {/* Create routine — two paths */}
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
+            <Pressable
+              testID="create-custom-routine"
+              onPress={() => router.push("/custom-builder")}
+              style={({ pressed }) => ({
+                flex: 1,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                paddingVertical: 18,
+                alignItems: "center",
+                gap: 8,
+                backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
+                opacity: pressed ? 0.9 : 1,
+              })}
+            >
+              <Ionicons name="list" size={22} color={Colors.textSecondary} />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
+                Build{"\n"}Manually
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
+                Pick exercises{"\n"}day by day
+              </Text>
+            </Pressable>
+
+            <Pressable
+              testID="generate-routine"
+              onPress={() => router.push("/auto-builder")}
+              style={({ pressed }) => ({
+                flex: 1,
+                borderWidth: 1,
+                borderColor: Colors.primary,
+                paddingVertical: 18,
+                alignItems: "center",
+                gap: 8,
+                backgroundColor: pressed ? Colors.primary + "22" : Colors.bg,
+                opacity: pressed ? 0.9 : 1,
+              })}
+            >
+              <Ionicons name="sparkles" size={22} color={Colors.primary} />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
+                Generate{"\n"}with ARPO
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
+                Set priorities,{"\n"}we build it
+              </Text>
+            </Pressable>
+          </View>
 
           {customTemplatesList.length > 0 && (
             <View style={{ marginBottom: 24 }}>
