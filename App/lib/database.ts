@@ -28,6 +28,7 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN original_exercise_id TEXT`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN is_permanent_swap INTEGER NOT NULL DEFAULT 0`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN pump_rating INTEGER`).catch(() => {});
+  await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN gym_type TEXT NOT NULL DEFAULT 'GYM'`).catch(() => {});
 
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS users (
@@ -88,6 +89,7 @@ export async function initializeSchema() {
       current_day INTEGER NOT NULL DEFAULT 1,
       is_active INTEGER NOT NULL DEFAULT 1,
       goal_type TEXT NOT NULL DEFAULT 'hypertrophy',
+      gym_type TEXT NOT NULL DEFAULT 'GYM',
       FOREIGN KEY (user_id) REFERENCES users(id),
       FOREIGN KEY (template_id) REFERENCES templates(id)
     );

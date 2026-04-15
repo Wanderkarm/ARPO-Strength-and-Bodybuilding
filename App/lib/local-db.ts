@@ -206,6 +206,8 @@ export interface WorkoutLog {
   sets: SetLogData[];
 }
 
+export type GymType = 'GYM' | 'HOME';
+
 export interface WorkoutPlan {
   id: string;
   userId: string;
@@ -214,6 +216,7 @@ export interface WorkoutPlan {
   currentDay: number;
   isActive: boolean;
   goalType: GoalType;
+  gymType: GymType;
   template: Template;
   logs: WorkoutLog[];
 }
@@ -386,6 +389,125 @@ export async function getUserUnit(userId: string): Promise<'lbs' | 'kg'> {
   return (row?.weight_unit as 'lbs' | 'kg') ?? 'lbs';
 }
 
+export async function updateUserUnit(userId: string, unit: 'lbs' | 'kg'): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE users SET weight_unit = ? WHERE id = ?", [unit, userId]);
+}
+
+export async function getUserProfile(userId: string): Promise<{
+  gender: string; bodyweight: number | null; experience: string; weightUnit: 'lbs' | 'kg';
+} | null> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{
+    gender: string; bodyweight: number | null; experience: string; weight_unit: string;
+  }>("SELECT gender, bodyweight, experience, weight_unit FROM users WHERE id = ?", [userId]);
+  if (!row) return null;
+  return {
+    gender: row.gender,
+    bodyweight: row.bodyweight,
+    experience: row.experience,
+    weightUnit: (row.weight_unit as 'lbs' | 'kg') ?? 'lbs',
+  };
+}
+
+export async function updateUserBodyweight(userId: string, bodyweight: number): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE users SET bodyweight = ? WHERE id = ?", [bodyweight, userId]);
+}
+
+export async function updatePlanGoalType(planId: string, goalType: GoalType): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE workout_plans SET goal_type = ? WHERE id = ?", [goalType, planId]);
+}
+
+export async function switchGymType(
+  planId: string,
+  newGymType: GymType,
+  allExercises: Exercise[]
+): Promise<void> {
+  const db = getDb();
+
+  // Persist the new gym type on the plan
+  await db.runAsync("UPDATE workout_plans SET gym_type = ? WHERE id = ?", [newGymType, planId]);
+
+  // Get all uncompleted logs (current + future weeks)
+  const logs = await db.getAllAsync<{
+    id: string; exercise_id: string; original_exercise_id: string | null;
+    week_number: number; day_number: number; target_weight: number; target_sets: number;
+  }>(
+    `SELECT id, exercise_id, original_exercise_id, week_number, day_number, target_weight, target_sets
+     FROM workout_logs
+     WHERE workout_plan_id = ? AND completed_at IS NULL`,
+    [planId]
+  );
+
+  for (const log of logs) {
+    // The GYM exercise is always original_exercise_id (template = barbell/machine)
+    const gymExerciseId = log.original_exercise_id ?? log.exercise_id;
+    const gymExercise = allExercises.find(e => e.id === gymExerciseId);
+    if (!gymExercise) continue;
+
+    let targetExerciseId: string;
+
+    if (newGymType === 'HOME') {
+      // Find a home-compatible exercise in the same category
+      const homeAlt = allExercises.find(
+        e => e.category === gymExercise.category &&
+          (e.equipment === 'DUMBBELL' || e.equipment === 'BODYWEIGHT') &&
+          e.id !== gymExerciseId
+      );
+      if (!homeAlt) continue; // no home alternative — leave as-is
+      targetExerciseId = homeAlt.id;
+    } else {
+      // Switching to GYM — restore to original (barbell/machine) exercise
+      targetExerciseId = gymExerciseId;
+    }
+
+    if (targetExerciseId === log.exercise_id) continue; // already correct
+
+    // Look up the last actual weight used for the target exercise in this plan
+    const historyRow = await db.getFirstAsync<{ best_weight: number }>(
+      `SELECT MAX(sl.weight_used) as best_weight
+       FROM set_logs sl
+       JOIN workout_logs wl ON sl.workout_log_id = wl.id
+       WHERE wl.workout_plan_id = ? AND wl.exercise_id = ?
+         AND sl.weight_used IS NOT NULL AND sl.weight_used > 0`,
+      [planId, targetExerciseId]
+    );
+
+    let newTargetWeight: number;
+    if (historyRow?.best_weight) {
+      // We have real history for this exercise — pick up exactly where we left off
+      newTargetWeight = historyRow.best_weight;
+    } else {
+      // No history — derive from current weight using equipment ratios
+      const targetExercise = allExercises.find(e => e.id === targetExerciseId);
+      const currentWeight = log.target_weight;
+      if (newGymType === 'HOME') {
+        // Barbell → Dumbbell: ~35% of barbell weight per hand
+        newTargetWeight = Math.round((currentWeight * 0.35) / 2.5) * 2.5;
+      } else {
+        // Dumbbell → Barbell: reverse the ratio
+        newTargetWeight = Math.round((currentWeight / 0.35) / 5) * 5;
+      }
+      // Floor at a sensible minimum
+      newTargetWeight = Math.max(newTargetWeight, newGymType === 'HOME' ? 5 : 20);
+    }
+
+    // Update the log
+    await db.runAsync(
+      "UPDATE workout_logs SET exercise_id = ?, target_weight = ? WHERE id = ?",
+      [targetExerciseId, newTargetWeight, log.id]
+    );
+
+    // Update all set_logs for this log to the new target weight
+    await db.runAsync(
+      "UPDATE set_logs SET target_weight = ?, reps_completed = NULL, weight_used = NULL, completed_at = NULL WHERE workout_log_id = ?",
+      [newTargetWeight, log.id]
+    );
+  }
+}
+
 export async function createUser(
   gender: string,
   bodyweight: number,
@@ -425,7 +547,8 @@ export async function createWorkoutPlan(
   userId: string,
   templateId: string,
   exerciseSwaps?: Record<string, string>,
-  goalType: GoalType = "hypertrophy"
+  goalType: GoalType = "hypertrophy",
+  gymType: GymType = "GYM"
 ): Promise<WorkoutPlan> {
   const db = getDb();
   const template = await getTemplateWithDays(templateId);
@@ -442,8 +565,8 @@ export async function createWorkoutPlan(
 
   const planId = generateId();
   await db.runAsync(
-    "INSERT INTO workout_plans (id, user_id, template_id, current_week, current_day, goal_type) VALUES (?, ?, ?, 1, 1, ?)",
-    [planId, userId, templateId, goalType]
+    "INSERT INTO workout_plans (id, user_id, template_id, current_week, current_day, goal_type, gym_type) VALUES (?, ?, ?, 1, 1, ?, ?)",
+    [planId, userId, templateId, goalType, gymType]
   );
 
   const rir = RIR_SCHEDULE[1];
@@ -498,7 +621,7 @@ export async function createWorkoutPlan(
 export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null> {
   const db = getDb();
   const plan = await db.getFirstAsync<{
-    id: string; user_id: string; template_id: string; current_week: number; current_day: number; is_active: number; goal_type: string;
+    id: string; user_id: string; template_id: string; current_week: number; current_day: number; is_active: number; goal_type: string; gym_type: string;
   }>("SELECT * FROM workout_plans WHERE id = ?", [planId]);
 
   if (!plan) return null;
@@ -560,6 +683,7 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
     currentDay: plan.current_day,
     isActive: plan.is_active === 1,
     goalType: (plan.goal_type as GoalType) ?? "hypertrophy",
+    gymType: (plan.gym_type as GymType) ?? "GYM",
     template,
     logs,
   };

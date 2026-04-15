@@ -100,7 +100,8 @@ export default function TemplatesScreen() {
         await AsyncStorage.setItem("exerciseSwaps", JSON.stringify(swapMap));
       }
 
-      const plan = await createWorkoutPlan(uid, selectedTemplate.id, exerciseSwaps, selectedGoal ?? "hypertrophy");
+      const gymType = isHome ? "HOME" : "GYM";
+      const plan = await createWorkoutPlan(uid, selectedTemplate.id, exerciseSwaps, selectedGoal ?? "hypertrophy", gymType);
       await AsyncStorage.setItem("activePlanId", plan.id);
       setShowGymModal(false);
       router.replace("/(tabs)");
