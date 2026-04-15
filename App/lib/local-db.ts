@@ -1276,14 +1276,16 @@ export async function getProgressData(planId: string): Promise<{
   exerciseHistory: ExerciseWeightHistory[];
   muscleVolume: MuscleVolumeData[];
   currentWeek: number;
+  goalType: GoalType;
 }> {
   const db = getDb();
 
-  const plan = await db.getFirstAsync<{ current_week: number }>(
-    "SELECT current_week FROM workout_plans WHERE id = ?",
+  const plan = await db.getFirstAsync<{ current_week: number; goal_type: string }>(
+    "SELECT current_week, goal_type FROM workout_plans WHERE id = ?",
     [planId]
   );
   const currentWeek = plan?.current_week ?? 1;
+  const goalType = (plan?.goal_type as GoalType) ?? "hypertrophy";
 
   // --- Exercise weight history ---
   const weightRows = await db.getAllAsync<{
@@ -1350,7 +1352,7 @@ export async function getProgressData(planId: string): Promise<{
   }
   const muscleVolume = [...muscleMap.values()].sort((a, b) => b.setsMeso - a.setsMeso);
 
-  return { exerciseHistory, muscleVolume, currentWeek };
+  return { exerciseHistory, muscleVolume, currentWeek, goalType };
 }
 
 export async function createWorkoutPlanFromPrevious(

@@ -1,16 +1,25 @@
 /**
- * MEV/MAV/MRV volume landmarks per muscle group (sets/week)
+ * MEV/MAV/MRV volume landmarks per muscle group (sets/week) by goal type.
+ *
+ * Weekly totals are goal-specific because:
+ * - Strength: Lower volume, higher intensity. CNS fatigue accumulates fast at
+ *   ≥90% 1RM — stacking sets produces diminishing returns before ~14 sets/wk.
+ * - Powerbuilding: Middle ground. Enough volume for hypertrophy support;
+ *   not so much that it compromises heavy-day performance.
+ * - Hypertrophy: Maximum volume the body can recover from. Mechanical tension
+ *   is primary; metabolic stress secondary. Higher frequency distributes volume
+ *   to avoid per-session junk volume (cap ~5–8 hard sets/session/muscle).
  *
  * Sources:
- * - Israetel M, Hoffmann J, Smith C. Scientific Principles of Strength Training. 2015.
- * - Israetel M, Feather J, Faleiro T, Krieger J. Mesocycle Progression in Hypertrophy:
- *   Volume-Focused Approach. Strength & Conditioning Journal, 2019.
- * - Schoenfeld B. Science and Development of Muscle Hypertrophy. Human Kinetics, 2020.
- *
- * MEV = Minimum Effective Volume (below this = no/minimal growth stimulus)
- * MAV = Maximum Adaptive Volume [min, max] (sweet spot for growth)
- * MRV = Maximum Recoverable Volume (above this = recovery fails, performance drops)
+ * - Israetel M et al. (2019). Mesocycle Progression in Hypertrophy.
+ *   Strength & Conditioning Journal.
+ * - Schoenfeld B. (2020). Science and Development of Muscle Hypertrophy.
+ *   Human Kinetics.
+ * - Krieger J. (2010). Single vs. Multiple Sets of Resistance Exercise for
+ *   Muscle Hypertrophy. Journal of Strength & Conditioning Research.
  */
+
+export type GoalType = "strength" | "powerbuilding" | "hypertrophy";
 
 export interface VolumeLandmarks {
   mev: number;
@@ -19,7 +28,49 @@ export interface VolumeLandmarks {
   displayName: string;
 }
 
-export const VOLUME_LANDMARKS: Record<string, VolumeLandmarks> = {
+// ─── Per-goal landmark tables ────────────────────────────────────────────────
+
+const STRENGTH: Record<string, VolumeLandmarks> = {
+  "HORIZONTAL PUSH": { mev: 3,  mav: [4,  10], mrv: 14, displayName: "Chest" },
+  "INCLINE PUSH":    { mev: 2,  mav: [4,  8],  mrv: 12, displayName: "Upper Chest" },
+  "VERTICAL PUSH":   { mev: 2,  mav: [4,  8],  mrv: 12, displayName: "Shoulders" },
+  "HORIZONTAL BACK": { mev: 4,  mav: [6,  12], mrv: 16, displayName: "Back (Horiz)" },
+  "VERTICAL BACK":   { mev: 4,  mav: [6,  12], mrv: 16, displayName: "Back (Vert)" },
+  "BICEPS":          { mev: 3,  mav: [5,  10], mrv: 14, displayName: "Biceps" },
+  "TRICEPS":         { mev: 3,  mav: [4,  8],  mrv: 12, displayName: "Triceps" },
+  "QUADS":           { mev: 4,  mav: [6,  10], mrv: 14, displayName: "Quads" },
+  "HAMSTRINGS":      { mev: 3,  mav: [4,  8],  mrv: 12, displayName: "Hamstrings" },
+  "GLUTES":          { mev: 2,  mav: [4,  8],  mrv: 12, displayName: "Glutes" },
+  "REAR DELTS":      { mev: 3,  mav: [6,  12], mrv: 18, displayName: "Rear Delts" },
+  "SHOULDERS":       { mev: 3,  mav: [6,  12], mrv: 18, displayName: "Shoulders" },
+  "CALVES":          { mev: 4,  mav: [6,  10], mrv: 14, displayName: "Calves" },
+  "TRAPS":           { mev: 2,  mav: [4,  8],  mrv: 12, displayName: "Traps" },
+  "CHEST":           { mev: 3,  mav: [4,  10], mrv: 14, displayName: "Chest" },
+  "BACK":            { mev: 4,  mav: [6,  12], mrv: 16, displayName: "Back" },
+  "ABS":             { mev: 2,  mav: [4,  8],  mrv: 12, displayName: "Abs" },
+};
+
+const POWERBUILDING: Record<string, VolumeLandmarks> = {
+  "HORIZONTAL PUSH": { mev: 5,  mav: [7,  14], mrv: 18, displayName: "Chest" },
+  "INCLINE PUSH":    { mev: 4,  mav: [6,  12], mrv: 16, displayName: "Upper Chest" },
+  "VERTICAL PUSH":   { mev: 4,  mav: [6,  12], mrv: 16, displayName: "Shoulders" },
+  "HORIZONTAL BACK": { mev: 6,  mav: [10, 16], mrv: 20, displayName: "Back (Horiz)" },
+  "VERTICAL BACK":   { mev: 6,  mav: [10, 16], mrv: 20, displayName: "Back (Vert)" },
+  "BICEPS":          { mev: 5,  mav: [8,  14], mrv: 18, displayName: "Biceps" },
+  "TRICEPS":         { mev: 4,  mav: [6,  10], mrv: 14, displayName: "Triceps" },
+  "QUADS":           { mev: 6,  mav: [8,  14], mrv: 17, displayName: "Quads" },
+  "HAMSTRINGS":      { mev: 4,  mav: [6,  12], mrv: 15, displayName: "Hamstrings" },
+  "GLUTES":          { mev: 3,  mav: [6,  10], mrv: 13, displayName: "Glutes" },
+  "REAR DELTS":      { mev: 5,  mav: [10, 16], mrv: 22, displayName: "Rear Delts" },
+  "SHOULDERS":       { mev: 5,  mav: [10, 16], mrv: 22, displayName: "Shoulders" },
+  "CALVES":          { mev: 6,  mav: [8,  12], mrv: 16, displayName: "Calves" },
+  "TRAPS":           { mev: 3,  mav: [6,  10], mrv: 16, displayName: "Traps" },
+  "CHEST":           { mev: 5,  mav: [7,  14], mrv: 18, displayName: "Chest" },
+  "BACK":            { mev: 6,  mav: [10, 16], mrv: 20, displayName: "Back" },
+  "ABS":             { mev: 4,  mav: [6,  10], mrv: 14, displayName: "Abs" },
+};
+
+const HYPERTROPHY: Record<string, VolumeLandmarks> = {
   "HORIZONTAL PUSH": { mev: 6,  mav: [10, 20], mrv: 22, displayName: "Chest" },
   "INCLINE PUSH":    { mev: 6,  mav: [10, 18], mrv: 22, displayName: "Upper Chest" },
   "VERTICAL PUSH":   { mev: 6,  mav: [10, 16], mrv: 20, displayName: "Shoulders" },
@@ -36,7 +87,79 @@ export const VOLUME_LANDMARKS: Record<string, VolumeLandmarks> = {
   "TRAPS":           { mev: 4,  mav: [8,  14], mrv: 20, displayName: "Traps" },
   "CHEST":           { mev: 6,  mav: [10, 20], mrv: 22, displayName: "Chest" },
   "BACK":            { mev: 10, mav: [14, 22], mrv: 25, displayName: "Back" },
+  "ABS":             { mev: 6,  mav: [10, 16], mrv: 20, displayName: "Abs" },
 };
+
+export const VOLUME_LANDMARKS_BY_GOAL: Record<GoalType, Record<string, VolumeLandmarks>> = {
+  strength:      STRENGTH,
+  powerbuilding: POWERBUILDING,
+  hypertrophy:   HYPERTROPHY,
+};
+
+/** Get landmark table for a given goal (falls back to hypertrophy) */
+export function getVolumeLandmarks(goal: GoalType): Record<string, VolumeLandmarks> {
+  return VOLUME_LANDMARKS_BY_GOAL[goal] ?? HYPERTROPHY;
+}
+
+/** Backward-compat default (hypertrophy) — used where goal isn't known */
+export const VOLUME_LANDMARKS = HYPERTROPHY;
+
+// ─── Goal metadata shown in the template picker ─────────────────────────────
+
+export interface GoalMeta {
+  key: GoalType;
+  label: string;
+  tagline: string;
+  repRange: string;
+  /** Typical MAV range across major compound muscles */
+  setsPerWeek: string;
+  rirProgression: string;
+  incrementNote: string;
+  bestFor: string;
+  frequencyNote: string;
+  accentColor: string;
+}
+
+export const GOAL_META: GoalMeta[] = [
+  {
+    key: "strength",
+    label: "Strength",
+    tagline: "Maximum force production",
+    repRange: "1–5 reps",
+    setsPerWeek: "4–12 sets / week",
+    rirProgression: "2 → 1 → 0 → Deload",
+    incrementNote: "+1.25–2.5 kg/week on compounds",
+    bestFor: "Powerlifters, athletes, anyone chasing a max lift",
+    frequencyNote: "CNS fatigue is high — rest days matter as much as training days",
+    accentColor: "#EF4444",
+  },
+  {
+    key: "powerbuilding",
+    label: "Powerbuilding",
+    tagline: "Strong and built",
+    repRange: "4–8 (compounds) · 8–12 (isolation)",
+    setsPerWeek: "6–16 sets / week",
+    rirProgression: "3 → 2 → 1 → Deload",
+    incrementNote: "+2.5–5 kg/week on compounds",
+    bestFor: "Athletes who want both size and strength",
+    frequencyNote: "Distribute across ≥ 2 sessions/muscle for best results",
+    accentColor: "#F59E0B",
+  },
+  {
+    key: "hypertrophy",
+    label: "Hypertrophy",
+    tagline: "Maximum muscle growth",
+    repRange: "8–12 (compounds) · 10–15 (isolation)",
+    setsPerWeek: "10–22 sets / week",
+    rirProgression: "3 → 2 → 1 → Deload",
+    incrementNote: "+2.5–5 kg/week",
+    bestFor: "Bodybuilders, anyone focused on muscle size",
+    frequencyNote: "Higher frequency = better volume distribution per session",
+    accentColor: "#DC2626",
+  },
+];
+
+// ─── Glossary ────────────────────────────────────────────────────────────────
 
 export const GLOSSARY: Record<string, { explanation: string; citation?: string }> = {
   MEV: {

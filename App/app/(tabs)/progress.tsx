@@ -20,7 +20,7 @@ import {
   type ExerciseWeightHistory,
   type MuscleVolumeData,
 } from "@/lib/local-db";
-import { VOLUME_LANDMARKS, GLOSSARY } from "@/utils/volumeLandmarks";
+import { getVolumeLandmarks, GOAL_META, GLOSSARY, type GoalType } from "@/utils/volumeLandmarks";
 
 // ─── Tiny line chart ────────────────────────────────────────────────────────
 
@@ -171,6 +171,7 @@ export default function ProgressScreen() {
   const [exerciseHistory, setExerciseHistory] = useState<ExerciseWeightHistory[]>([]);
   const [muscleVolume, setMuscleVolume] = useState<MuscleVolumeData[]>([]);
   const [currentWeek, setCurrentWeek] = useState(1);
+  const [goalType, setGoalType] = useState<GoalType>("hypertrophy");
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
   useFocusEffect(
@@ -192,6 +193,7 @@ export default function ProgressScreen() {
       setExerciseHistory(data.exerciseHistory);
       setMuscleVolume(data.muscleVolume);
       setCurrentWeek(data.currentWeek);
+      setGoalType(data.goalType);
       setNoPlan(false);
     } catch (err) {
       console.error(err);
@@ -223,6 +225,8 @@ export default function ProgressScreen() {
   }
 
   const mesoWeek = ((currentWeek - 1) % 4) + 1;
+  const landmarks = getVolumeLandmarks(goalType);
+  const goalMeta = GOAL_META.find(g => g.key === goalType)!;
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
@@ -239,9 +243,27 @@ export default function ProgressScreen() {
           }}>
             Progress
           </Text>
-          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 4 }}>
-            Week {currentWeek} · Meso Week {mesoWeek}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+              Week {currentWeek} · Meso Week {mesoWeek}
+            </Text>
+            <View style={{
+              borderWidth: 1,
+              borderColor: goalMeta.accentColor,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+            }}>
+              <Text style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: 9,
+                color: goalMeta.accentColor,
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+              }}>
+                {goalMeta.label}
+              </Text>
+            </View>
+          </View>
         </View>
 
         {/* ── Exercise Weight Charts ── */}
@@ -330,6 +352,9 @@ export default function ProgressScreen() {
                 Volume Tracker
               </Text>
             </View>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 10 }}>
+              Ranges calibrated for <Text style={{ color: goalMeta.accentColor }}>{goalMeta.label}</Text> · {goalMeta.setsPerWeek} per muscle
+            </Text>
 
             {/* Legend row */}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 14, marginTop: 6 }}>
@@ -352,24 +377,26 @@ export default function ProgressScreen() {
             </View>
 
             {muscleVolume.map((muscle) => {
-              const landmarks = VOLUME_LANDMARKS[muscle.category];
-              if (!landmarks) return null;
+              const ml = landmarks[muscle.category];
+              if (!ml) return null;
+              // shadow the outer `landmarks` for this muscle row
+              const muscleLandmarks = ml;
 
               let statusLabel = "";
               let statusColor = Colors.textMuted;
               if (muscle.setsThisWeek === 0) {
                 statusLabel = "Rest";
                 statusColor = Colors.textMuted;
-              } else if (muscle.setsThisWeek < landmarks.mev) {
+              } else if (muscle.setsThisWeek < muscleLandmarks.mev) {
                 statusLabel = "Below MEV";
                 statusColor = Colors.textMuted;
-              } else if (muscle.setsThisWeek >= landmarks.mav[0] && muscle.setsThisWeek <= landmarks.mav[1]) {
+              } else if (muscle.setsThisWeek >= muscleLandmarks.mav[0] && muscle.setsThisWeek <= muscleLandmarks.mav[1]) {
                 statusLabel = "In MAV ✓";
                 statusColor = Colors.success;
-              } else if (muscle.setsThisWeek > landmarks.mrv) {
+              } else if (muscle.setsThisWeek > muscleLandmarks.mrv) {
                 statusLabel = "Above MRV";
                 statusColor = Colors.danger;
-              } else if (muscle.setsThisWeek >= landmarks.mev && muscle.setsThisWeek < landmarks.mav[0]) {
+              } else if (muscle.setsThisWeek >= muscleLandmarks.mev && muscle.setsThisWeek < muscleLandmarks.mav[0]) {
                 statusLabel = "Building";
                 statusColor = Colors.warning;
               } else {
@@ -406,21 +433,21 @@ export default function ProgressScreen() {
 
                   <VolumeBar
                     sets={muscle.setsThisWeek}
-                    mev={landmarks.mev}
-                    mav={landmarks.mav}
-                    mrv={landmarks.mrv}
+                    mev={muscleLandmarks.mev}
+                    mav={muscleLandmarks.mav}
+                    mrv={muscleLandmarks.mrv}
                   />
 
                   {/* MEV / MAV / MRV labels */}
                   <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4 }}>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted }}>
-                      MEV {landmarks.mev}
+                      MEV {muscleLandmarks.mev}
                     </Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.success }}>
-                      MAV {landmarks.mav[0]}–{landmarks.mav[1]}
+                      MAV {muscleLandmarks.mav[0]}–{muscleLandmarks.mav[1]}
                     </Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.danger }}>
-                      MRV {landmarks.mrv}
+                      MRV {muscleLandmarks.mrv}
                     </Text>
                   </View>
                 </View>

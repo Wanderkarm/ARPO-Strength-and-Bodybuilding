@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
+import { GOAL_META } from "@/utils/volumeLandmarks";
 import {
   getPreBuiltTemplates,
   getCustomTemplates,
@@ -326,97 +327,157 @@ export default function TemplatesScreen() {
       <Modal
         visible={showGoalModal}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setShowGoalModal(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.85)",
-            justifyContent: "center",
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)", justifyContent: "flex-end" }}>
+          <View style={{
+            backgroundColor: Colors.bgCard,
+            borderTopWidth: 1,
+            borderTopColor: Colors.border,
             paddingHorizontal: 24,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: Colors.bgCard,
-              borderWidth: 1,
-              borderColor: Colors.border,
-            }}
-          >
-            <View style={{ padding: 24 }}>
-              <Text
-                style={{
-                  fontFamily: "Rubik_700Bold",
-                  fontSize: 20,
-                  color: Colors.text,
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
-                  marginBottom: 8,
-                }}
-              >
-                Training Goal
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Rubik_400Regular",
-                  fontSize: 13,
-                  color: Colors.textSecondary,
-                  marginBottom: 24,
-                }}
-              >
-                Select a goal to set rep ranges and progression strategy
-              </Text>
+            paddingTop: 28,
+            paddingBottom: 24 + bottomInset,
+          }}>
+            {/* Header */}
+            <Text style={{
+              fontFamily: "Rubik_700Bold",
+              fontSize: 20,
+              color: Colors.text,
+              textTransform: "uppercase",
+              letterSpacing: 2,
+              marginBottom: 4,
+            }}>
+              Choose Your Goal
+            </Text>
+            <Text style={{
+              fontFamily: "Rubik_400Regular",
+              fontSize: 13,
+              color: Colors.textSecondary,
+              lineHeight: 19,
+              marginBottom: 24,
+            }}>
+              This sets your rep targets, weekly volume range, and how aggressively ARPO progresses your weights.
+            </Text>
 
-              {([
-                { key: "strength", label: "Strength", desc: "1–5 reps. Max force. Heavy barbell work." },
-                { key: "powerbuilding", label: "Powerbuilding", desc: "5–8 reps. Build strength and size." },
-                { key: "hypertrophy", label: "Hypertrophy", desc: "8–12 reps. Maximise muscle growth." },
-              ] as const).map((goal) => (
-                <Pressable
-                  key={goal.key}
-                  onPress={() => {
-                    setSelectedGoal(goal.key);
-                    setShowGoalModal(false);
-                    setShowGymModal(true);
-                  }}
-                  style={({ pressed }) => ({
-                    borderWidth: 1,
-                    borderColor: Colors.border,
-                    paddingVertical: 16,
-                    paddingHorizontal: 16,
-                    marginBottom: 10,
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
-                  })}
-                >
-                  <Text
-                    style={{
+            {GOAL_META.map((goal) => (
+              <Pressable
+                key={goal.key}
+                onPress={() => {
+                  if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setSelectedGoal(goal.key);
+                  setShowGoalModal(false);
+                  setShowGymModal(true);
+                }}
+                style={({ pressed }) => ({
+                  borderWidth: 1,
+                  borderColor: selectedGoal === goal.key ? goal.accentColor : Colors.border,
+                  borderLeftWidth: 3,
+                  borderLeftColor: goal.accentColor,
+                  marginBottom: 10,
+                  opacity: pressed ? 0.85 : 1,
+                  backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
+                  overflow: "hidden",
+                })}
+              >
+                {/* Card header row */}
+                <View style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingHorizontal: 14,
+                  paddingTop: 14,
+                  paddingBottom: 10,
+                }}>
+                  <View>
+                    <Text style={{
                       fontFamily: "Rubik_700Bold",
-                      fontSize: 14,
+                      fontSize: 15,
                       color: Colors.text,
                       textTransform: "uppercase",
                       letterSpacing: 2,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {goal.label}
-                  </Text>
-                  <Text
-                    style={{
+                    }}>
+                      {goal.label}
+                    </Text>
+                    <Text style={{
                       fontFamily: "Rubik_400Regular",
-                      fontSize: 12,
+                      fontSize: 11,
                       color: Colors.textSecondary,
-                    }}
-                  >
-                    {goal.desc}
-                  </Text>
-                </Pressable>
-              ))}
+                      marginTop: 2,
+                    }}>
+                      {goal.tagline}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={goal.accentColor} />
+                </View>
 
-              <Pressable
-                onPress={() => setShowGoalModal(false)}
-                style={{ marginTop: 6, alignSelf: "center" }}
+                {/* Spec grid */}
+                <View style={{
+                  borderTopWidth: 1,
+                  borderTopColor: Colors.border,
+                  flexDirection: "row",
+                }}>
+                  {[
+                    { label: "Reps",        value: goal.repRange },
+                    { label: "Sets / wk",   value: goal.setsPerWeek.replace(" sets / week", "") },
+                    { label: "RIR Wk 1→4",  value: goal.rirProgression },
+                  ].map((spec, i) => (
+                    <View key={i} style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      borderRightWidth: i < 2 ? 1 : 0,
+                      borderRightColor: Colors.border,
+                    }}>
+                      <Text style={{
+                        fontFamily: "Rubik_400Regular",
+                        fontSize: 8,
+                        color: Colors.textMuted,
+                        textTransform: "uppercase",
+                        letterSpacing: 1,
+                        marginBottom: 4,
+                      }}>
+                        {spec.label}
+                      </Text>
+                      <Text style={{
+                        fontFamily: "Rubik_700Bold",
+                        fontSize: 11,
+                        color: Colors.text,
+                        lineHeight: 15,
+                      }}>
+                        {spec.value}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Best-for footer */}
+                <View style={{
+                  borderTopWidth: 1,
+                  borderTopColor: Colors.border,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 6,
+                }}>
+                  <Ionicons name="person-outline" size={11} color={Colors.textMuted} style={{ marginTop: 1 }} />
+                  <Text style={{
+                    fontFamily: "Rubik_400Regular",
+                    fontSize: 10,
+                    color: Colors.textMuted,
+                    flex: 1,
+                    lineHeight: 15,
+                  }}>
+                    {goal.bestFor}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+
+            <Pressable
+              onPress={() => setShowGoalModal(false)}
+              style={{ marginTop: 4, alignSelf: "center" }}
               >
                 <Text
                   style={{
@@ -430,7 +491,6 @@ export default function TemplatesScreen() {
                   Cancel
                 </Text>
               </Pressable>
-            </View>
           </View>
         </View>
       </Modal>
