@@ -375,17 +375,27 @@ export async function createCustomTemplate(
   return (await getTemplateWithDays(templateId))!;
 }
 
+export async function getUserUnit(userId: string): Promise<'lbs' | 'kg'> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ weight_unit: string }>(
+    "SELECT weight_unit FROM users WHERE id = ?",
+    [userId]
+  );
+  return (row?.weight_unit as 'lbs' | 'kg') ?? 'lbs';
+}
+
 export async function createUser(
   gender: string,
   bodyweight: number,
   experience: string,
-  baselineWeights: BaselineWeights
+  baselineWeights: BaselineWeights,
+  weightUnit: 'lbs' | 'kg' = 'lbs'
 ): Promise<{ id: string; gender: string; bodyweight: number; experience: string; baselines: { category: string; weight: number }[] }> {
   const db = getDb();
   const userId = generateId();
   await db.runAsync(
-    "INSERT INTO users (id, gender, bodyweight, experience) VALUES (?, ?, ?, ?)",
-    [userId, gender, bodyweight, experience]
+    "INSERT INTO users (id, gender, bodyweight, experience, weight_unit) VALUES (?, ?, ?, ?, ?)",
+    [userId, gender, bodyweight, experience, weightUnit]
   );
 
   const categories = [

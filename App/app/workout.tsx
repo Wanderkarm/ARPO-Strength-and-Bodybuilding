@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import ExerciseGuide from "@/components/ExerciseGuide";
 import Colors from "@/constants/colors";
+import { useUnit } from "@/contexts/UnitContext";
 import RestTimer from "@/components/RestTimer";
 import GlossaryTerm from "@/components/GlossaryTerm";
 import { calculateRestTime } from "@/utils/restTimer";
@@ -114,6 +115,7 @@ export default function WorkoutScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
+  const { unit } = useUnit();
 
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -791,7 +793,7 @@ export default function WorkoutScreen() {
             {!isBodyweight && (
               <View style={{ flex: 1, paddingVertical: 8, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Weight
+                  {unit}
                 </Text>
               </View>
             )}
@@ -823,8 +825,8 @@ export default function WorkoutScreen() {
                   </View>
 
                   <View style={{ flex: 1, paddingVertical: 10, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
-                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
-                      {isBodyweight ? `BW × ${set.targetReps}` : `${set.targetWeight} × ${set.targetReps}`}
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
+                      {isBodyweight ? `BW × ${set.targetReps}` : `${set.targetWeight} ${unit} × ${set.targetReps}`}
                     </Text>
                   </View>
 

@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import GlossaryTerm from "@/components/GlossaryTerm";
+import { useUnit } from "@/contexts/UnitContext";
 
 interface NextWeekTarget {
   exerciseId: string;
@@ -31,6 +32,7 @@ export default function SummaryScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
+  const { unit } = useUnit();
 
   const params = useLocalSearchParams<{
     totalVolume: string;
@@ -199,7 +201,7 @@ export default function SummaryScreen() {
                 marginTop: 2,
               }}
             >
-              lbs moved
+              {unit} moved
             </Text>
           </View>
 
@@ -368,9 +370,9 @@ export default function SummaryScreen() {
             {nextWeekTargets.map((target, i) => {
               const arrow = getWeightArrow(target.thisWeekWeight, target.targetWeight);
               const thisWeekStr = target.thisWeekSets !== undefined && target.thisWeekReps !== undefined && target.thisWeekWeight !== undefined
-                ? `${target.thisWeekSets}×${target.thisWeekReps} @ ${target.thisWeekWeight}kg`
+                ? `${target.thisWeekSets}×${target.thisWeekReps} @ ${target.thisWeekWeight} ${unit}`
                 : "—";
-              const nextWeekStr = `${target.targetSets}×${target.targetReps ?? "—"} @ ${target.targetWeight}kg`;
+              const nextWeekStr = `${target.targetSets}×${target.targetReps ?? "—"} @ ${target.targetWeight} ${unit}`;
 
               return (
                 <View
@@ -427,8 +429,8 @@ export default function SummaryScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontFamily: "Rubik_600SemiBold",
-                          fontSize: 13,
+                          fontFamily: "Rubik_700Bold",
+                          fontSize: 14,
                           color: Colors.text,
                           marginBottom: 4,
                         }}
@@ -464,8 +466,8 @@ export default function SummaryScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
                         <Text
                           style={{
-                            fontFamily: "Rubik_600SemiBold",
-                            fontSize: 13,
+                            fontFamily: "Rubik_700Bold",
+                            fontSize: 14,
                             color: Colors.text,
                           }}
                         >

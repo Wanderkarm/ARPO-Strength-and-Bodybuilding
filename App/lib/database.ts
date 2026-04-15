@@ -24,13 +24,15 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN is_skipped INTEGER NOT NULL DEFAULT 0`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN goal_type TEXT NOT NULL DEFAULT 'hypertrophy'`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN weight_unit TEXT NOT NULL DEFAULT 'lbs'`).catch(() => {});
 
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       gender TEXT NOT NULL DEFAULT 'MALE',
       bodyweight REAL,
-      experience TEXT NOT NULL DEFAULT 'BEGINNER'
+      experience TEXT NOT NULL DEFAULT 'BEGINNER',
+      weight_unit TEXT NOT NULL DEFAULT 'lbs'
     );
 
     CREATE TABLE IF NOT EXISTS user_weight_baselines (
