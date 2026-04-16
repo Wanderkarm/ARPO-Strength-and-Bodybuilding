@@ -42,6 +42,13 @@ import {
   formatTime,
   type NotificationPrefs,
 } from "@/lib/notifications";
+import {
+  exportBackup,
+  pickAndPreviewBackup,
+  restoreBackup,
+  type RestorePreview,
+  type ARPOBackup,
+} from "@/lib/backup";
 
 // ─── Small reusable section header ──────────────────────────────────────────
 
@@ -145,6 +152,11 @@ export default function SettingsScreen() {
   });
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [showWeighinPicker, setShowWeighinPicker] = useState(false);
+
+  // Backup / restore
+  const [exportingBackup, setExportingBackup] = useState(false);
+  const [restorePreview, setRestorePreview] = useState<{ backup: ARPOBackup; preview: RestorePreview } | null>(null);
+  const [restoring, setRestoring] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -763,9 +775,7 @@ export default function SettingsScreen() {
                 )}
               </View>
             );
-          })()
-        }
-        {
+          })(),
           /* ── Weigh-in Reminder ── */
           (() => {
             const enabled = notifPrefs.weighinEnabled;
@@ -852,6 +862,146 @@ export default function SettingsScreen() {
               </View>
             );
           })()
+        ]}
+
+        {/* ── Backup & Restore ── */}
+        <SectionHeader title="Backup & Restore" />
+        <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8, padding: 16 }}>
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
+            Save a copy of all your workout history, body data, and custom routines. Send it to yourself by email, save it to Google Drive, iCloud, or any cloud storage — and restore it any time if you reinstall or switch phones.
+          </Text>
+
+          {/* Export */}
+          <Pressable
+            onPress={async () => {
+              setExportingBackup(true);
+              const result = await exportBackup();
+              setExportingBackup(false);
+              if (!result.success) Alert.alert("Export Failed", result.error ?? "Something went wrong.");
+            }}
+            disabled={exportingBackup}
+            style={({ pressed }) => ({
+              backgroundColor: Colors.primary,
+              paddingVertical: 14,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 8,
+              opacity: pressed || exportingBackup ? 0.75 : 1,
+              marginBottom: 10,
+            })}
+          >
+            {exportingBackup
+              ? <ActivityIndicator color="#FFF" size="small" />
+              : <Ionicons name="cloud-upload-outline" size={18} color="#FFF" />
+            }
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#FFF", textTransform: "uppercase", letterSpacing: 1.5 }}>
+              {exportingBackup ? "Preparing..." : "Export Backup"}
+            </Text>
+          </Pressable>
+
+          {/* Restore */}
+          <Pressable
+            onPress={async () => {
+              const result = await pickAndPreviewBackup();
+              if (!result.success) {
+                if (result.error !== "No file selected.") Alert.alert("Could Not Read File", result.error);
+                return;
+              }
+              setRestorePreview({ backup: result.backup, preview: result.preview });
+            }}
+            style={({ pressed }) => ({
+              borderWidth: 1,
+              borderColor: Colors.border,
+              paddingVertical: 14,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Ionicons name="cloud-download-outline" size={18} color={Colors.textSecondary} />
+            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1.5 }}>
+              Restore from Backup
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Restore confirmation modal */}
+        <Modal
+          visible={restorePreview !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setRestorePreview(null)}
+        >
+          <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000088" }}>
+            <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 24, paddingBottom: 36 }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                Restore This Backup?
+              </Text>
+              {restorePreview && (
+                <>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginBottom: 16 }}>
+                    Backed up on {new Date(restorePreview.preview.exportedAt).toLocaleDateString(undefined, { dateStyle: "long" })}
+                  </Text>
+                  {[
+                    { label: "Workout sessions", value: restorePreview.preview.workoutSessions },
+                    { label: "Weigh-ins", value: restorePreview.preview.weighIns },
+                    { label: "Body measurements", value: restorePreview.preview.bodyMeasurements },
+                    { label: "Custom routines", value: restorePreview.preview.customTemplates },
+                    { label: "Training plans", value: restorePreview.preview.workoutPlans },
+                  ].map(item => (
+                    <View key={item.label} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary }}>{item.label}</Text>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>{item.value}</Text>
+                    </View>
+                  ))}
+                  <View style={{ marginTop: 16, borderLeftWidth: 3, borderLeftColor: Colors.warning, paddingLeft: 12, paddingVertical: 6, marginBottom: 20 }}>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.warning, lineHeight: 18 }}>
+                      This will replace all current data on this device. This cannot be undone.
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={async () => {
+                      if (!restorePreview) return;
+                      setRestoring(true);
+                      const result = await restoreBackup(restorePreview.backup);
+                      setRestoring(false);
+                      setRestorePreview(null);
+                      if (result.success) {
+                        Alert.alert("Restored", "Your backup has been restored. The app will now reload.", [
+                          { text: "OK", onPress: () => router.replace("/") },
+                        ]);
+                      } else {
+                        Alert.alert("Restore Failed", result.error ?? "Something went wrong.");
+                      }
+                    }}
+                    disabled={restoring}
+                    style={({ pressed }) => ({
+                      backgroundColor: Colors.primary,
+                      paddingVertical: 16,
+                      alignItems: "center",
+                      opacity: pressed || restoring ? 0.75 : 1,
+                      marginBottom: 10,
+                    })}
+                  >
+                    {restoring
+                      ? <ActivityIndicator color="#FFF" />
+                      : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFF", textTransform: "uppercase", letterSpacing: 1.5 }}>Restore</Text>
+                    }
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setRestorePreview(null)}
+                    style={({ pressed }) => ({ paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
+                  >
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Cancel</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+          </View>
+        </Modal>
 
         {/* ── Profile ── */}
         <SectionHeader title="Profile" />
