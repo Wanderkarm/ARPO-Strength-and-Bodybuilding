@@ -9,7 +9,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,6 +31,8 @@ export default function TemplatesScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const isOnboarding = from === "onboarding";
 
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [showGymModal, setShowGymModal] = useState(false);
@@ -317,7 +319,13 @@ export default function TemplatesScreen() {
     >
       <View style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
         <Pressable
-          onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}
+          onPress={() => {
+            if (isOnboarding) {
+              router.replace("/nutrition-setup?from=onboarding");
+            } else {
+              router.canGoBack() ? router.back() : router.replace("/(tabs)");
+            }
+          }}
           hitSlop={12}
           style={{ marginBottom: 16 }}
         >

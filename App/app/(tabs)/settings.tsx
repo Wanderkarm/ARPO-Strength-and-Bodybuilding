@@ -175,6 +175,7 @@ export default function SettingsScreen() {
   const [todaySteps, setTodaySteps] = useState<DailyStepsEntry | null>(null);
   const [stepGoalInput, setStepGoalInput] = useState("8000");
   const [savingStepGoal, setSavingStepGoal] = useState(false);
+  const [stepGoalSaved, setStepGoalSaved] = useState(false);
   const [showStreakPicker, setShowStreakPicker] = useState(false);
   // Which days of week selected for streak reminder (0=Sun…6=Sat). null = daily
   const [streakReminderDays, setStreakReminderDays] = useState<"daily" | number[]>("daily");
@@ -1108,10 +1109,12 @@ export default function SettingsScreen() {
                 await updateStepGoal(userId, goal);
                 if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 setSavingStepGoal(false);
+                setStepGoalSaved(true);
+                setTimeout(() => setStepGoalSaved(false), 2000);
               }}
               disabled={savingStepGoal}
               style={({ pressed }) => ({
-                backgroundColor: Colors.primary,
+                backgroundColor: stepGoalSaved ? "#2E7D32" : Colors.primary,
                 paddingHorizontal: 16,
                 justifyContent: "center",
                 opacity: pressed || savingStepGoal ? 0.8 : 1,
@@ -1119,7 +1122,9 @@ export default function SettingsScreen() {
             >
               {savingStepGoal
                 ? <ActivityIndicator color={Colors.text} size="small" />
-                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>Save</Text>
+                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {stepGoalSaved ? "Saved ✓" : "Save"}
+                  </Text>
               }
             </Pressable>
           </View>

@@ -179,7 +179,7 @@ export default function NutritionSetupScreen() {
       });
 
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace(isOnboarding ? "/templates" : "/nutrition");
+      router.replace(isOnboarding ? "/templates?from=onboarding" : "/nutrition");
     } catch (err) {
       console.error(err);
     } finally {
@@ -190,8 +190,7 @@ export default function NutritionSetupScreen() {
   function goBack() {
     if (step === 1) {
       if (isOnboarding) {
-        // Skip nutrition setup — go straight to templates
-        router.replace("/templates");
+        router.replace("/onboarding");
       } else {
         router.canGoBack() ? router.back() : router.replace("/(tabs)");
       }
