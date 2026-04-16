@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,9 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
+  Alert,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,6 +22,7 @@ import {
   getAllExercises,
   getWorkoutPlan,
   createWorkoutPlan,
+  deleteCustomTemplate,
   type Template,
   type Exercise,
 } from "@/lib/local-db";
@@ -46,9 +48,18 @@ export default function TemplatesScreen() {
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
   const [pendingIsHome, setPendingIsHome] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Custom template delete
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const MAX_CUSTOM_SLOTS = 3;
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   async function loadData() {
     setIsLoading(true);
@@ -137,6 +148,45 @@ export default function TemplatesScreen() {
     } finally {
       setCreating(false);
     }
+  }
+
+  function confirmDeleteTemplate(template: Template) {
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTemplateToDelete(template);
+    setShowDeleteConfirm(true);
+  }
+
+  async function doDeleteTemplate() {
+    if (!templateToDelete) return;
+    setDeleting(true);
+    try {
+      const deletedPlanIds = await deleteCustomTemplate(templateToDelete.id);
+      // If the active plan was linked to this template, clear it
+      const activePlanId = await AsyncStorage.getItem("activePlanId");
+      if (activePlanId && deletedPlanIds.includes(activePlanId)) {
+        await AsyncStorage.removeItem("activePlanId");
+        await AsyncStorage.removeItem("exerciseSwaps");
+      }
+      setShowDeleteConfirm(false);
+      setTemplateToDelete(null);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function handleCreatePress(route: "/custom-builder" | "/auto-builder") {
+    if (customTemplatesList.length >= MAX_CUSTOM_SLOTS) {
+      Alert.alert(
+        "Routine Slots Full",
+        `You can save up to ${MAX_CUSTOM_SLOTS} custom routines. Delete one to create a new one.`,
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    router.push(route);
   }
 
   function getDayLabel(mesoType: number): string {
@@ -303,61 +353,164 @@ export default function TemplatesScreen() {
       ) : (
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
           {/* Create routine — two paths */}
-          <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
-            <Pressable
-              testID="create-custom-routine"
-              onPress={() => router.push("/custom-builder")}
-              style={({ pressed }) => ({
-                flex: 1,
-                borderWidth: 1,
-                borderColor: Colors.border,
-                paddingVertical: 18,
-                alignItems: "center",
-                gap: 8,
-                backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
-                opacity: pressed ? 0.9 : 1,
-              })}
-            >
-              <Ionicons name="list" size={22} color={Colors.textSecondary} />
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                Build{"\n"}Manually
-              </Text>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
-                Pick exercises{"\n"}day by day
-              </Text>
-            </Pressable>
+          {customTemplatesList.length < MAX_CUSTOM_SLOTS ? (
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
+              <Pressable
+                testID="create-custom-routine"
+                onPress={() => handleCreatePress("/custom-builder")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  borderWidth: 1,
+                  borderColor: Colors.border,
+                  paddingVertical: 18,
+                  alignItems: "center",
+                  gap: 8,
+                  backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
+                  opacity: pressed ? 0.9 : 1,
+                })}
+              >
+                <Ionicons name="list" size={22} color={Colors.textSecondary} />
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
+                  Build{"\n"}Manually
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
+                  Pick exercises{"\n"}day by day
+                </Text>
+              </Pressable>
 
-            <Pressable
-              testID="generate-routine"
-              onPress={() => router.push("/auto-builder")}
-              style={({ pressed }) => ({
-                flex: 1,
-                borderWidth: 1,
-                borderColor: Colors.primary,
-                paddingVertical: 18,
-                alignItems: "center",
-                gap: 8,
-                backgroundColor: pressed ? Colors.primary + "22" : Colors.bg,
-                opacity: pressed ? 0.9 : 1,
-              })}
-            >
-              <Ionicons name="sparkles" size={22} color={Colors.primary} />
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                Generate{"\n"}with ARPO
-              </Text>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
-                Set priorities,{"\n"}we build it
-              </Text>
-            </Pressable>
-          </View>
+              <Pressable
+                testID="generate-routine"
+                onPress={() => handleCreatePress("/auto-builder")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  borderWidth: 1,
+                  borderColor: Colors.primary,
+                  paddingVertical: 18,
+                  alignItems: "center",
+                  gap: 8,
+                  backgroundColor: pressed ? Colors.primary + "22" : Colors.bg,
+                  opacity: pressed ? 0.9 : 1,
+                })}
+              >
+                <Ionicons name="sparkles" size={22} color={Colors.primary} />
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
+                  Generate{"\n"}with ARPO
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
+                  Set priorities,{"\n"}we build it
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            /* Slots full — show locked state */
+            <View style={{
+              borderWidth: 1,
+              borderColor: Colors.border,
+              borderLeftWidth: 3,
+              borderLeftColor: Colors.warning,
+              backgroundColor: Colors.warning + "08",
+              padding: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 24,
+            }}>
+              <Ionicons name="lock-closed-outline" size={18} color={Colors.warning} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Routine Slots Full
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                  Delete a custom routine below to create a new one.
+                </Text>
+              </View>
+            </View>
+          )}
 
+          {/* Custom routines section */}
           {customTemplatesList.length > 0 && (
             <View style={{ marginBottom: 24 }}>
-              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-                My Custom Routines
-              </Text>
+              {/* Section header with slot counter */}
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                  My Custom Routines
+                </Text>
+                <View style={{ flexDirection: "row", gap: 3 }}>
+                  {Array.from({ length: MAX_CUSTOM_SLOTS }).map((_, i) => (
+                    <View
+                      key={i}
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: i < customTemplatesList.length ? Colors.primary : Colors.border,
+                      }}
+                    />
+                  ))}
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, marginLeft: 6 }}>
+                    {customTemplatesList.length}/{MAX_CUSTOM_SLOTS}
+                  </Text>
+                </View>
+              </View>
+
               {customTemplatesList.map((item) => (
-                <View key={item.id}>{renderTemplate({ item })}</View>
+                <View key={item.id} style={{ marginBottom: 8 }}>
+                  {/* Custom template card with delete button */}
+                  <Pressable
+                    onPress={() => handleTemplatePress(item)}
+                    style={({ pressed }) => ({
+                      borderWidth: 1,
+                      borderColor: Colors.border,
+                      backgroundColor: pressed ? Colors.bgAccent : Colors.bg,
+                      opacity: pressed ? 0.9 : 1,
+                    })}
+                  >
+                    <View style={{ padding: 16 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+                          <View style={{ width: 40, height: 40, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}>
+                            <Ionicons name="person" size={20} color={Colors.primary} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                              {item.name}
+                            </Text>
+                            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2 }}>
+                              {getDayLabel(item.mesoType)} · Custom
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+                          <Pressable
+                            onPress={(e) => { e.stopPropagation(); confirmDeleteTemplate(item); }}
+                            hitSlop={12}
+                            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 4 })}
+                          >
+                            <Ionicons name="trash-outline" size={17} color={Colors.textMuted} />
+                          </Pressable>
+                          <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                        </View>
+                      </View>
+
+                      <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12 }}>
+                        {item.days.slice(0, 3).map((day) => (
+                          <View key={day.id} style={{ marginBottom: 4 }}>
+                            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
+                              <Text style={{ color: Colors.primary, fontFamily: "Rubik_500Medium" }}>D{day.dayNumber}</Text>
+                              {"  "}
+                              {day.exercises.map((e) => e.exercise.name).join(" / ")}
+                            </Text>
+                          </View>
+                        ))}
+                        {item.days.length > 3 && (
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                            +{item.days.length - 3} more days
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  </Pressable>
+                </View>
               ))}
             </View>
           )}
@@ -702,6 +855,68 @@ export default function TemplatesScreen() {
                 <ActivityIndicator color={Colors.primary} size="large" />
               </View>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Delete Custom Template Confirmation ── */}
+      <Modal
+        visible={showDeleteConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirm(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, width: "100%", padding: 24 }}>
+            <Ionicons name="trash-outline" size={26} color={Colors.danger} style={{ alignSelf: "center", marginBottom: 12 }} />
+
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
+              Delete Routine?
+            </Text>
+
+            {templateToDelete && (
+              <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.danger, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 16 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                  {templateToDelete.name}
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                  {getDayLabel(templateToDelete.mesoType)} · Custom
+                </Text>
+              </View>
+            )}
+
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
+              This will permanently delete the routine and all associated workout history. This cannot be undone. Your slot will be freed up for a new routine.
+            </Text>
+
+            <Pressable
+              onPress={doDeleteTemplate}
+              disabled={deleting}
+              style={({ pressed }) => ({
+                backgroundColor: Colors.danger,
+                paddingVertical: 14,
+                alignItems: "center",
+                marginBottom: 10,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              {deleting ? (
+                <ActivityIndicator color={Colors.text} />
+              ) : (
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                  Delete Permanently
+                </Text>
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => { setShowDeleteConfirm(false); setTemplateToDelete(null); }}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignItems: "center", paddingVertical: 8 })}
+            >
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                Cancel
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Modal>

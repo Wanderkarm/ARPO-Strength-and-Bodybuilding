@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   SectionList,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +20,7 @@ import Colors from "@/constants/colors";
 import {
   getAllExercises,
   createCustomTemplate,
+  getCustomTemplateCount,
   type Exercise,
 } from "@/lib/local-db";
 
@@ -126,6 +128,16 @@ export default function CustomBuilderScreen() {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       const uid = await AsyncStorage.getItem("userId");
       if (!uid) return;
+
+      const count = await getCustomTemplateCount(uid);
+      if (count >= 3) {
+        Alert.alert(
+          "Routine Slots Full",
+          "You can save up to 3 custom routines. Delete one from the routines screen to create a new one.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
 
       await createCustomTemplate(
         uid,

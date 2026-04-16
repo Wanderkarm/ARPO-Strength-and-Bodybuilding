@@ -12,6 +12,7 @@ import {
   FlatList,
   Alert,
   useWindowDimensions,
+  Keyboard,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
@@ -39,6 +40,7 @@ import {
   type WorkoutPlan,
   type Exercise,
 } from "@/lib/local-db";
+import { firePRNotification } from "@/lib/notifications";
 
 interface SetState {
   setLogId: string;
@@ -102,8 +104,13 @@ function getFeedback(
     ? repsCompleted >= targetReps
     : repsCompleted >= targetReps && weightUsed >= targetWeight;
   if (hitTarget) {
+    const exceeded = isBodyweight
+      ? repsCompleted > targetReps
+      : repsCompleted > targetReps || weightUsed > targetWeight;
     return {
-      text: "Target exceeded. Progressive overload achieved.",
+      text: exceeded
+        ? "Target exceeded. Progressive overload achieved."
+        : "Target met. Progressive overload achieved.",
       color: Colors.success,
     };
   }
@@ -155,9 +162,20 @@ export default function WorkoutScreen() {
   const videoButtonRef = useRef<View>(null);
   const actionBarRef = useRef<View>(null);
   const weightInputRefs = useRef<Record<string, TextInput | null>>({});
+  // Track which exerciseIds have already shown the huge-jump warning this install
+  const warnedJumpExercisesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     loadPlan();
+    // Restore which exercises have already been warned about large weight jumps
+    AsyncStorage.getItem("hugejump_warned_exercises").then((raw) => {
+      if (raw) {
+        try {
+          const ids: string[] = JSON.parse(raw);
+          warnedJumpExercisesRef.current = new Set(ids);
+        } catch {}
+      }
+    });
   }, []);
 
   async function loadPlan() {
@@ -275,6 +293,14 @@ export default function WorkoutScreen() {
     const num = parseFloat(setData.weightUsed);
     if (isNaN(num) || num <= 0 || setData.targetWeight <= 0) return;
     if (num > setData.targetWeight * 1.2) {
+      const exerciseId = exerciseStates[exIndex]?.exerciseId;
+      // Only show this warning the first time for each exercise
+      if (exerciseId && warnedJumpExercisesRef.current.has(exerciseId)) return;
+      if (exerciseId) {
+        warnedJumpExercisesRef.current.add(exerciseId);
+        const updated = Array.from(warnedJumpExercisesRef.current);
+        AsyncStorage.setItem("hugejump_warned_exercises", JSON.stringify(updated));
+      }
       const refKey = `${exIndex}-${si}`;
       Alert.alert(
         "Massive Jump Detected",
@@ -533,6 +559,13 @@ export default function WorkoutScreen() {
       const result = await completeWorkout(planId, dayNumber, exercises);
       const currentRIR = exerciseStates.length > 0 ? exerciseStates[0].targetRIR : "";
 
+      // Fire a local notification for each PR (runs in background, non-blocking)
+      if (result.prs.length > 0) {
+        for (const pr of result.prs) {
+          firePRNotification(pr.exerciseName, pr.newBest, pr.previousBest, unit).catch(() => {});
+        }
+      }
+
       if (result.isMesoComplete) {
         router.replace({ pathname: "/meso-complete", params: { planId } });
       } else {
@@ -545,6 +578,7 @@ export default function WorkoutScreen() {
             exerciseCount: String(exercises.length),
             nextWeekTargets: JSON.stringify(result.nextWeekTargets),
             currentRIR,
+            prs: JSON.stringify(result.prs),
           },
         });
       }
@@ -727,7 +761,7 @@ export default function WorkoutScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
       <View
         style={{
           flexDirection: "row",
@@ -951,6 +985,8 @@ export default function WorkoutScreen() {
                       value={set.repsCompleted}
                       onChangeText={(v) => handleSetRepsChange(currentExerciseIndex, si, v)}
                       onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
+                      onSubmitEditing={() => Keyboard.dismiss()}
+                      returnKeyType="done"
                       keyboardType="numeric"
                       placeholder="—"
                       placeholderTextColor={Colors.textMuted}
@@ -1689,6 +1725,6 @@ export default function WorkoutScreen() {
           exerciseName={currentEx.exercise.name}
         />
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }

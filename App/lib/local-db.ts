@@ -349,6 +349,43 @@ export async function getCustomTemplates(userId: string): Promise<Template[]> {
   return results;
 }
 
+export async function getCustomTemplateCount(userId: string): Promise<number> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ cnt: number }>(
+    "SELECT COUNT(*) as cnt FROM templates WHERE is_custom = 1 AND user_id = ?",
+    [userId]
+  );
+  return row?.cnt ?? 0;
+}
+
+export async function deleteCustomTemplate(templateId: string): Promise<string[]> {
+  const db = getDb();
+  // Collect all plan IDs linked to this template so caller can clean up AsyncStorage
+  const plans = await db.getAllAsync<{ id: string }>(
+    "SELECT id FROM workout_plans WHERE template_id = ?",
+    [templateId]
+  );
+  const planIds = plans.map((p) => p.id);
+
+  // Cascade delete: set_logs → workout_logs → workout_plans → template_exercises → template_days → template
+  for (const planId of planIds) {
+    await db.runAsync(
+      "DELETE FROM set_logs WHERE workout_log_id IN (SELECT id FROM workout_logs WHERE workout_plan_id = ?)",
+      [planId]
+    );
+    await db.runAsync("DELETE FROM workout_logs WHERE workout_plan_id = ?", [planId]);
+    await db.runAsync("DELETE FROM workout_plans WHERE id = ?", [planId]);
+  }
+  await db.runAsync(
+    "DELETE FROM template_exercises WHERE template_day_id IN (SELECT id FROM template_days WHERE template_id = ?)",
+    [templateId]
+  );
+  await db.runAsync("DELETE FROM template_days WHERE template_id = ?", [templateId]);
+  await db.runAsync("DELETE FROM templates WHERE id = ? AND is_custom = 1", [templateId]);
+
+  return planIds;
+}
+
 export async function createCustomTemplate(
   userId: string,
   name: string,
@@ -1166,12 +1203,13 @@ export async function completeWorkout(
   dayNumber: number;
   allDaysComplete: boolean;
   isMesoComplete: boolean;
+  prs: { exerciseId: string; exerciseName: string; newBest: number; previousBest: number }[];
 }> {
   const db = getDb();
 
   const plan = await db.getFirstAsync<{
-    id: string; template_id: string; current_week: number; goal_type: string;
-  }>("SELECT id, template_id, current_week, goal_type FROM workout_plans WHERE id = ?", [workoutPlanId]);
+    id: string; template_id: string; current_week: number; goal_type: string; user_id: string;
+  }>("SELECT id, template_id, current_week, goal_type, user_id FROM workout_plans WHERE id = ?", [workoutPlanId]);
 
   if (!plan) throw new Error("Plan not found");
 
@@ -1182,6 +1220,36 @@ export async function completeWorkout(
     [plan.template_id]
   );
   const totalDays = totalDaysResult?.count || 0;
+
+  // ─── PR Detection (before we write this session's data) ──────────────────
+  const prs: { exerciseId: string; exerciseName: string; newBest: number; previousBest: number }[] = [];
+  for (const ex of exercisesData) {
+    if (ex.sets.length === 0) continue;
+    const maxThisSession = Math.max(...ex.sets.map((s) => s.weightUsed).filter((w) => w > 0));
+    if (maxThisSession <= 0) continue; // skip bodyweight
+
+    const row = await db.getFirstAsync<{ max_weight: number | null }>(
+      `SELECT MAX(sl.weight_used) as max_weight
+       FROM set_logs sl
+       JOIN workout_logs wl ON sl.workout_log_id = wl.id
+       JOIN workout_plans wp ON wl.workout_plan_id = wp.id
+       WHERE wl.exercise_id = ?
+         AND wp.user_id = ?
+         AND sl.completed_at IS NOT NULL
+         AND sl.weight_used > 0`,
+      [ex.exerciseId, plan.user_id]
+    );
+
+    const previousBest = row?.max_weight ?? 0;
+    if (maxThisSession > previousBest) {
+      prs.push({
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName ?? "Exercise",
+        newBest: maxThisSession,
+        previousBest,
+      });
+    }
+  }
 
   const nextWeekTargets: any[] = [];
   let totalVolume = 0;
@@ -1388,6 +1456,7 @@ export async function completeWorkout(
     dayNumber,
     allDaysComplete,
     isMesoComplete,
+    prs,
   };
 }
 

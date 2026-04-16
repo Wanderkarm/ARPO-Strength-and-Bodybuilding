@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
+  Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,6 +30,16 @@ import {
   type GymType,
 } from "@/lib/local-db";
 import type { GoalType } from "@/utils/volumeLandmarks";
+import {
+  loadNotificationPrefs,
+  scheduleWorkoutReminder,
+  scheduleWeighInReminder,
+  cancelWorkoutReminder,
+  cancelWeighInReminder,
+  requestNotificationPermission,
+  formatTime,
+  type NotificationPrefs,
+} from "@/lib/notifications";
 
 // ─── Small reusable section header ──────────────────────────────────────────
 
@@ -125,6 +136,12 @@ export default function SettingsScreen() {
   const [hasPlan, setHasPlan] = useState(false);
   const [switchingGym, setSwitchingGym] = useState(false);
 
+  // Notification prefs
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>({
+    workoutEnabled: false, workoutHour: 8,  workoutMinute: 0,
+    weighinEnabled: false, weighinHour: 7,  weighinMinute: 0,
+  });
+
   useFocusEffect(
     useCallback(() => {
       loadSettings();
@@ -163,6 +180,9 @@ export default function SettingsScreen() {
       } else {
         setHasPlan(false);
       }
+
+      const prefs = await loadNotificationPrefs();
+      setNotifPrefs(prefs);
     } catch (err) {
       console.error(err);
     } finally {
@@ -646,6 +666,122 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
           </View>
         </Pressable>
+
+        {/* ── Notifications ── */}
+        <SectionHeader title="Notifications" />
+
+        {/* Workout reminder row */}
+        {[
+          {
+            key: "workout" as const,
+            label: "Workout Reminder",
+            sub: notifPrefs.workoutEnabled
+              ? `Daily at ${formatTime(notifPrefs.workoutHour, notifPrefs.workoutMinute)}`
+              : "Off",
+            enabled: notifPrefs.workoutEnabled,
+            onToggle: async (val: boolean) => {
+              const updated = { ...notifPrefs, workoutEnabled: val };
+              setNotifPrefs(updated);
+              if (val) {
+                const granted = await requestNotificationPermission();
+                if (granted) await scheduleWorkoutReminder(notifPrefs.workoutHour, notifPrefs.workoutMinute);
+                else setNotifPrefs({ ...updated, workoutEnabled: false });
+              } else {
+                await cancelWorkoutReminder();
+              }
+            },
+            times: [
+              { h: 6, m: 0 }, { h: 7, m: 0 }, { h: 8, m: 0 },
+              { h: 9, m: 0 }, { h: 12, m: 0 }, { h: 17, m: 0 }, { h: 18, m: 0 },
+            ],
+            activeH: notifPrefs.workoutHour,
+            activeM: notifPrefs.workoutMinute,
+            onTimeSelect: async (h: number, m: number) => {
+              const updated = { ...notifPrefs, workoutHour: h, workoutMinute: m };
+              setNotifPrefs(updated);
+              if (notifPrefs.workoutEnabled) await scheduleWorkoutReminder(h, m);
+            },
+          },
+          {
+            key: "weighin" as const,
+            label: "Weigh-in Reminder",
+            sub: notifPrefs.weighinEnabled
+              ? `Daily at ${formatTime(notifPrefs.weighinHour, notifPrefs.weighinMinute)}`
+              : "Off",
+            enabled: notifPrefs.weighinEnabled,
+            onToggle: async (val: boolean) => {
+              const updated = { ...notifPrefs, weighinEnabled: val };
+              setNotifPrefs(updated);
+              if (val) {
+                const granted = await requestNotificationPermission();
+                if (granted) await scheduleWeighInReminder(notifPrefs.weighinHour, notifPrefs.weighinMinute);
+                else setNotifPrefs({ ...updated, weighinEnabled: false });
+              } else {
+                await cancelWeighInReminder();
+              }
+            },
+            times: [
+              { h: 6, m: 0 }, { h: 6, m: 30 }, { h: 7, m: 0 },
+              { h: 7, m: 30 }, { h: 8, m: 0 }, { h: 8, m: 30 },
+            ],
+            activeH: notifPrefs.weighinHour,
+            activeM: notifPrefs.weighinMinute,
+            onTimeSelect: async (h: number, m: number) => {
+              const updated = { ...notifPrefs, weighinHour: h, weighinMinute: m };
+              setNotifPrefs(updated);
+              if (notifPrefs.weighinEnabled) await scheduleWeighInReminder(h, m);
+            },
+          },
+        ].map((item) => (
+          <View key={item.key} style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name={item.key === "workout" ? "barbell-outline" : "scale-outline"} size={17} color={Colors.primary} />
+                </View>
+                <View>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{item.label}</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>{item.sub}</Text>
+                </View>
+              </View>
+              <Switch
+                value={item.enabled}
+                onValueChange={item.onToggle}
+                trackColor={{ false: Colors.border, true: Colors.primary }}
+                thumbColor={Colors.text}
+              />
+            </View>
+            {item.enabled && (
+              <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                  Time
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                  {item.times.map(({ h, m }) => {
+                    const active = item.activeH === h && item.activeM === m;
+                    return (
+                      <Pressable
+                        key={`${h}-${m}`}
+                        onPress={() => item.onTimeSelect(h, m)}
+                        style={({ pressed }) => ({
+                          borderWidth: 1,
+                          borderColor: active ? Colors.primary : Colors.border,
+                          backgroundColor: active ? Colors.primary + "22" : Colors.bg,
+                          paddingHorizontal: 12, paddingVertical: 7,
+                          opacity: pressed ? 0.7 : 1,
+                        })}
+                      >
+                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: active ? Colors.primary : Colors.textSecondary }}>
+                          {formatTime(h, m)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+        ))}
 
         {/* ── Profile ── */}
         <SectionHeader title="Profile" />

@@ -7,8 +7,15 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import { router } from "expo-router";
+import {
+  requestNotificationPermission,
+  scheduleWorkoutReminder,
+  scheduleWeighInReminder,
+  formatTime,
+} from "@/lib/notifications";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,9 +30,9 @@ import {
 import { createUser } from "@/lib/local-db";
 import { useUnit, type WeightUnit } from "@/contexts/UnitContext";
 
-type Step = "unit" | "gender" | "bodyweight" | "experience" | "weights";
+type Step = "unit" | "gender" | "bodyweight" | "experience" | "weights" | "notifications";
 
-const STEPS: Step[] = ["unit", "gender", "bodyweight", "experience", "weights"];
+const STEPS: Step[] = ["unit", "gender", "bodyweight", "experience", "weights", "notifications"];
 
 const EXPERIENCE_OPTIONS: { value: ExperienceLevel; label: string; desc: string }[] = [
   { value: "BEGINNER", label: "BEGINNER", desc: "< 1 year training" },
@@ -55,6 +62,14 @@ export default function OnboardingScreen() {
   const [experience, setExperience] = useState<ExperienceLevel | null>(null);
   const [editedWeights, setEditedWeights] = useState<EstimatedWeights | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Notification preferences (notifications step)
+  const [workoutNotif, setWorkoutNotif]   = useState(true);
+  const [workoutHour, setWorkoutHour]     = useState(8);
+  const [workoutMinute, setWorkoutMinute] = useState(0);
+  const [weighinNotif, setWeighinNotif]   = useState(true);
+  const [weighinHour, setWeighinHour]     = useState(7);
+  const [weighinMinute, setWeighinMinute] = useState(0);
 
   const estimatedWeights = useMemo(() => {
     if (gender && bodyweight && experience) {
@@ -105,7 +120,14 @@ export default function OnboardingScreen() {
     }
   }
 
-  async function handleFinish() {
+  // After weights step — move to notifications
+  function handleFinish() {
+    if (!gender || !bodyweight || !experience || !editedWeights) return;
+    setStep("notifications");
+  }
+
+  // Final step — save user + schedule notifications + navigate
+  async function handleNotificationsDone() {
     if (!gender || !bodyweight || !experience || !editedWeights) return;
     setSaving(true);
     try {
@@ -121,7 +143,17 @@ export default function OnboardingScreen() {
       await AsyncStorage.setItem("userGender", gender);
       await AsyncStorage.setItem("userWeights", JSON.stringify(editedWeights));
       await refreshUnit();
-      router.replace("/templates");
+
+      // Schedule notifications if opted in
+      if (workoutNotif || weighinNotif) {
+        const granted = await requestNotificationPermission();
+        if (granted) {
+          if (workoutNotif) await scheduleWorkoutReminder(workoutHour, workoutMinute);
+          if (weighinNotif) await scheduleWeighInReminder(weighinHour, weighinMinute);
+        }
+      }
+
+      router.replace("/nutrition-setup?from=onboarding");
     } catch (err) {
       console.error(err);
     } finally {
@@ -131,10 +163,11 @@ export default function OnboardingScreen() {
 
   function goBack() {
     if (step === "unit") router.canGoBack() ? router.back() : router.replace("/(tabs)");
-    else if (step === "gender") setStep("unit");
-    else if (step === "bodyweight") setStep("gender");
-    else if (step === "experience") setStep("bodyweight");
-    else if (step === "weights") setStep("experience");
+    else if (step === "gender")        setStep("unit");
+    else if (step === "bodyweight")    setStep("gender");
+    else if (step === "experience")    setStep("bodyweight");
+    else if (step === "weights")       setStep("experience");
+    else if (step === "notifications") setStep("weights");
   }
 
   const stepIndex = STEPS.indexOf(step);
@@ -656,22 +689,199 @@ export default function OnboardingScreen() {
                 opacity: pressed ? 0.85 : 1,
               })}
             >
+              <Text style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: 14,
+                color: Colors.text,
+                textAlign: "center",
+                textTransform: "uppercase",
+                letterSpacing: 2,
+              }}>
+                Continue
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* ─── Step 6: Notifications ─────────────────────────────────────────── */}
+        {step === "notifications" && (
+          <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 32 }}>
+            <Text style={{
+              fontFamily: "Rubik_700Bold",
+              fontSize: 22,
+              color: Colors.text,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+              marginBottom: 6,
+            }}>
+              Stay on Track
+            </Text>
+            <Text style={{
+              fontFamily: "Rubik_400Regular",
+              fontSize: 13,
+              color: Colors.textSecondary,
+              lineHeight: 19,
+              marginBottom: 28,
+            }}>
+              Let ARPO nudge you at the right time. You can change these any time in Settings.
+            </Text>
+
+            {/* Workout reminder card */}
+            <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 12 }}>
+              <View style={{
+                flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+                padding: 16, borderBottomWidth: workoutNotif ? 1 : 0, borderBottomColor: Colors.border,
+              }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text }}>
+                    Daily Workout Reminder
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 2 }}>
+                    A push notification when it's time to train
+                  </Text>
+                </View>
+                <Switch
+                  value={workoutNotif}
+                  onValueChange={setWorkoutNotif}
+                  trackColor={{ false: Colors.border, true: Colors.primary }}
+                  thumbColor={Colors.text}
+                />
+              </View>
+              {workoutNotif && (
+                <View style={{ padding: 14 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                    Remind me at
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                    {[
+                      { h: 6, m: 0 }, { h: 7, m: 0 }, { h: 8, m: 0 },
+                      { h: 9, m: 0 }, { h: 12, m: 0 }, { h: 17, m: 0 }, { h: 18, m: 0 },
+                    ].map(({ h, m }) => {
+                      const active = workoutHour === h && workoutMinute === m;
+                      return (
+                        <Pressable
+                          key={`w-${h}-${m}`}
+                          onPress={() => { setWorkoutHour(h); setWorkoutMinute(m); }}
+                          style={({ pressed }) => ({
+                            borderWidth: 1,
+                            borderColor: active ? Colors.primary : Colors.border,
+                            backgroundColor: active ? Colors.primary + "22" : Colors.bg,
+                            paddingHorizontal: 14, paddingVertical: 8,
+                            opacity: pressed ? 0.7 : 1,
+                          })}
+                        >
+                          <Text style={{
+                            fontFamily: "Rubik_600SemiBold",
+                            fontSize: 12,
+                            color: active ? Colors.primary : Colors.textSecondary,
+                          }}>
+                            {formatTime(h, m)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Weigh-in reminder card */}
+            <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 28 }}>
+              <View style={{
+                flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+                padding: 16, borderBottomWidth: weighinNotif ? 1 : 0, borderBottomColor: Colors.border,
+              }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text }}>
+                    Daily Weigh-in Reminder
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 2 }}>
+                    Morning reminder to log your bodyweight
+                  </Text>
+                </View>
+                <Switch
+                  value={weighinNotif}
+                  onValueChange={setWeighinNotif}
+                  trackColor={{ false: Colors.border, true: Colors.primary }}
+                  thumbColor={Colors.text}
+                />
+              </View>
+              {weighinNotif && (
+                <View style={{ padding: 14 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                    Remind me at
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                    {[
+                      { h: 6, m: 0 }, { h: 6, m: 30 }, { h: 7, m: 0 },
+                      { h: 7, m: 30 }, { h: 8, m: 0 }, { h: 8, m: 30 },
+                    ].map(({ h, m }) => {
+                      const active = weighinHour === h && weighinMinute === m;
+                      return (
+                        <Pressable
+                          key={`d-${h}-${m}`}
+                          onPress={() => { setWeighinHour(h); setWeighinMinute(m); }}
+                          style={({ pressed }) => ({
+                            borderWidth: 1,
+                            borderColor: active ? Colors.primary : Colors.border,
+                            backgroundColor: active ? Colors.primary + "22" : Colors.bg,
+                            paddingHorizontal: 14, paddingVertical: 8,
+                            opacity: pressed ? 0.7 : 1,
+                          })}
+                        >
+                          <Text style={{
+                            fontFamily: "Rubik_600SemiBold",
+                            fontSize: 12,
+                            color: active ? Colors.primary : Colors.textSecondary,
+                          }}>
+                            {formatTime(h, m)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            <Pressable
+              onPress={handleNotificationsDone}
+              disabled={saving}
+              style={({ pressed }) => ({
+                backgroundColor: Colors.primary,
+                paddingVertical: 18,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
               {saving ? (
                 <ActivityIndicator color={Colors.text} />
               ) : (
-                <Text
-                  style={{
-                    fontFamily: "Rubik_700Bold",
-                    fontSize: 14,
-                    color: Colors.text,
-                    textAlign: "center",
-                    textTransform: "uppercase",
-                    letterSpacing: 2,
-                  }}
-                >
-                  Save & Choose Routine
+                <Text style={{
+                  fontFamily: "Rubik_700Bold",
+                  fontSize: 14,
+                  color: Colors.text,
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                  letterSpacing: 2,
+                }}>
+                  Get Started
                 </Text>
               )}
+            </Pressable>
+
+            <Pressable
+              onPress={handleNotificationsDone}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, marginTop: 14, alignSelf: "center" })}
+            >
+              <Text style={{
+                fontFamily: "Rubik_400Regular",
+                fontSize: 12,
+                color: Colors.textMuted,
+                textTransform: "uppercase",
+                letterSpacing: 1,
+              }}>
+                Skip for now
+              </Text>
             </Pressable>
           </View>
         )}

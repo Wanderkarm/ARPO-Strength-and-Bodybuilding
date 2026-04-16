@@ -14,10 +14,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
 import { getUserProfile, getNutritionProfile } from "@/lib/local-db";
+import InfoTip from "@/components/InfoTip";
 import {
   calculateNutritionPlan,
   generateMealExamples,
   kgToLbs,
+  lbsToKg,
   type NutritionPlan,
   type MacroSet,
   type AggressionLevel,
@@ -153,7 +155,9 @@ export default function NutritionScreen() {
         return;
       }
 
-      const bwKg = profile.bodyweight ?? 80;
+      // bodyweight is stored in the user's native unit — convert to kg for calculations
+      const storedBw = profile.bodyweight ?? (unit === "lbs" ? 176 : 80);
+      const bwKg = unit === "lbs" ? lbsToKg(storedBw) : storedBw;
       setBodyweightKg(bwKg);
 
       const goal = (nutrition.bodyGoal ?? "recomp") as BodyGoal;
@@ -262,9 +266,17 @@ export default function NutritionScreen() {
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: goalColor, textTransform: "uppercase", letterSpacing: 1 }}>
               {GOAL_LABELS[bodyGoal]}
             </Text>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-              BMR {plan.bmr.toLocaleString()} kcal · TDEE {plan.tdee.toLocaleString()} kcal · {bwDisplay}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", marginTop: 2, gap: 4 }}>
+              <InfoTip term="BMR" size={11} />
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
+                BMR {plan.bmr.toLocaleString()} kcal
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>·</Text>
+              <InfoTip term="TDEE" size={11} />
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
+                TDEE {plan.tdee.toLocaleString()} kcal · {bwDisplay}
+              </Text>
+            </View>
           </View>
           <Pressable
             onPress={() => router.push("/nutrition-setup")}

@@ -208,4 +208,26 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
     explanation:
       "Auto-Regulated Progressive Overload — ARPO adjusts your weights and sets each week based on how you actually performed, your recovery, and pump quality. Unlike fixed programs, ARPO responds to your biology rather than a spreadsheet.",
   },
+  TDEE: {
+    explanation:
+      "Total Daily Energy Expenditure — the total calories your body burns each day. This includes your Basal Metabolic Rate (BMR) plus energy used for all activity: exercise, walking, digestion, and fidgeting. Eating at your TDEE maintains weight; a deficit causes fat loss, a surplus causes weight gain.",
+    citation:
+      "Mifflin MD et al. (1990). A new predictive equation for resting energy expenditure in healthy individuals. The American Journal of Clinical Nutrition.",
+  },
+  BMR: {
+    explanation:
+      "Basal Metabolic Rate — the calories your body burns at complete rest to sustain basic functions: breathing, circulation, organ function, and cell repair. ARPO calculates your BMR using the Mifflin-St Jeor equation, which is the most validated formula for estimating resting energy needs.",
+    citation:
+      "Mifflin MD et al. (1990). A new predictive equation for resting energy expenditure in healthy individuals. The American Journal of Clinical Nutrition.",
+  },
+  "PPL": {
+    explanation:
+      "Push/Pull/Legs (PPL) — a 3-way split grouping muscles by movement pattern. Push days train chest, shoulders, and triceps (pressing movements). Pull days train back and biceps (rowing/pulling movements). Legs days train quads, hamstrings, glutes, and calves.\n\n• PPL+2 (5 days): PPL with an extra Upper and Lower day for more volume without doubling every session.\n• PPL×2 (6 days): the full PPL cycle repeated twice per week — maximum frequency for advanced athletes.",
+  },
+  "1RM": {
+    explanation:
+      "One Rep Max — the maximum weight you can lift for exactly one complete repetition. ARPO estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas, then averages them for accuracy. Used to calculate training percentages and track strength progress.",
+    citation:
+      "Epley B. (1985). Poundage Chart. Boyd Epley Workout. University of Nebraska. / Brzycki M. (1993). Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue. Journal of Physical Education, Recreation & Dance.",
+  },
 };
