@@ -47,11 +47,11 @@ export interface MealExample {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 export const ACTIVITY_LABELS: Record<ActivityLevel, { label: string; description: string; multiplier: number }> = {
-  sedentary:   { label: "Sedentary",     description: "Desk job, minimal movement outside training",         multiplier: 1.2   },
-  light:       { label: "Lightly Active",description: "On your feet some of the day, light daily activity",  multiplier: 1.375 },
-  moderate:    { label: "Moderately Active", description: "Active job or active most days outside training",  multiplier: 1.55  },
-  active:      { label: "Very Active",   description: "Physical job or very active lifestyle",               multiplier: 1.725 },
-  very_active: { label: "Athlete",       description: "Physical job + intense daily training",               multiplier: 1.9   },
+  sedentary:   { label: "Sedentary",        description: "Desk job, little or no exercise",                          multiplier: 1.2   },
+  light:       { label: "Lightly Active",   description: "Light exercise 1–3 days/week or active daily movement",    multiplier: 1.375 },
+  moderate:    { label: "Moderately Active",description: "Moderate exercise 3–5 days/week (typical gym lifter)",     multiplier: 1.55  },
+  active:      { label: "Very Active",      description: "Hard exercise 6–7 days/week or physical job",              multiplier: 1.725 },
+  very_active: { label: "Athlete",          description: "Twice-daily training or very hard exercise + physical job", multiplier: 1.9   },
 };
 
 // ─── BMR — Mifflin-St Jeor (most validated equation) ─────────────────────────

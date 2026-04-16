@@ -74,5 +74,29 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
   "ARPO": {
     title: "Auto-Regulated Progressive Overload",
     definition: "A dynamic programming method where your daily performance automatically dictates the precise load required in your next session to force continuous adaptation."
+  },
+  "MEV": {
+    title: "Minimum Effective Volume (MEV)",
+    definition: "The smallest number of hard sets per muscle group per week needed to make progress. Training below MEV is maintenance or regression territory. MEV varies by muscle, experience level, and recovery capacity — typically 6–10 sets/week for most muscles."
+  },
+  "MAV": {
+    title: "Maximum Adaptive Volume (MAV)",
+    definition: "The range of weekly sets where you get the most muscle growth — the sweet spot between too little and too much. MAV is the training volume that produces optimal hypertrophy for your current recovery capacity, usually 12–20 hard sets per muscle per week."
+  },
+  "MRV": {
+    title: "Maximum Recoverable Volume (MRV)",
+    definition: "The upper limit of weekly training volume your body can recover from and still adapt positively. Exceeding MRV leads to systemic fatigue, performance decline, and potential overtraining. MRV varies by training age, sleep, stress, and nutrition."
+  },
+  "TDEE": {
+    title: "Total Daily Energy Expenditure (TDEE)",
+    definition: "The total number of calories your body burns in a day, including your Basal Metabolic Rate (BMR) plus all activity — exercise, walking, work, fidgeting. TDEE is your maintenance calorie level: eat at TDEE and your weight stays the same."
+  },
+  "BMR": {
+    title: "Basal Metabolic Rate (BMR)",
+    definition: "The number of calories your body burns at complete rest just to sustain basic life functions — breathing, circulation, cell repair. BMR is calculated using the Mifflin-St Jeor equation and accounts for roughly 60–70% of your total daily calorie burn."
+  },
+  "1RM": {
+    title: "One Rep Max (1RM)",
+    definition: "The maximum weight you can lift for exactly one complete repetition with proper form. Your 1RM is a benchmark for relative strength and is used to calculate training percentages. ARPO estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas."
   }
 };

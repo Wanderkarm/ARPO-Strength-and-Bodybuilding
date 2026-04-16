@@ -7,6 +7,7 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,9 +15,11 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
+import InfoTip from "@/components/InfoTip";
 import {
   getAllExercises,
   createCustomTemplate,
+  getCustomTemplateCount,
   type Exercise,
   type GymType,
 } from "@/lib/local-db";
@@ -87,6 +90,17 @@ export default function AutoBuilderScreen() {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       const uid = await AsyncStorage.getItem("userId");
       if (!uid) return;
+
+      const count = await getCustomTemplateCount(uid);
+      if (count >= 3) {
+        Alert.alert(
+          "Routine Slots Full",
+          "You can save up to 3 custom routines. Delete one from the routines screen to create a new one.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
       await createCustomTemplate(
         uid,
         routineName.trim(),
@@ -180,9 +194,16 @@ export default function AutoBuilderScreen() {
       {step === 1 && (
         <>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 24 }}>
-              ARPO will build a science-based programme around your muscle priorities using MEV/MAV volume targets.
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginBottom: 24 }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
+                ARPO will build a science-based programme around your muscle priorities using{" "}
+                <Text style={{ color: Colors.text }}>MEV</Text>/<Text style={{ color: Colors.text }}>MAV</Text> volume targets.
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8, paddingTop: 2 }}>
+                <InfoTip term="MEV" size={13} />
+                <InfoTip term="MAV" size={13} />
+              </View>
+            </View>
 
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
               Routine Name
@@ -247,12 +268,17 @@ export default function AutoBuilderScreen() {
                 </Pressable>
               ))}
             </View>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
-              {daysPerWeek === 3 && "Three balanced full-body sessions. Best for beginners or busy schedules."}
-              {daysPerWeek === 4 && "Two upper and two lower days. High frequency, good recovery balance."}
-              {daysPerWeek === 5 && "Push / Pull / Legs with two extra upper/lower days for added volume."}
-              {daysPerWeek === 6 && "Push / Pull / Legs twice per week. Maximum frequency for advanced lifters."}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, flex: 1 }}>
+                {daysPerWeek === 3 && "Three balanced full-body sessions hitting every muscle group each visit. Best for beginners or busy schedules."}
+                {daysPerWeek === 4 && "Two upper-body and two lower-body days. High frequency with good recovery between sessions."}
+                {daysPerWeek === 5 && "Push / Pull / Legs plus one extra Upper day and one extra Lower day — more volume per muscle without doubling full sessions."}
+                {daysPerWeek === 6 && "The full Push / Pull / Legs cycle repeated twice per week. Maximum frequency for advanced lifters who can handle and recover from high volume."}
+              </Text>
+              {(daysPerWeek === 5 || daysPerWeek === 6) && (
+                <InfoTip term="PPL" size={13} />
+              )}
+            </View>
           </ScrollView>
 
           <View style={{ paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingBottom: 12 + bottomInset }}>
@@ -284,9 +310,20 @@ export default function AutoBuilderScreen() {
       {step === 2 && (
         <>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 20 }}>
-              Set the priority for each muscle group. <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>High</Text> = train near MRV for maximum growth. <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>Maintain</Text> = MEV only. <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>Skip</Text> = omit entirely.
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginBottom: 20 }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
+                Set the priority for each muscle group.{" "}
+                <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>High</Text> = train near{" "}
+                <Text style={{ color: Colors.text }}>MRV</Text> for maximum growth.{" "}
+                <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>Maintain</Text> ={" "}
+                <Text style={{ color: Colors.text }}>MEV</Text> only.{" "}
+                <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>Skip</Text> = omit entirely.
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8, paddingTop: 2 }}>
+                <InfoTip term="MRV" size={13} />
+                <InfoTip term="MEV" size={13} />
+              </View>
+            </View>
 
             {/* Priority legend */}
             <View style={{ flexDirection: "row", gap: 6, marginBottom: 20 }}>

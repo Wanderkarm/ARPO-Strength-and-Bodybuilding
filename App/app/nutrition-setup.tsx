@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -63,6 +63,8 @@ export default function NutritionSetupScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { unit } = useUnit();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const isOnboarding = from === "onboarding";
 
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
@@ -99,10 +101,8 @@ export default function NutritionSetupScreen() {
     if (profile) {
       setExperience(profile.experience as "BEGINNER" | "INTERMEDIATE" | "ADVANCED");
       if (profile.bodyweight) {
-        const w = unit === "kg"
-          ? String(Math.round(profile.bodyweight))
-          : String(Math.round(kgToLbs(profile.bodyweight)));
-        setCurrentWeight(w);
+        // bodyweight is stored in the user's native unit — no conversion needed
+        setCurrentWeight(String(Math.round(profile.bodyweight)));
       }
     }
     const nutrition = await getNutritionProfile(uid);
@@ -157,8 +157,10 @@ export default function NutritionSetupScreen() {
     if (!uid) return;
     setSaving(true);
     try {
+      const parsedFt = parseInt(heightFt);
+      const parsedIn = parseInt(heightIn);
       const cm = unit === "lbs"
-        ? ftInToCm(parseInt(heightFt) || 5, parseInt(heightIn) || 10)
+        ? ftInToCm(isNaN(parsedFt) ? 5 : parsedFt, isNaN(parsedIn) ? 0 : parsedIn)
         : parseFloat(heightCm) || 178;
 
       const targetKg = targetWeight
@@ -177,7 +179,7 @@ export default function NutritionSetupScreen() {
       });
 
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/nutrition");
+      router.replace(isOnboarding ? "/templates" : "/nutrition");
     } catch (err) {
       console.error(err);
     } finally {
@@ -187,7 +189,12 @@ export default function NutritionSetupScreen() {
 
   function goBack() {
     if (step === 1) {
-      router.canGoBack() ? router.back() : router.replace("/(tabs)");
+      if (isOnboarding) {
+        // Skip nutrition setup — go straight to templates
+        router.replace("/templates");
+      } else {
+        router.canGoBack() ? router.back() : router.replace("/(tabs)");
+      }
     } else {
       setStep((step - 1) as Step);
     }
@@ -223,10 +230,18 @@ export default function NutritionSetupScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            Nutrition Setup
+            {isOnboarding ? "Set Up Nutrition" : "Nutrition Setup"}
           </Text>
         </View>
-        <View style={{ width: 24 }} />
+        {isOnboarding && step === 1 ? (
+          <Pressable onPress={() => router.replace("/templates")} hitSlop={12}>
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+              Skip
+            </Text>
+          </Pressable>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
 
       {/* Progress bar */}
@@ -409,7 +424,7 @@ export default function NutritionSetupScreen() {
                 Activity Level
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
-                This is your activity <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>outside</Text> of your ARPO training sessions. Your gym workouts are already factored into your calorie target.
+                Choose based on your <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>total daily activity</Text>, including your training sessions. A desk-job lifter training 4×/week is typically Moderately Active.
               </Text>
 
               {(Object.entries(ACTIVITY_LABELS) as [ActivityLevel, typeof ACTIVITY_LABELS[ActivityLevel]][]).map(([key, val]) => (
