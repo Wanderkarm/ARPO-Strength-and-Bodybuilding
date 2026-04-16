@@ -8,7 +8,9 @@ import {
   Platform,
   ActivityIndicator,
   Switch,
+  Modal,
 } from "react-native";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import {
   requestNotificationPermission,
@@ -70,6 +72,8 @@ export default function OnboardingScreen() {
   const [weighinNotif, setWeighinNotif]   = useState(true);
   const [weighinHour, setWeighinHour]     = useState(7);
   const [weighinMinute, setWeighinMinute] = useState(0);
+  const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
+  const [showWeighinPicker, setShowWeighinPicker] = useState(false);
 
   const estimatedWeights = useMemo(() => {
     if (gender && bodyweight && experience) {
@@ -752,35 +756,51 @@ export default function OnboardingScreen() {
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
                     Remind me at
                   </Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                    {[
-                      { h: 6, m: 0 }, { h: 7, m: 0 }, { h: 8, m: 0 },
-                      { h: 9, m: 0 }, { h: 12, m: 0 }, { h: 17, m: 0 }, { h: 18, m: 0 },
-                    ].map(({ h, m }) => {
-                      const active = workoutHour === h && workoutMinute === m;
-                      return (
-                        <Pressable
-                          key={`w-${h}-${m}`}
-                          onPress={() => { setWorkoutHour(h); setWorkoutMinute(m); }}
-                          style={({ pressed }) => ({
-                            borderWidth: 1,
-                            borderColor: active ? Colors.primary : Colors.border,
-                            backgroundColor: active ? Colors.primary + "22" : Colors.bg,
-                            paddingHorizontal: 14, paddingVertical: 8,
-                            opacity: pressed ? 0.7 : 1,
-                          })}
-                        >
-                          <Text style={{
-                            fontFamily: "Rubik_600SemiBold",
-                            fontSize: 12,
-                            color: active ? Colors.primary : Colors.textSecondary,
-                          }}>
-                            {formatTime(h, m)}
-                          </Text>
-                        </Pressable>
-                      );
+                  <Pressable
+                    onPress={() => setShowWorkoutPicker(true)}
+                    style={({ pressed }) => ({
+                      flexDirection: "row", alignItems: "center", gap: 10,
+                      borderWidth: 1, borderColor: Colors.primary,
+                      backgroundColor: Colors.primary + "11",
+                      paddingHorizontal: 14, paddingVertical: 10,
+                      opacity: pressed ? 0.75 : 1,
                     })}
-                  </ScrollView>
+                  >
+                    <Ionicons name="time-outline" size={16} color={Colors.primary} />
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{formatTime(workoutHour, workoutMinute)}</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                  </Pressable>
+                  {showWorkoutPicker && Platform.OS === "android" && (
+                    <DateTimePicker
+                      value={(() => { const d = new Date(); d.setHours(workoutHour, workoutMinute, 0, 0); return d; })()}
+                      mode="time" display="default"
+                      onChange={(e: DateTimePickerEvent, date?: Date) => {
+                        setShowWorkoutPicker(false);
+                        if (e.type !== "dismissed" && date) { setWorkoutHour(date.getHours()); setWorkoutMinute(date.getMinutes()); }
+                      }}
+                    />
+                  )}
+                  {Platform.OS === "ios" && (
+                    <Modal visible={showWorkoutPicker} transparent animationType="slide">
+                      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+                        <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+                          <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                            <Pressable onPress={() => setShowWorkoutPicker(false)} hitSlop={12}>
+                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                            </Pressable>
+                          </View>
+                          <DateTimePicker
+                            value={(() => { const d = new Date(); d.setHours(workoutHour, workoutMinute, 0, 0); return d; })()}
+                            mode="time" display="spinner" textColor="#FFFFFF"
+                            onChange={(e: DateTimePickerEvent, date?: Date) => {
+                              if (e.type !== "dismissed" && date) { setWorkoutHour(date.getHours()); setWorkoutMinute(date.getMinutes()); }
+                            }}
+                            style={{ height: 180 }}
+                          />
+                        </View>
+                      </View>
+                    </Modal>
+                  )}
                 </View>
               )}
             </View>
@@ -811,35 +831,51 @@ export default function OnboardingScreen() {
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
                     Remind me at
                   </Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                    {[
-                      { h: 6, m: 0 }, { h: 6, m: 30 }, { h: 7, m: 0 },
-                      { h: 7, m: 30 }, { h: 8, m: 0 }, { h: 8, m: 30 },
-                    ].map(({ h, m }) => {
-                      const active = weighinHour === h && weighinMinute === m;
-                      return (
-                        <Pressable
-                          key={`d-${h}-${m}`}
-                          onPress={() => { setWeighinHour(h); setWeighinMinute(m); }}
-                          style={({ pressed }) => ({
-                            borderWidth: 1,
-                            borderColor: active ? Colors.primary : Colors.border,
-                            backgroundColor: active ? Colors.primary + "22" : Colors.bg,
-                            paddingHorizontal: 14, paddingVertical: 8,
-                            opacity: pressed ? 0.7 : 1,
-                          })}
-                        >
-                          <Text style={{
-                            fontFamily: "Rubik_600SemiBold",
-                            fontSize: 12,
-                            color: active ? Colors.primary : Colors.textSecondary,
-                          }}>
-                            {formatTime(h, m)}
-                          </Text>
-                        </Pressable>
-                      );
+                  <Pressable
+                    onPress={() => setShowWeighinPicker(true)}
+                    style={({ pressed }) => ({
+                      flexDirection: "row", alignItems: "center", gap: 10,
+                      borderWidth: 1, borderColor: Colors.primary,
+                      backgroundColor: Colors.primary + "11",
+                      paddingHorizontal: 14, paddingVertical: 10,
+                      opacity: pressed ? 0.75 : 1,
                     })}
-                  </ScrollView>
+                  >
+                    <Ionicons name="time-outline" size={16} color={Colors.primary} />
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{formatTime(weighinHour, weighinMinute)}</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                  </Pressable>
+                  {showWeighinPicker && Platform.OS === "android" && (
+                    <DateTimePicker
+                      value={(() => { const d = new Date(); d.setHours(weighinHour, weighinMinute, 0, 0); return d; })()}
+                      mode="time" display="default"
+                      onChange={(e: DateTimePickerEvent, date?: Date) => {
+                        setShowWeighinPicker(false);
+                        if (e.type !== "dismissed" && date) { setWeighinHour(date.getHours()); setWeighinMinute(date.getMinutes()); }
+                      }}
+                    />
+                  )}
+                  {Platform.OS === "ios" && (
+                    <Modal visible={showWeighinPicker} transparent animationType="slide">
+                      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+                        <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+                          <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                            <Pressable onPress={() => setShowWeighinPicker(false)} hitSlop={12}>
+                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                            </Pressable>
+                          </View>
+                          <DateTimePicker
+                            value={(() => { const d = new Date(); d.setHours(weighinHour, weighinMinute, 0, 0); return d; })()}
+                            mode="time" display="spinner" textColor="#FFFFFF"
+                            onChange={(e: DateTimePickerEvent, date?: Date) => {
+                              if (e.type !== "dismissed" && date) { setWeighinHour(date.getHours()); setWeighinMinute(date.getMinutes()); }
+                            }}
+                            style={{ height: 180 }}
+                          />
+                        </View>
+                      </View>
+                    </Modal>
+                  )}
                 </View>
               )}
             </View>

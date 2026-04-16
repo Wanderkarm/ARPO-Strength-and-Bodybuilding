@@ -9,7 +9,9 @@ import {
   TextInput,
   Alert,
   Switch,
+  Modal,
 } from "react-native";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -141,6 +143,8 @@ export default function SettingsScreen() {
     workoutEnabled: false, workoutHour: 8,  workoutMinute: 0,
     weighinEnabled: false, weighinHour: 7,  weighinMinute: 0,
   });
+  const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
+  const [showWeighinPicker, setShowWeighinPicker] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -672,14 +676,14 @@ export default function SettingsScreen() {
 
         {/* Workout reminder row */}
         {[
-          {
-            key: "workout" as const,
-            label: "Workout Reminder",
-            sub: notifPrefs.workoutEnabled
-              ? `Daily at ${formatTime(notifPrefs.workoutHour, notifPrefs.workoutMinute)}`
-              : "Off",
-            enabled: notifPrefs.workoutEnabled,
-            onToggle: async (val: boolean) => {
+          /* ── Workout Reminder ── */
+          (() => {
+            const enabled = notifPrefs.workoutEnabled;
+            const timeStr = formatTime(notifPrefs.workoutHour, notifPrefs.workoutMinute);
+            const pickerDate = new Date();
+            pickerDate.setHours(notifPrefs.workoutHour, notifPrefs.workoutMinute, 0, 0);
+
+            const onToggle = async (val: boolean) => {
               const updated = { ...notifPrefs, workoutEnabled: val };
               setNotifPrefs(updated);
               if (val) {
@@ -689,27 +693,87 @@ export default function SettingsScreen() {
               } else {
                 await cancelWorkoutReminder();
               }
-            },
-            times: [
-              { h: 6, m: 0 }, { h: 7, m: 0 }, { h: 8, m: 0 },
-              { h: 9, m: 0 }, { h: 12, m: 0 }, { h: 17, m: 0 }, { h: 18, m: 0 },
-            ],
-            activeH: notifPrefs.workoutHour,
-            activeM: notifPrefs.workoutMinute,
-            onTimeSelect: async (h: number, m: number) => {
+            };
+
+            const onTimeChange = async (event: DateTimePickerEvent, date?: Date) => {
+              if (Platform.OS === "android") setShowWorkoutPicker(false);
+              if (event.type === "dismissed" || !date) return;
+              const h = date.getHours();
+              const m = date.getMinutes();
               const updated = { ...notifPrefs, workoutHour: h, workoutMinute: m };
               setNotifPrefs(updated);
               if (notifPrefs.workoutEnabled) await scheduleWorkoutReminder(h, m);
-            },
-          },
-          {
-            key: "weighin" as const,
-            label: "Weigh-in Reminder",
-            sub: notifPrefs.weighinEnabled
-              ? `Daily at ${formatTime(notifPrefs.weighinHour, notifPrefs.weighinMinute)}`
-              : "Off",
-            enabled: notifPrefs.weighinEnabled,
-            onToggle: async (val: boolean) => {
+            };
+
+            return (
+              <View key="workout" style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="barbell-outline" size={17} color={Colors.primary} />
+                    </View>
+                    <View>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Workout Reminder</Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                        {enabled ? `Daily at ${timeStr}` : "Off"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Switch value={enabled} onValueChange={onToggle} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.text} />
+                </View>
+                {enabled && (
+                  <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                      Reminder Time
+                    </Text>
+                    <Pressable
+                      onPress={() => setShowWorkoutPicker(true)}
+                      style={({ pressed }) => ({
+                        flexDirection: "row", alignItems: "center", gap: 10,
+                        borderWidth: 1, borderColor: Colors.primary,
+                        backgroundColor: Colors.primary + "11",
+                        paddingHorizontal: 14, paddingVertical: 10,
+                        opacity: pressed ? 0.75 : 1,
+                      })}
+                    >
+                      <Ionicons name="time-outline" size={16} color={Colors.primary} />
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{timeStr}</Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                    </Pressable>
+                    {/* Android: inline picker dialog */}
+                    {showWorkoutPicker && Platform.OS === "android" && (
+                      <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
+                    )}
+                    {/* iOS: modal with spinner */}
+                    {Platform.OS === "ios" && (
+                      <Modal visible={showWorkoutPicker} transparent animationType="slide">
+                        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+                          <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+                            <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                              <Pressable onPress={() => setShowWorkoutPicker(false)} hitSlop={12}>
+                                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                              </Pressable>
+                            </View>
+                            <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
+                          </View>
+                        </View>
+                      </Modal>
+                    )}
+                  </View>
+                )}
+              </View>
+            );
+          })()
+        }
+        {
+          /* ── Weigh-in Reminder ── */
+          (() => {
+            const enabled = notifPrefs.weighinEnabled;
+            const timeStr = formatTime(notifPrefs.weighinHour, notifPrefs.weighinMinute);
+            const pickerDate = new Date();
+            pickerDate.setHours(notifPrefs.weighinHour, notifPrefs.weighinMinute, 0, 0);
+
+            const onToggle = async (val: boolean) => {
               const updated = { ...notifPrefs, weighinEnabled: val };
               setNotifPrefs(updated);
               if (val) {
@@ -719,69 +783,75 @@ export default function SettingsScreen() {
               } else {
                 await cancelWeighInReminder();
               }
-            },
-            times: [
-              { h: 6, m: 0 }, { h: 6, m: 30 }, { h: 7, m: 0 },
-              { h: 7, m: 30 }, { h: 8, m: 0 }, { h: 8, m: 30 },
-            ],
-            activeH: notifPrefs.weighinHour,
-            activeM: notifPrefs.weighinMinute,
-            onTimeSelect: async (h: number, m: number) => {
+            };
+
+            const onTimeChange = async (event: DateTimePickerEvent, date?: Date) => {
+              if (Platform.OS === "android") setShowWeighinPicker(false);
+              if (event.type === "dismissed" || !date) return;
+              const h = date.getHours();
+              const m = date.getMinutes();
               const updated = { ...notifPrefs, weighinHour: h, weighinMinute: m };
               setNotifPrefs(updated);
               if (notifPrefs.weighinEnabled) await scheduleWeighInReminder(h, m);
-            },
-          },
-        ].map((item) => (
-          <View key={item.key} style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
-                  <Ionicons name={item.key === "workout" ? "barbell-outline" : "scale-outline"} size={17} color={Colors.primary} />
+            };
+
+            return (
+              <View key="weighin" style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="scale-outline" size={17} color={Colors.primary} />
+                    </View>
+                    <View>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Weigh-in Reminder</Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                        {enabled ? `Daily at ${timeStr}` : "Off"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Switch value={enabled} onValueChange={onToggle} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.text} />
                 </View>
-                <View>
-                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{item.label}</Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>{item.sub}</Text>
-                </View>
+                {enabled && (
+                  <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                      Reminder Time
+                    </Text>
+                    <Pressable
+                      onPress={() => setShowWeighinPicker(true)}
+                      style={({ pressed }) => ({
+                        flexDirection: "row", alignItems: "center", gap: 10,
+                        borderWidth: 1, borderColor: Colors.primary,
+                        backgroundColor: Colors.primary + "11",
+                        paddingHorizontal: 14, paddingVertical: 10,
+                        opacity: pressed ? 0.75 : 1,
+                      })}
+                    >
+                      <Ionicons name="time-outline" size={16} color={Colors.primary} />
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{timeStr}</Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                    </Pressable>
+                    {showWeighinPicker && Platform.OS === "android" && (
+                      <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
+                    )}
+                    {Platform.OS === "ios" && (
+                      <Modal visible={showWeighinPicker} transparent animationType="slide">
+                        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+                          <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+                            <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                              <Pressable onPress={() => setShowWeighinPicker(false)} hitSlop={12}>
+                                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                              </Pressable>
+                            </View>
+                            <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
+                          </View>
+                        </View>
+                      </Modal>
+                    )}
+                  </View>
+                )}
               </View>
-              <Switch
-                value={item.enabled}
-                onValueChange={item.onToggle}
-                trackColor={{ false: Colors.border, true: Colors.primary }}
-                thumbColor={Colors.text}
-              />
-            </View>
-            {item.enabled && (
-              <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                  Time
-                </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                  {item.times.map(({ h, m }) => {
-                    const active = item.activeH === h && item.activeM === m;
-                    return (
-                      <Pressable
-                        key={`${h}-${m}`}
-                        onPress={() => item.onTimeSelect(h, m)}
-                        style={({ pressed }) => ({
-                          borderWidth: 1,
-                          borderColor: active ? Colors.primary : Colors.border,
-                          backgroundColor: active ? Colors.primary + "22" : Colors.bg,
-                          paddingHorizontal: 12, paddingVertical: 7,
-                          opacity: pressed ? 0.7 : 1,
-                        })}
-                      >
-                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: active ? Colors.primary : Colors.textSecondary }}>
-                          {formatTime(h, m)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-        ))}
+            );
+          })()
 
         {/* ── Profile ── */}
         <SectionHeader title="Profile" />
