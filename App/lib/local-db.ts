@@ -854,7 +854,9 @@ export async function skipSession(
       [nextWeek, workoutPlanId]
     );
 
-    const rir = RIR_SCHEDULE[((nextWeek - 1) % 4) + 1] || "3 RIR";
+    const nextMesoWeek = ((nextWeek - 1) % 4) + 1;
+    const isNextDeload = nextMesoWeek === 4;
+    const rir = isNextDeload ? "4 RIR" : (RIR_SCHEDULE[nextMesoWeek] || "3 RIR");
 
     const allWeekLogs = await db.getAllAsync<{
       exercise_id: string; day_number: number; target_sets: number;
@@ -871,7 +873,11 @@ export async function skipSession(
       let nextWeight = log.target_weight;
       let exercise: { category: string } | null | undefined = undefined;
 
-      if (log.is_skipped === 0) {
+      if (isNextDeload) {
+        // Deload: reduce sets ~40%, keep weight (minimum 2 sets)
+        nextSets = Math.max(2, Math.floor(log.target_sets * 0.6));
+        nextWeight = log.target_weight;
+      } else if (log.is_skipped === 0) {
         exercise = await db.getFirstAsync<{ category: string }>(
           "SELECT category FROM exercises WHERE id = ?",
           [log.exercise_id]
@@ -1258,7 +1264,9 @@ export async function completeWorkout(
       [nextWeek, workoutPlanId]
     );
 
-    const rir = RIR_SCHEDULE[((nextWeek - 1) % 4) + 1] || "3 RIR";
+    const nextMesoWeek2 = ((nextWeek - 1) % 4) + 1;
+    const isNextDeload2 = nextMesoWeek2 === 4;
+    const rir = isNextDeload2 ? "4 RIR" : (RIR_SCHEDULE[nextMesoWeek2] || "3 RIR");
 
     const allWeekLogs = await db.getAllAsync<{
       exercise_id: string; original_exercise_id: string | null;
@@ -1276,6 +1284,28 @@ export async function completeWorkout(
     );
 
     for (const log of allWeekLogs) {
+      // Deload week: reduce sets ~40%, keep weight, skip progression calc
+      if (isNextDeload2) {
+        const deloadSets = Math.max(2, Math.floor(log.target_sets * 0.6));
+        const logId = generateId();
+        const nextExerciseId = (log.is_permanent_swap === 0 && log.original_exercise_id)
+          ? log.original_exercise_id
+          : log.exercise_id;
+        await db.runAsync(
+          `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, original_exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [logId, workoutPlanId, nextExerciseId, log.original_exercise_id ?? nextExerciseId,
+           nextWeek, log.day_number, deloadSets, log.target_weight, rir]
+        );
+        for (let s = 1; s <= deloadSets; s++) {
+          await db.runAsync(
+            "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
+            [generateId(), logId, s, log.target_weight, 12]
+          );
+        }
+        continue;
+      }
+
       const avgRepsResult = await db.getFirstAsync<{ avg_reps: number }>(
         `SELECT COALESCE(AVG(sl.reps_completed), 10) as avg_reps
          FROM set_logs sl
@@ -1550,6 +1580,139 @@ export async function getProgressData(planId: string): Promise<{
   const muscleVolume = [...muscleMap.values()].sort((a, b) => b.setsMeso - a.setsMeso);
 
   return { exerciseHistory, muscleVolume, currentWeek, goalType };
+}
+
+// ─── Body Weight Log ──────────────────────────────────────────────────────────
+
+export interface BodyWeightEntry {
+  id: string;
+  weightKg: number;
+  loggedAt: string;
+}
+
+export async function logBodyWeight(userId: string, weightKg: number): Promise<void> {
+  const db = getDb();
+  const now = new Date().toISOString();
+  await db.runAsync(
+    "INSERT INTO body_weight_logs (id, user_id, weight_kg, logged_at) VALUES (?, ?, ?, ?)",
+    [generateId(), userId, weightKg, now]
+  );
+  // Also update the users.bodyweight for use throughout the app
+  await db.runAsync("UPDATE users SET bodyweight = ? WHERE id = ?", [weightKg, userId]);
+}
+
+export async function getBodyWeightHistory(
+  userId: string,
+  limitDays = 90
+): Promise<BodyWeightEntry[]> {
+  const db = getDb();
+  const since = new Date(Date.now() - limitDays * 24 * 60 * 60 * 1000).toISOString();
+  const rows = await db.getAllAsync<{ id: string; weight_kg: number; logged_at: string }>(
+    `SELECT id, weight_kg, logged_at FROM body_weight_logs
+     WHERE user_id = ? AND logged_at >= ?
+     ORDER BY logged_at ASC`,
+    [userId, since]
+  );
+  return rows.map(r => ({ id: r.id, weightKg: r.weight_kg, loggedAt: r.logged_at }));
+}
+
+export async function deleteBodyWeightEntry(id: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync("DELETE FROM body_weight_logs WHERE id = ?", [id]);
+}
+
+// ─── Body Measurements ────────────────────────────────────────────────────────
+
+export interface BodyMeasurement {
+  id: string;
+  chestCm: number | null;
+  waistCm: number | null;
+  hipsCm: number | null;
+  leftArmCm: number | null;
+  rightArmCm: number | null;
+  leftThighCm: number | null;
+  neckCm: number | null;
+  notes: string | null;
+  loggedAt: string;
+}
+
+export async function logBodyMeasurements(
+  userId: string,
+  m: Omit<BodyMeasurement, "id" | "loggedAt">
+): Promise<void> {
+  const db = getDb();
+  await db.runAsync(
+    `INSERT INTO body_measurements
+       (id, user_id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm, left_thigh_cm, neck_cm, notes, logged_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      generateId(), userId,
+      m.chestCm, m.waistCm, m.hipsCm,
+      m.leftArmCm, m.rightArmCm, m.leftThighCm,
+      m.neckCm, m.notes,
+      new Date().toISOString(),
+    ]
+  );
+}
+
+export async function getBodyMeasurementHistory(
+  userId: string,
+  limit = 20
+): Promise<BodyMeasurement[]> {
+  const db = getDb();
+  const rows = await db.getAllAsync<{
+    id: string; chest_cm: number | null; waist_cm: number | null; hips_cm: number | null;
+    left_arm_cm: number | null; right_arm_cm: number | null; left_thigh_cm: number | null;
+    neck_cm: number | null; notes: string | null; logged_at: string;
+  }>(
+    `SELECT id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm,
+            left_thigh_cm, neck_cm, notes, logged_at
+     FROM body_measurements WHERE user_id = ?
+     ORDER BY logged_at DESC LIMIT ?`,
+    [userId, limit]
+  );
+  return rows.map(r => ({
+    id: r.id,
+    chestCm: r.chest_cm,
+    waistCm: r.waist_cm,
+    hipsCm: r.hips_cm,
+    leftArmCm: r.left_arm_cm,
+    rightArmCm: r.right_arm_cm,
+    leftThighCm: r.left_thigh_cm,
+    neckCm: r.neck_cm,
+    notes: r.notes,
+    loggedAt: r.logged_at,
+  }));
+}
+
+// ─── Custom Exercises ─────────────────────────────────────────────────────────
+
+export async function createCustomExercise(
+  name: string,
+  category: string,
+  equipment: string
+): Promise<string> {
+  const db = getDb();
+  const id = generateId();
+  await db.runAsync(
+    "INSERT INTO exercises (id, name, category, equipment, is_custom) VALUES (?, ?, ?, ?, 1)",
+    [id, name.trim(), category, equipment]
+  );
+  return id;
+}
+
+export async function getCustomExercises(): Promise<
+  { id: string; name: string; category: string; equipment: string }[]
+> {
+  const db = getDb();
+  return await db.getAllAsync<{ id: string; name: string; category: string; equipment: string }>(
+    "SELECT id, name, category, equipment FROM exercises WHERE is_custom = 1 ORDER BY name ASC"
+  );
+}
+
+export async function deleteCustomExercise(id: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync("DELETE FROM exercises WHERE id = ? AND is_custom = 1", [id]);
 }
 
 export async function createWorkoutPlanFromPrevious(

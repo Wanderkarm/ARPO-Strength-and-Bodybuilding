@@ -524,6 +524,73 @@ export default function SettingsScreen() {
           </>
         )}
 
+        {/* ── Tools ── */}
+        <SectionHeader title="Tools" />
+        {[
+          {
+            route: "/one-rep-max",
+            icon: "barbell-outline",
+            title: "1RM Calculator",
+            subtitle: "Estimate your one-rep max from any set",
+          },
+          {
+            route: "/body-weight-log",
+            icon: "scale-outline",
+            title: "Bodyweight Log",
+            subtitle: "Track weight with 7-day rolling average",
+          },
+          {
+            route: "/body-measurements",
+            icon: "body-outline",
+            title: "Body Measurements",
+            subtitle: "Chest, waist, arms, thighs and more",
+          },
+          {
+            route: "/custom-exercise",
+            icon: "add-circle-outline",
+            title: "Custom Exercises",
+            subtitle: "Add exercises not in the library",
+          },
+        ].map((item, i) => (
+          <Pressable
+            key={item.route}
+            onPress={() => router.push(item.route as any)}
+            style={({ pressed }) => ({
+              borderWidth: 1,
+              borderColor: Colors.border,
+              padding: 14,
+              marginBottom: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{
+                width: 34,
+                height: 34,
+                backgroundColor: Colors.bgAccent,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <Ionicons name={item.icon as any} size={18} color={Colors.primary} />
+              </View>
+              <View>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                  {item.title}
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                  {item.subtitle}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </Pressable>
+        ))}
+
         {/* ── Nutrition ── */}
         <SectionHeader title="Nutrition" />
         <Pressable

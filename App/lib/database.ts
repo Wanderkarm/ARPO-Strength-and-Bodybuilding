@@ -35,6 +35,32 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE users ADD COLUMN body_goal TEXT NOT NULL DEFAULT 'recomp'`).catch(() => {});
   await database.execAsync(`ALTER TABLE users ADD COLUMN target_weight_kg REAL`).catch(() => {});
   await database.execAsync(`ALTER TABLE users ADD COLUMN weeks_to_goal INTEGER`).catch(() => {});
+  await database.execAsync(`ALTER TABLE exercises ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_weight_logs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      weight_kg REAL NOT NULL,
+      logged_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS body_measurements (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      chest_cm REAL,
+      waist_cm REAL,
+      hips_cm REAL,
+      left_arm_cm REAL,
+      right_arm_cm REAL,
+      left_thigh_cm REAL,
+      neck_cm REAL,
+      notes TEXT,
+      logged_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+  `).catch(() => {});
 
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS users (

@@ -747,6 +747,7 @@ export default function WorkoutScreen() {
           </Text>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
             Week {plan?.currentWeek}
+            {plan && ((plan.currentWeek - 1) % 4) + 1 === 4 ? " · DELOAD" : ""}
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -777,6 +778,34 @@ export default function WorkoutScreen() {
           />
         ))}
       </View>
+
+      {/* Deload week banner */}
+      {plan && ((plan.currentWeek - 1) % 4) + 1 === 4 && (
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+          marginHorizontal: 16,
+          marginTop: 8,
+          paddingHorizontal: 14,
+          paddingVertical: 10,
+          borderWidth: 1,
+          borderColor: "#F59E0B55",
+          borderLeftWidth: 3,
+          borderLeftColor: "#F59E0B",
+          backgroundColor: "#F59E0B11",
+        }}>
+          <Ionicons name="battery-charging-outline" size={16} color="#F59E0B" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}>
+              Deload Week
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 1 }}>
+              Reduced volume, same weight. Focus on form and recovery.
+            </Text>
+          </View>
+        </View>
+      )}
 
       <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
