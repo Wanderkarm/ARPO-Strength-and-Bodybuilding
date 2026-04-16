@@ -182,7 +182,7 @@ export default function DashboardScreen() {
           {/* Secondary actions */}
           {[
             { icon: "nutrition-outline" as const, label: "Nutrition & Macro Targets", sub: "View or update your calorie and macro goals", route: "/nutrition" },
-            { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log your bodyweight and track trends", route: "/(tabs)/progress" },
+            { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log your bodyweight and track trends", route: "/body-weight-log" },
           ].map((item) => (
             <Pressable
               key={item.route}
@@ -733,7 +733,7 @@ export default function DashboardScreen() {
             {[
               { icon: "swap-horizontal" as const, label: "Change Routine", sub: "Pick a different template or build your own", color: Colors.primary, onPress: handleChangeRoutine },
               { icon: "nutrition-outline" as const, label: "Nutrition Targets", sub: "View or edit your calorie & macro goals", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/nutrition"); } },
-              { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log bodyweight and track trends", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/(tabs)/progress"); } },
+              { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log bodyweight and track trends", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/body-weight-log"); } },
             ].map((item, i) => (
               <React.Fragment key={item.label}>
                 <Pressable

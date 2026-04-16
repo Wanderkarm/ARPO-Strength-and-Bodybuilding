@@ -28,7 +28,6 @@ import {
   switchGymType,
   getAllExercises,
   getWorkoutPlan,
-  getNutritionProfile,
   type GymType,
 } from "@/lib/local-db";
 import type { GoalType } from "@/utils/volumeLandmarks";
@@ -141,8 +140,6 @@ export default function SettingsScreen() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
-  const [nutritionConfigured, setNutritionConfigured] = useState(false);
-
   // User profile
   const [gender, setGender] = useState("MALE");
   const [experience, setExperience] = useState("BEGINNER");
@@ -199,8 +196,6 @@ export default function SettingsScreen() {
           setExperience(profile.experience);
           setBodyweightInput(profile.bodyweight ? String(profile.bodyweight) : "");
         }
-        const nutrition = await getNutritionProfile(uid);
-        setNutritionConfigured(!!(nutrition?.heightCm && nutrition?.age));
       }
 
       const pid = await AsyncStorage.getItem("activePlanId");
@@ -593,77 +588,10 @@ export default function SettingsScreen() {
           </>
         )}
 
-        {/* ── Tools ── */}
-        <SectionHeader title="Tools" />
-        {[
-          {
-            route: "/one-rep-max",
-            icon: "barbell-outline",
-            title: "1RM Calculator",
-            subtitle: "Estimate your one-rep max from any set",
-          },
-          {
-            route: "/body-weight-log",
-            icon: "scale-outline",
-            title: "Bodyweight Log",
-            subtitle: "Track weight with 7-day rolling average",
-          },
-          {
-            route: "/body-measurements",
-            icon: "body-outline",
-            title: "Body Measurements",
-            subtitle: "Chest, waist, arms, thighs and more",
-          },
-          {
-            route: "/custom-exercise",
-            icon: "add-circle-outline",
-            title: "Custom Exercises",
-            subtitle: "Add exercises not in the library",
-          },
-        ].map((item, i) => (
-          <Pressable
-            key={item.route}
-            onPress={() => router.push(item.route as any)}
-            style={({ pressed }) => ({
-              borderWidth: 1,
-              borderColor: Colors.border,
-              padding: 14,
-              marginBottom: 8,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{
-                width: 34,
-                height: 34,
-                backgroundColor: Colors.bgAccent,
-                borderWidth: 1,
-                borderColor: Colors.border,
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-                <Ionicons name={item.icon as any} size={18} color={Colors.primary} />
-              </View>
-              <View>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                  {item.title}
-                </Text>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                  {item.subtitle}
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
-          </Pressable>
-        ))}
-
-        {/* ── Nutrition ── */}
-        <SectionHeader title="Nutrition" />
+        {/* ── Exercise Library ── */}
+        <SectionHeader title="Exercise Library" />
         <Pressable
-          onPress={() => router.push(nutritionConfigured ? "/nutrition" : "/nutrition-setup")}
+          onPress={() => router.push("/custom-exercise")}
           style={({ pressed }) => ({
             borderWidth: 1,
             borderColor: Colors.border,
@@ -685,35 +613,18 @@ export default function SettingsScreen() {
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <Ionicons name="nutrition-outline" size={18} color={Colors.primary} />
+              <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
             </View>
             <View>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                Nutrition Targets
+                Custom Exercises
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                {nutritionConfigured
-                  ? "Calories, macros & meal examples"
-                  : "Set up your calorie & macro targets"}
+                Add exercises not in the library
               </Text>
             </View>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            {!nutritionConfigured && (
-              <View style={{
-                backgroundColor: Colors.primary + "22",
-                borderWidth: 1,
-                borderColor: Colors.primary + "55",
-                paddingHorizontal: 7,
-                paddingVertical: 3,
-              }}>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  New
-                </Text>
-              </View>
-            )}
-            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
-          </View>
+          <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
         </Pressable>
 
         {/* ── Notifications ── */}

@@ -192,7 +192,7 @@ export default function BodyWeightLogScreen() {
         borderBottomWidth: 1,
         borderBottomColor: Colors.border,
       }}>
-        <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/settings")} hitSlop={12}>
+        <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/body")} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
