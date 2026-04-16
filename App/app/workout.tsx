@@ -37,10 +37,15 @@ import {
   resetAllExercisesToOriginal as resetAllExercisesToOriginalDb,
   completeWorkout,
   updateExercise,
+  getPreviousSessionSets,
+  updateExerciseNotes,
+  startWorkoutSession,
+  finishWorkoutSession,
   type WorkoutPlan,
   type Exercise,
 } from "@/lib/local-db";
 import { firePRNotification } from "@/lib/notifications";
+import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
 
 interface SetState {
   setLogId: string;
@@ -50,6 +55,12 @@ interface SetState {
   repsCompleted: string;
   weightUsed: string;
   feedback: { text: string; color: string } | null;
+}
+
+interface PrevSet {
+  setNumber: number;
+  weightUsed: number;
+  repsCompleted: number;
 }
 
 interface ExerciseState {
@@ -62,6 +73,16 @@ interface ExerciseState {
   sorenessRating: number | null;
   pumpRating: number | null;
   sets: SetState[];
+  exerciseNotes: string;
+  prevSets: PrevSet[] | null; // last session's completed sets for this exercise
+}
+
+function formatElapsed(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 const RECOVERY_OPTIONS = [
@@ -150,6 +171,18 @@ export default function WorkoutScreen() {
   const [editVideoUrl, setEditVideoUrl] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
+  // ── Session timer ────────────────────────────────────────────────────────
+  const startedAtRef     = useRef<string | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // ── Session notes ────────────────────────────────────────────────────────
+  const [sessionNotes, setSessionNotes] = useState("");
+  // ── Plate calculator ─────────────────────────────────────────────────────
+  const [plateCalcVisible, setPlateCalcVisible] = useState(false);
+  const [plateCalcTarget, setPlateCalcTarget] = useState("");
+  const [plateCalcBar, setPlateCalcBar] = useState<number | null>(null);
+  const [plateResult, setPlateResult] = useState<PlateResult | null>(null);
+
   const scrollRef = useRef<ScrollView>(null);
   const exerciseStatesRef = useRef<ExerciseState[]>([]);
   const { height: screenHeight } = useWindowDimensions();
@@ -176,6 +209,10 @@ export default function WorkoutScreen() {
         } catch {}
       }
     });
+    // Cleanup timer on unmount
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
   }, []);
 
   async function loadPlan() {
@@ -208,6 +245,18 @@ export default function WorkoutScreen() {
         return;
       }
 
+      // Start session timer (idempotent — INSERT OR IGNORE in DB)
+      startWorkoutSession(plan.id, plan.currentWeek, currentDayNum).then((startedAt) => {
+        startedAtRef.current = startedAt;
+        const initial = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+        setElapsedSeconds(Math.max(0, initial));
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = setInterval(() => {
+          setElapsedSeconds(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
+        }, 1000);
+      });
+
+      // Build exercise states then load prev-session data async
       const states: ExerciseState[] = todayLogs.map((log) => ({
         logId: log.id,
         exerciseId: log.exerciseId,
@@ -217,6 +266,8 @@ export default function WorkoutScreen() {
         targetRIR: log.targetRIR,
         sorenessRating: log.sorenessRating ?? 0,
         pumpRating: log.pumpRating ?? 3,
+        exerciseNotes: "",
+        prevSets: null,
         sets: (log.sets || []).map((s) => {
           const hasData = s.repsCompleted !== null && s.weightUsed !== null;
           return {
@@ -234,6 +285,15 @@ export default function WorkoutScreen() {
       }));
 
       setExerciseStates(states);
+
+      // Load previous session sets for each exercise
+      Promise.all(
+        states.map((s) => getPreviousSessionSets(s.exerciseId, plan.id))
+      ).then((prevResults) => {
+        setExerciseStates((current) =>
+          current.map((ex, i) => ({ ...ex, prevSets: prevResults[i] ?? null }))
+        );
+      });
 
       AsyncStorage.getItem("hasCompletedWorkoutTour").then((done) => {
         if (!done) {
@@ -556,8 +616,20 @@ export default function WorkoutScreen() {
         })),
       }));
 
+      // Save per-exercise notes
+      await Promise.all(
+        exerciseStates
+          .filter((ex) => ex.exerciseNotes.trim())
+          .map((ex) => updateExerciseNotes(ex.logId, ex.exerciseNotes))
+      );
+
       const result = await completeWorkout(planId, dayNumber, exercises);
       const currentRIR = exerciseStates.length > 0 ? exerciseStates[0].targetRIR : "";
+
+      // Save session duration + notes
+      if (plan) {
+        await finishWorkoutSession(planId, plan.currentWeek, dayNumber, sessionNotes);
+      }
 
       // Fire a local notification for each PR (runs in background, non-blocking)
       if (result.prs.length > 0) {
@@ -785,6 +857,13 @@ export default function WorkoutScreen() {
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          {/* Live session timer */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, fontVariant: ["tabular-nums"] }}>
+              {formatElapsed(elapsedSeconds)}
+            </Text>
+          </View>
           <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.primary }}>
             {currentExerciseIndex + 1}/{exerciseStates.length}
           </Text>
@@ -906,6 +985,28 @@ export default function WorkoutScreen() {
           />
         </View>
 
+        {/* ── Previous Session Banner ── */}
+        {currentEx.prevSets && currentEx.prevSets.length > 0 && (
+          <View style={{
+            flexDirection: "row",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 6,
+            marginBottom: 10,
+            paddingHorizontal: 2,
+          }}>
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+              Last:
+            </Text>
+            {currentEx.prevSets.map((ps, i) => (
+              <Text key={i} style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
+                {isBodyweight ? `BW×${ps.repsCompleted}` : `${ps.weightUsed}×${ps.repsCompleted}`}
+                {i < currentEx.prevSets!.length - 1 ? "  ·" : ""}
+              </Text>
+            ))}
+          </View>
+        )}
+
         <View ref={setTableRef} style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 16 }}>
           <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.bgAccent }}>
             <View style={{ width: 40, paddingVertical: 8, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
@@ -920,9 +1021,27 @@ export default function WorkoutScreen() {
             </View>
             {!isBodyweight && (
               <View style={{ flex: 1, paddingVertical: 8, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                  {unit}
-                </Text>
+                {/* Plate calculator trigger */}
+                <Pressable
+                  onPress={() => {
+                    const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
+                    setPlateCalcTarget(target);
+                    setPlateCalcBar(null);
+                    if (target) {
+                      setPlateResult(calculatePlates(parseFloat(target), unit));
+                    } else {
+                      setPlateResult(null);
+                    }
+                    setPlateCalcVisible(true);
+                  }}
+                  hitSlop={10}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+                >
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {unit}
+                  </Text>
+                  <Ionicons name="barbell-outline" size={10} color={Colors.primary} />
+                </Pressable>
               </View>
             )}
             <View style={{ flex: 1, paddingVertical: 8, alignItems: "center" }}>
@@ -1097,7 +1216,7 @@ export default function WorkoutScreen() {
             </View>
 
             {/* Pump row */}
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, width: 60 }}>
                 Pump
               </Text>
@@ -1127,6 +1246,43 @@ export default function WorkoutScreen() {
                 })}
               </View>
             </View>
+
+            {/* Exercise notes */}
+            <View style={{ borderTopWidth: 1, borderTopColor: Colors.border + "66", paddingTop: 10 }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                Exercise Note
+              </Text>
+              <TextInput
+                value={currentEx.exerciseNotes}
+                onChangeText={(text) => {
+                  setExerciseStates((prev) => {
+                    const updated = [...prev];
+                    updated[currentExerciseIndex] = { ...updated[currentExerciseIndex], exerciseNotes: text };
+                    return updated;
+                  });
+                }}
+                onBlur={() => {
+                  if (currentEx.exerciseNotes.trim()) {
+                    updateExerciseNotes(currentEx.logId, currentEx.exerciseNotes).catch(() => {});
+                  }
+                }}
+                placeholder="How did this feel? Anything to remember next time…"
+                placeholderTextColor={Colors.textMuted}
+                multiline
+                style={{
+                  fontFamily: "Rubik_400Regular",
+                  fontSize: 12,
+                  color: Colors.text,
+                  backgroundColor: Colors.bgAccent,
+                  borderWidth: 1,
+                  borderColor: Colors.border,
+                  paddingHorizontal: 10,
+                  paddingVertical: 8,
+                  minHeight: 56,
+                  textAlignVertical: "top",
+                }}
+              />
+            </View>
           </View>
         )}
 
@@ -1147,7 +1303,34 @@ export default function WorkoutScreen() {
         <View style={{ height: 28 }} />
       </ScrollView>
 
-      <View ref={actionBarRef} style={{ paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
+      <View ref={actionBarRef} style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
+        {/* Session notes — shown on the last exercise */}
+        {isLastExercise && (
+          <View style={{ marginBottom: 10 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 5 }}>
+              Session Note (optional)
+            </Text>
+            <TextInput
+              value={sessionNotes}
+              onChangeText={setSessionNotes}
+              placeholder="Overall session notes…"
+              placeholderTextColor={Colors.textMuted}
+              multiline
+              style={{
+                fontFamily: "Rubik_400Regular",
+                fontSize: 12,
+                color: Colors.text,
+                backgroundColor: Colors.bgAccent,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                paddingHorizontal: 10,
+                paddingVertical: 8,
+                minHeight: 44,
+                textAlignVertical: "top",
+              }}
+            />
+          </View>
+        )}
         <View style={{ flexDirection: "row", gap: 12 }}>
           {currentExerciseIndex > 0 && (
             <Pressable
@@ -1725,6 +1908,140 @@ export default function WorkoutScreen() {
           exerciseName={currentEx.exercise.name}
         />
       )}
+
+      {/* ── Plate Calculator Modal ── */}
+      <Modal
+        visible={plateCalcVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPlateCalcVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000088" }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 20, paddingBottom: Math.max(bottomInset + 8, 24) }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                Plate Calculator
+              </Text>
+              <Pressable onPress={() => setPlateCalcVisible(false)} hitSlop={12}>
+                <Ionicons name="close" size={22} color={Colors.textMuted} />
+              </Pressable>
+            </View>
+
+            {/* Target weight input */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              Target Weight ({unit})
+            </Text>
+            <TextInput
+              value={plateCalcTarget}
+              onChangeText={(t) => {
+                setPlateCalcTarget(t);
+                const num = parseFloat(t);
+                if (!isNaN(num) && num > 0) {
+                  setPlateResult(calculatePlates(num, unit, plateCalcBar ?? undefined));
+                } else {
+                  setPlateResult(null);
+                }
+              }}
+              keyboardType="numeric"
+              placeholder="e.g. 185"
+              placeholderTextColor={Colors.textMuted}
+              style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: 22,
+                color: Colors.text,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                backgroundColor: Colors.bg,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                marginBottom: 14,
+                textAlign: "center",
+              }}
+            />
+
+            {/* Bar weight selector */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              Bar
+            </Text>
+            <View style={{ flexDirection: "row", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+              {BAR_PRESETS[unit].map((preset) => {
+                const active = (plateCalcBar ?? (unit === "lbs" ? 45 : 20)) === preset.weight;
+                return (
+                  <Pressable
+                    key={preset.label}
+                    onPress={() => {
+                      setPlateCalcBar(preset.weight);
+                      const num = parseFloat(plateCalcTarget);
+                      if (!isNaN(num) && num > 0) {
+                        setPlateResult(calculatePlates(num, unit, preset.weight));
+                      }
+                    }}
+                    style={({ pressed }) => ({
+                      borderWidth: 1,
+                      borderColor: active ? Colors.primary : Colors.border,
+                      backgroundColor: active ? Colors.primary + "22" : Colors.bg,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      opacity: pressed ? 0.7 : 1,
+                    })}
+                  >
+                    <Text style={{ fontFamily: active ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 11, color: active ? Colors.primary : Colors.textMuted }}>
+                      {preset.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Results */}
+            {plateResult && (
+              <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.primary, padding: 14 }}>
+                {plateResult.platesPerSide.length === 0 ? (
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                    Bar only ({plateResult.barWeight} {unit})
+                  </Text>
+                ) : (
+                  <>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                      Each Side
+                    </Text>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                      {plateResult.platesPerSide.flatMap((p, i) =>
+                        Array.from({ length: p.count }, (_, j) => (
+                          <View key={`${i}-${j}`} style={{
+                            backgroundColor: Colors.primary + "33",
+                            borderWidth: 1,
+                            borderColor: Colors.primary,
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            minWidth: 42,
+                            alignItems: "center",
+                          }}>
+                            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.primary }}>
+                              {p.weight}
+                            </Text>
+                          </View>
+                        ))
+                      )}
+                    </View>
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text }}>
+                      Total: {plateResult.totalWeight} {unit}
+                      {!plateResult.canMatch && (
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.warning }}>
+                          {" "}(nearest possible)
+                        </Text>
+                      )}
+                    </Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 4 }}>
+                      Bar ({plateResult.barWeight}) + {platesString(plateResult)} per side
+                    </Text>
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

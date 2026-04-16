@@ -58,6 +58,12 @@ export interface ARPOBackup {
   workoutPlans: Record<string, unknown>[];
   workoutLogs: Record<string, unknown>[];
   setLogs: Record<string, unknown>[];
+
+  // Session metadata (duration, notes) — optional for backwards compat
+  workoutSessions?: Record<string, unknown>[];
+
+  // Daily steps — optional for backwards compat
+  dailySteps?: Record<string, unknown>[];
 }
 
 // ─── AsyncStorage keys to include in backup ───────────────────────────────────
@@ -177,6 +183,21 @@ export async function exportBackup(): Promise<{ success: boolean; error?: string
       }
     }
 
+    // Workout sessions (duration + notes)
+    let workoutSessions: Record<string, unknown>[] = [];
+    if (planIds.length > 0) {
+      const placeholders = planIds.map(() => "?").join(",");
+      workoutSessions = await db.getAllAsync<Record<string, unknown>>(
+        `SELECT * FROM workout_sessions WHERE workout_plan_id IN (${placeholders})`,
+        planIds
+      ).catch(() => []);
+    }
+
+    // Daily steps
+    const dailySteps = await db.getAllAsync<Record<string, unknown>>(
+      "SELECT * FROM daily_steps WHERE user_id = ? ORDER BY date ASC", [userId]
+    ).catch(() => []);
+
     const backup: ARPOBackup = {
       version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
@@ -193,6 +214,8 @@ export async function exportBackup(): Promise<{ success: boolean; error?: string
       workoutPlans,
       workoutLogs,
       setLogs,
+      workoutSessions,
+      dailySteps,
     };
 
     // Write to cache directory
@@ -296,6 +319,7 @@ export async function restoreBackup(backup: ARPOBackup): Promise<{ success: bool
       await db.runAsync("DELETE FROM body_weight_logs WHERE user_id = ?", [existingUserId]);
       await db.runAsync("DELETE FROM body_measurements WHERE user_id = ?", [existingUserId]);
       await db.runAsync("DELETE FROM user_weight_baselines WHERE user_id = ?", [existingUserId]);
+      await db.runAsync("DELETE FROM daily_steps WHERE user_id = ?", [existingUserId]);
 
       // Delete custom templates
       const customTmplIds = await db.getAllAsync<{ id: string }>(
@@ -322,11 +346,17 @@ export async function restoreBackup(backup: ARPOBackup): Promise<{ success: bool
       const u = backup.user;
       await db.runAsync(
         `INSERT OR REPLACE INTO users
-         (id, gender, bodyweight, experience, weight_unit, height_cm, age, activity_level, body_goal, target_weight_kg, weeks_to_goal)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id, gender, bodyweight, experience, weight_unit, height_cm, age, activity_level,
+          body_goal, target_weight_kg, weeks_to_goal,
+          current_streak, longest_streak, last_streak_date,
+          step_goal, streak_notif_enabled, streak_notif_time, streak_notif_days)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [v(u.id), v(u.gender), v(u.bodyweight), v(u.experience), v(u.weight_unit),
          v(u.height_cm), v(u.age), v(u.activity_level) ?? "moderate",
-         v(u.body_goal) ?? "recomp", v(u.target_weight_kg), v(u.weeks_to_goal)]
+         v(u.body_goal) ?? "recomp", v(u.target_weight_kg), v(u.weeks_to_goal),
+         v(u.current_streak) ?? 0, v(u.longest_streak) ?? 0, v(u.last_streak_date),
+         v(u.step_goal) ?? 8000, v(u.streak_notif_enabled) ?? 0,
+         v(u.streak_notif_time) ?? "20:00", v(u.streak_notif_days) ?? '"daily"']
       );
     }
 
@@ -420,6 +450,28 @@ export async function restoreBackup(backup: ARPOBackup): Promise<{ success: bool
         [v(sl.id), v(sl.workout_log_id), v(sl.set_number), v(sl.target_weight),
          v(sl.target_reps) ?? 10, v(sl.reps_completed), v(sl.weight_used), v(sl.completed_at)]
       );
+    }
+
+    // Workout sessions (optional — not present in v1 backups)
+    for (const ws of backup.workoutSessions ?? []) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO workout_sessions
+         (id, workout_plan_id, week_number, day_number, started_at, completed_at, duration_seconds, session_notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [v(ws.id), v(ws.workout_plan_id), v(ws.week_number), v(ws.day_number),
+         v(ws.started_at), v(ws.completed_at), v(ws.duration_seconds), v(ws.session_notes)]
+      ).catch(() => {});
+    }
+
+    // Daily steps (optional — not present in v1 backups)
+    for (const ds of backup.dailySteps ?? []) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO daily_steps
+         (id, user_id, date, steps, goal, source, synced_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [v(ds.id), v(ds.user_id), v(ds.date), v(ds.steps) ?? 0,
+         v(ds.goal) ?? 8000, v(ds.source) ?? "manual", v(ds.synced_at)]
+      ).catch(() => {});
     }
 
     // ── Restore AsyncStorage ──────────────────────────────────────────────

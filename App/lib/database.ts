@@ -24,6 +24,15 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN is_skipped INTEGER NOT NULL DEFAULT 0`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN goal_type TEXT NOT NULL DEFAULT 'hypertrophy'`).catch(() => {});
+  // ── New columns (v2) ─────────────────────────────────────────────────────
+  await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN exercise_notes TEXT`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN current_streak INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN longest_streak INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN last_streak_date TEXT`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN step_goal INTEGER NOT NULL DEFAULT 8000`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN streak_notif_enabled INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN streak_notif_time TEXT NOT NULL DEFAULT '20:00'`).catch(() => {});
+  await database.execAsync(`ALTER TABLE users ADD COLUMN streak_notif_days TEXT NOT NULL DEFAULT '"daily"'`).catch(() => {});
   await database.execAsync(`ALTER TABLE users ADD COLUMN weight_unit TEXT NOT NULL DEFAULT 'lbs'`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN original_exercise_id TEXT`).catch(() => {});
   await database.execAsync(`ALTER TABLE workout_logs ADD COLUMN is_permanent_swap INTEGER NOT NULL DEFAULT 0`).catch(() => {});
@@ -36,6 +45,33 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE users ADD COLUMN target_weight_kg REAL`).catch(() => {});
   await database.execAsync(`ALTER TABLE users ADD COLUMN weeks_to_goal INTEGER`).catch(() => {});
   await database.execAsync(`ALTER TABLE exercises ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS workout_sessions (
+      id TEXT PRIMARY KEY,
+      workout_plan_id TEXT NOT NULL,
+      week_number INTEGER NOT NULL,
+      day_number INTEGER NOT NULL,
+      started_at TEXT NOT NULL,
+      completed_at TEXT,
+      duration_seconds INTEGER,
+      session_notes TEXT,
+      FOREIGN KEY (workout_plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE,
+      UNIQUE(workout_plan_id, week_number, day_number)
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_steps (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      steps INTEGER NOT NULL DEFAULT 0,
+      goal INTEGER NOT NULL DEFAULT 8000,
+      source TEXT NOT NULL DEFAULT 'manual',
+      synced_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, date)
+    );
+  `).catch(() => {});
 
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS body_weight_logs (

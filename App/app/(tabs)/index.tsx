@@ -10,6 +10,7 @@ import {
   Modal,
   Alert,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +20,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
-import { getWorkoutPlan, skipSession, type WorkoutPlan, type WorkoutLog } from "@/lib/local-db";
+import {
+  getWorkoutPlan, skipSession,
+  getStreakInfo, getTodaySteps, updateDailySteps,
+  type WorkoutPlan, type WorkoutLog, type StreakInfo, type DailyStepsEntry,
+} from "@/lib/local-db";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -59,6 +64,13 @@ export default function DashboardScreen() {
   const [previewWeek, setPreviewWeek] = useState(1);
   const dayScrollRef = useRef<ScrollView>(null);
 
+  // Streak + Steps
+  const [streak, setStreak] = useState<StreakInfo>({ current: 0, longest: 0, lastStreakDate: null });
+  const [todaySteps, setTodaySteps] = useState<DailyStepsEntry | null>(null);
+  const [stepsModalVisible, setStepsModalVisible] = useState(false);
+  const [stepsInput, setStepsInput] = useState("");
+  const [savingSteps, setSavingSteps] = useState(false);
+
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
     if (planId) {
@@ -68,12 +80,23 @@ export default function DashboardScreen() {
         const idx = (p.currentDay || 1) - 1;
         setSelectedDayIdx(idx);
         setPreviewWeek(p.currentWeek);
-        // Scroll swiper to current day without animation on first load
         setTimeout(() => {
           dayScrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: false });
         }, 50);
       }
     }
+
+    // Load streak + steps
+    const uid = await AsyncStorage.getItem("userId");
+    if (uid) {
+      const [s, steps] = await Promise.all([
+        getStreakInfo(uid),
+        getTodaySteps(uid),
+      ]);
+      setStreak(s);
+      setTodaySteps(steps);
+    }
+
     setIsLoading(false);
   }, []);
 
@@ -242,7 +265,7 @@ export default function DashboardScreen() {
         {/* ── Header ── */}
         <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
                 Hypertrophy Hub
               </Text>
@@ -250,13 +273,28 @@ export default function DashboardScreen() {
                 {plan.template.name}
               </Text>
             </View>
-            <Pressable
-              onPress={() => setMenuVisible(true)}
-              hitSlop={10}
-              style={{ width: 40, height: 40, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}
-            >
-              <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
-            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              {/* Streak badge */}
+              {streak.current > 0 && (
+                <View style={{
+                  flexDirection: "row", alignItems: "center", gap: 4,
+                  backgroundColor: "#F59E0B22", borderWidth: 1, borderColor: "#F59E0B55",
+                  paddingHorizontal: 9, paddingVertical: 5,
+                }}>
+                  <Text style={{ fontSize: 13 }}>🔥</Text>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#F59E0B" }}>
+                    {streak.current}
+                  </Text>
+                </View>
+              )}
+              <Pressable
+                onPress={() => setMenuVisible(true)}
+                hitSlop={10}
+                style={{ width: 40, height: 40, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}
+              >
+                <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
+              </Pressable>
+            </View>
           </View>
         </View>
 
@@ -542,6 +580,45 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* ── Daily Steps ── */}
+        {todaySteps !== null && (
+          <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
+            <Pressable
+              onPress={() => {
+                setStepsInput(todaySteps.steps > 0 ? String(todaySteps.steps) : "");
+                setStepsModalVisible(true);
+              }}
+              style={({ pressed }) => ({
+                borderWidth: 1, borderColor: Colors.border, padding: 14,
+                flexDirection: "row", alignItems: "center", gap: 12,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <View style={{ width: 36, height: 36, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, justifyContent: "center", alignItems: "center" }}>
+                <Ionicons name="footsteps-outline" size={18} color={Colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 5 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    Steps Today
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted }}>
+                    {todaySteps.steps.toLocaleString()} / {todaySteps.goal.toLocaleString()}
+                  </Text>
+                </View>
+                <View style={{ height: 4, backgroundColor: Colors.bgAccent, borderRadius: 2, overflow: "hidden" }}>
+                  <View style={{
+                    height: 4,
+                    backgroundColor: todaySteps.steps >= todaySteps.goal ? Colors.success : Colors.primary,
+                    width: `${Math.min((todaySteps.steps / todaySteps.goal) * 100, 100)}%`,
+                  }} />
+                </View>
+              </View>
+              <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+            </Pressable>
+          </View>
+        )}
+
         {/* ── CTA ── */}
         <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
           <Pressable
@@ -577,6 +654,74 @@ export default function DashboardScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* ── Steps Log Modal ── */}
+      <Modal visible={stepsModalVisible} transparent animationType="slide" onRequestClose={() => setStepsModalVisible(false)}>
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000088" }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 24, paddingBottom: 36 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                Log Today's Steps
+              </Text>
+              <Pressable onPress={() => setStepsModalVisible(false)} hitSlop={12}>
+                <Ionicons name="close" size={22} color={Colors.textMuted} />
+              </Pressable>
+            </View>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginBottom: 16 }}>
+              Goal: {todaySteps?.goal.toLocaleString() ?? 8000} steps per day. Apple Watch / Google Fit sync coming soon.
+            </Text>
+            <TextInput
+              value={stepsInput}
+              onChangeText={setStepsInput}
+              keyboardType="number-pad"
+              placeholder="e.g. 7500"
+              placeholderTextColor={Colors.textMuted}
+              autoFocus
+              style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: 28,
+                color: Colors.text,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                backgroundColor: Colors.bg,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                textAlign: "center",
+                marginBottom: 20,
+              }}
+            />
+            <Pressable
+              onPress={async () => {
+                const steps = parseInt(stepsInput);
+                if (isNaN(steps) || steps < 0) return;
+                const uid = await AsyncStorage.getItem("userId");
+                if (!uid) return;
+                setSavingSteps(true);
+                await updateDailySteps(uid, steps);
+                const updated = await getTodaySteps(uid);
+                const s = await getStreakInfo(uid);
+                setTodaySteps(updated);
+                setStreak(s);
+                setSavingSteps(false);
+                setStepsModalVisible(false);
+                if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              }}
+              disabled={savingSteps}
+              style={({ pressed }) => ({
+                backgroundColor: Colors.primary,
+                paddingVertical: 16,
+                alignItems: "center",
+                opacity: pressed || savingSteps ? 0.75 : 1,
+              })}
+            >
+              {savingSteps
+                ? <ActivityIndicator color="#FFF" />
+                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFF", textTransform: "uppercase", letterSpacing: 2 }}>Save Steps</Text>
+              }
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Menu modal ── */}
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>

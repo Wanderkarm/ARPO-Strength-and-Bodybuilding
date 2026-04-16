@@ -1449,6 +1449,9 @@ export async function completeWorkout(
     );
   }
 
+  // Update streak after completing a workout
+  await calculateAndUpdateStreak(plan.user_id);
+
   return {
     nextWeekTargets,
     totalVolume,
@@ -1668,6 +1671,8 @@ export async function logBodyWeight(userId: string, weightKg: number): Promise<v
   );
   // Also update the users.bodyweight for use throughout the app
   await db.runAsync("UPDATE users SET bodyweight = ? WHERE id = ?", [weightKg, userId]);
+  // Update streak — a weigh-in counts as daily activity
+  await calculateAndUpdateStreak(userId);
 }
 
 export async function getBodyWeightHistory(
@@ -1782,6 +1787,333 @@ export async function getCustomExercises(): Promise<
 export async function deleteCustomExercise(id: string): Promise<void> {
   const db = getDb();
   await db.runAsync("DELETE FROM exercises WHERE id = ? AND is_custom = 1", [id]);
+}
+
+// ─── Previous Session Data ────────────────────────────────────────────────────
+
+/**
+ * Returns the most recent completed set data for a given exercise in a plan.
+ * Used to show "last session" reference during an active workout.
+ */
+export async function getPreviousSessionSets(
+  exerciseId: string,
+  planId: string
+): Promise<{ setNumber: number; weightUsed: number; repsCompleted: number }[] | null> {
+  const db = getDb();
+  const lastLog = await db.getFirstAsync<{ id: string }>(
+    `SELECT id FROM workout_logs
+     WHERE workout_plan_id = ? AND exercise_id = ?
+       AND completed_at IS NOT NULL AND is_skipped = 0
+     ORDER BY completed_at DESC LIMIT 1`,
+    [planId, exerciseId]
+  );
+  if (!lastLog) return null;
+
+  const sets = await db.getAllAsync<{
+    set_number: number; weight_used: number | null; reps_completed: number | null;
+  }>(
+    `SELECT set_number, weight_used, reps_completed
+     FROM set_logs WHERE workout_log_id = ?
+       AND reps_completed IS NOT NULL AND reps_completed > 0
+     ORDER BY set_number ASC`,
+    [lastLog.id]
+  );
+  if (sets.length === 0) return null;
+
+  return sets.map(s => ({
+    setNumber:     s.set_number,
+    weightUsed:    s.weight_used ?? 0,
+    repsCompleted: s.reps_completed ?? 0,
+  }));
+}
+
+// ─── Exercise & Session Notes ─────────────────────────────────────────────────
+
+export async function updateExerciseNotes(logId: string, notes: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync(
+    "UPDATE workout_logs SET exercise_notes = ? WHERE id = ?",
+    [notes.trim() || null, logId]
+  );
+}
+
+// ─── Workout Session (duration + session notes) ───────────────────────────────
+
+export async function startWorkoutSession(
+  planId: string,
+  weekNumber: number,
+  dayNumber: number
+): Promise<string> {
+  const db = getDb();
+  const id  = generateId();
+  const now = new Date().toISOString();
+  // INSERT OR IGNORE so reloading the screen doesn't reset the timer
+  await db.runAsync(
+    `INSERT OR IGNORE INTO workout_sessions
+       (id, workout_plan_id, week_number, day_number, started_at)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, planId, weekNumber, dayNumber, now]
+  );
+  // Return the actual started_at (may differ if row already existed)
+  const row = await db.getFirstAsync<{ started_at: string }>(
+    "SELECT started_at FROM workout_sessions WHERE workout_plan_id = ? AND week_number = ? AND day_number = ?",
+    [planId, weekNumber, dayNumber]
+  );
+  return row?.started_at ?? now;
+}
+
+export async function finishWorkoutSession(
+  planId: string,
+  weekNumber: number,
+  dayNumber: number,
+  sessionNotes: string | null
+): Promise<void> {
+  const db  = getDb();
+  const now = new Date().toISOString();
+  const row = await db.getFirstAsync<{ id: string; started_at: string }>(
+    "SELECT id, started_at FROM workout_sessions WHERE workout_plan_id = ? AND week_number = ? AND day_number = ?",
+    [planId, weekNumber, dayNumber]
+  );
+  if (row) {
+    const duration = Math.round(
+      (new Date(now).getTime() - new Date(row.started_at).getTime()) / 1000
+    );
+    await db.runAsync(
+      "UPDATE workout_sessions SET completed_at = ?, duration_seconds = ?, session_notes = ? WHERE id = ?",
+      [now, duration, sessionNotes?.trim() || null, row.id]
+    );
+  }
+}
+
+// ─── Daily Steps ──────────────────────────────────────────────────────────────
+
+export interface DailyStepsEntry {
+  date:   string;
+  steps:  number;
+  goal:   number;
+  source: string; // 'manual' | 'apple_health' | 'google_fit' | 'apple_watch'
+}
+
+export async function getTodaySteps(userId: string): Promise<DailyStepsEntry> {
+  const db   = getDb();
+  const date = new Date().toISOString().slice(0, 10);
+  const goalRow = await db.getFirstAsync<{ step_goal: number }>(
+    "SELECT step_goal FROM users WHERE id = ?", [userId]
+  );
+  const goal = goalRow?.step_goal ?? 8000;
+
+  const row = await db.getFirstAsync<{ steps: number; goal: number; source: string }>(
+    "SELECT steps, goal, source FROM daily_steps WHERE user_id = ? AND date = ?",
+    [userId, date]
+  );
+  return row ? { date, steps: row.steps, goal: row.goal, source: row.source }
+             : { date, steps: 0, goal, source: "manual" };
+}
+
+export async function updateDailySteps(
+  userId: string,
+  steps: number,
+  source: "manual" | "apple_health" | "google_fit" | "apple_watch" = "manual"
+): Promise<void> {
+  const db   = getDb();
+  const date = new Date().toISOString().slice(0, 10);
+  const goalRow = await db.getFirstAsync<{ step_goal: number }>(
+    "SELECT step_goal FROM users WHERE id = ?", [userId]
+  );
+  const goal = goalRow?.step_goal ?? 8000;
+  const now  = new Date().toISOString();
+
+  const existing = await db.getFirstAsync<{ id: string }>(
+    "SELECT id FROM daily_steps WHERE user_id = ? AND date = ?",
+    [userId, date]
+  );
+
+  if (existing) {
+    await db.runAsync(
+      "UPDATE daily_steps SET steps = ?, source = ?, synced_at = ? WHERE id = ?",
+      [steps, source, now, existing.id]
+    );
+  } else {
+    await db.runAsync(
+      "INSERT INTO daily_steps (id, user_id, date, steps, goal, source, synced_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [generateId(), userId, date, steps, goal, source, now]
+    );
+  }
+
+  // Update streak since a step goal reached counts as a daily activity
+  await calculateAndUpdateStreak(userId);
+}
+
+export async function getStepHistory(
+  userId: string,
+  days = 30
+): Promise<DailyStepsEntry[]> {
+  const db    = getDb();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const rows  = await db.getAllAsync<{ date: string; steps: number; goal: number; source: string }>(
+    `SELECT date, steps, goal, source FROM daily_steps
+     WHERE user_id = ? AND date >= ? ORDER BY date ASC`,
+    [userId, since]
+  );
+  return rows;
+}
+
+export async function updateStepGoal(userId: string, goal: number): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE users SET step_goal = ? WHERE id = ?", [goal, userId]);
+}
+
+export async function getStepGoal(userId: string): Promise<number> {
+  const db  = getDb();
+  const row = await db.getFirstAsync<{ step_goal: number }>(
+    "SELECT step_goal FROM users WHERE id = ?", [userId]
+  );
+  return row?.step_goal ?? 8000;
+}
+
+// ─── Streak Tracking ──────────────────────────────────────────────────────────
+
+export interface StreakInfo {
+  current:         number;
+  longest:         number;
+  lastStreakDate:  string | null;
+}
+
+/**
+ * Recalculates the streak from DB activity (workouts + weigh-ins + step days).
+ * Call after every workout completion, weigh-in, or step log.
+ */
+export async function calculateAndUpdateStreak(userId: string): Promise<StreakInfo> {
+  const db = getDb();
+
+  // Collect all distinct ISO date strings where user was active
+  const workoutDates = await db.getAllAsync<{ date: string }>(
+    `SELECT DISTINCT DATE(wl.completed_at) as date
+     FROM workout_logs wl
+     JOIN workout_plans wp ON wl.workout_plan_id = wp.id
+     WHERE wp.user_id = ? AND wl.completed_at IS NOT NULL AND wl.is_skipped = 0`,
+    [userId]
+  );
+  const weighInDates = await db.getAllAsync<{ date: string }>(
+    "SELECT DISTINCT DATE(logged_at) as date FROM body_weight_logs WHERE user_id = ?",
+    [userId]
+  );
+  const stepDates = await db.getAllAsync<{ date: string }>(
+    "SELECT DISTINCT date FROM daily_steps WHERE user_id = ? AND steps > 0",
+    [userId]
+  );
+
+  const allDates = new Set<string>();
+  [...workoutDates, ...weighInDates, ...stepDates].forEach(d => {
+    if (d.date) allDates.add(d.date);
+  });
+
+  const sorted = [...allDates].sort();
+  if (sorted.length === 0) {
+    await db.runAsync(
+      "UPDATE users SET current_streak = 0, longest_streak = 0, last_streak_date = NULL WHERE id = ?",
+      [userId]
+    );
+    return { current: 0, longest: 0, lastStreakDate: null };
+  }
+
+  // Longest ever streak
+  let longest = 1;
+  let run     = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = Math.round(
+      (new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime()) / 86400000
+    );
+    run = diff === 1 ? run + 1 : 1;
+    if (run > longest) longest = run;
+  }
+
+  // Current streak ending today or yesterday
+  const today     = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const lastDate  = sorted[sorted.length - 1];
+
+  let current = 0;
+  if (lastDate === today || lastDate === yesterday) {
+    current = 1;
+    let ref = lastDate;
+    for (let i = sorted.length - 2; i >= 0; i--) {
+      const diff = Math.round(
+        (new Date(ref).getTime() - new Date(sorted[i]).getTime()) / 86400000
+      );
+      if (diff === 1) { current++; ref = sorted[i]; }
+      else break;
+    }
+  }
+
+  if (current > longest) longest = current;
+
+  await db.runAsync(
+    `UPDATE users
+     SET current_streak  = ?,
+         longest_streak  = CASE WHEN ? > longest_streak THEN ? ELSE longest_streak END,
+         last_streak_date = ?
+     WHERE id = ?`,
+    [current, longest, longest, lastDate, userId]
+  );
+
+  return { current, longest, lastStreakDate: lastDate };
+}
+
+export async function getStreakInfo(userId: string): Promise<StreakInfo> {
+  const db  = getDb();
+  const row = await db.getFirstAsync<{
+    current_streak: number;
+    longest_streak: number;
+    last_streak_date: string | null;
+  }>(
+    "SELECT current_streak, longest_streak, last_streak_date FROM users WHERE id = ?",
+    [userId]
+  );
+  return {
+    current:        row?.current_streak ?? 0,
+    longest:        row?.longest_streak ?? 0,
+    lastStreakDate: row?.last_streak_date ?? null,
+  };
+}
+
+export interface StreakNotifSettings {
+  enabled: boolean;
+  time:    string; // "HH:MM"
+  days:    "daily" | number[]; // days of week (0=Sun) or "daily"
+}
+
+export async function getStreakNotifSettings(userId: string): Promise<StreakNotifSettings> {
+  const db  = getDb();
+  const row = await db.getFirstAsync<{
+    streak_notif_enabled: number;
+    streak_notif_time:    string;
+    streak_notif_days:    string;
+  }>(
+    "SELECT streak_notif_enabled, streak_notif_time, streak_notif_days FROM users WHERE id = ?",
+    [userId]
+  );
+  let days: "daily" | number[] = "daily";
+  try {
+    const parsed = JSON.parse(row?.streak_notif_days ?? '"daily"');
+    days = parsed;
+  } catch {}
+  return {
+    enabled: (row?.streak_notif_enabled ?? 0) === 1,
+    time:    row?.streak_notif_time ?? "20:00",
+    days,
+  };
+}
+
+export async function updateStreakNotifSettings(
+  userId: string,
+  settings: StreakNotifSettings
+): Promise<void> {
+  const db = getDb();
+  await db.runAsync(
+    `UPDATE users SET streak_notif_enabled = ?, streak_notif_time = ?, streak_notif_days = ? WHERE id = ?`,
+    [settings.enabled ? 1 : 0, settings.time, JSON.stringify(settings.days), userId]
+  );
 }
 
 export async function createWorkoutPlanFromPrevious(
