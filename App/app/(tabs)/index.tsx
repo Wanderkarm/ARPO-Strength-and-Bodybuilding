@@ -121,10 +121,92 @@ export default function DashboardScreen() {
     router.replace("/templates");
   }
 
-  if (isLoading || !plan) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator color={Colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  // ── No active plan — show quick-start screen ──────────────────────────────
+  if (!plan) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}>
+          <View style={{ paddingTop: 48, alignItems: "center", marginBottom: 40 }}>
+            <View style={{ width: 64, height: 64, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, justifyContent: "center", alignItems: "center", marginBottom: 20 }}>
+              <Ionicons name="barbell-outline" size={32} color={Colors.primary} />
+            </View>
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
+              No Routine Active
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 }}>
+              Pick a training template or build your own mesocycle to get started.
+            </Text>
+          </View>
+
+          {/* Primary CTA */}
+          <Pressable
+            onPress={() => router.push("/templates")}
+            style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 18, alignItems: "center", marginBottom: 10, opacity: pressed ? 0.85 : 1 })}
+          >
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 2 }}>
+              Browse Workout Templates →
+            </Text>
+          </Pressable>
+
+          {/* Secondary actions */}
+          {[
+            { icon: "nutrition-outline" as const, label: "Nutrition & Macro Targets", sub: "View or update your calorie and macro goals", route: "/nutrition" },
+            { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log your bodyweight and track trends", route: "/(tabs)/progress" },
+          ].map((item) => (
+            <Pressable
+              key={item.route}
+              onPress={() => router.push(item.route as any)}
+              style={({ pressed }) => ({
+                flexDirection: "row", alignItems: "center", gap: 14,
+                borderWidth: 1, borderColor: Colors.border, padding: 16, marginBottom: 10,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <View style={{ width: 38, height: 38, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+                <Ionicons name={item.icon} size={20} color={Colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{item.label}</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>{item.sub}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </Pressable>
+          ))}
+
+          {/* Restart setup */}
+          <View style={{ marginTop: 24, borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+              First Time or Starting Over?
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, lineHeight: 18, marginBottom: 14 }}>
+              Run the full onboarding setup again. Your profile, nutrition, and notification preferences can also be updated anytime in{" "}
+              <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.textSecondary }}>Settings</Text>.
+            </Text>
+            <Pressable
+              onPress={() => Alert.alert(
+                "Restart Setup",
+                "This will walk you through setup again. Your existing workout history and logs will be kept, but your profile and nutrition data may be overwritten.\n\nYou can also update individual settings anytime in the Settings tab.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Continue to Setup", onPress: () => router.replace("/onboarding") },
+                ]
+              )}
+              style={({ pressed }) => ({ borderWidth: 1, borderColor: Colors.border, paddingVertical: 12, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
+            >
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                Restart Setup
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -502,15 +584,44 @@ export default function DashboardScreen() {
           onPress={() => setMenuVisible(false)}
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", paddingHorizontal: 24 }}
         >
-          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingVertical: 16 }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingVertical: 8 }}>
+            {[
+              { icon: "swap-horizontal" as const, label: "Change Routine", sub: "Pick a different template or build your own", color: Colors.primary, onPress: handleChangeRoutine },
+              { icon: "nutrition-outline" as const, label: "Nutrition Targets", sub: "View or edit your calorie & macro goals", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/nutrition"); } },
+              { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log bodyweight and track trends", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/(tabs)/progress"); } },
+            ].map((item, i) => (
+              <React.Fragment key={item.label}>
+                <Pressable
+                  onPress={item.onPress}
+                  style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 24, paddingVertical: 16, opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Ionicons name={item.icon} size={22} color={item.color} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>{item.label}</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>{item.sub}</Text>
+                  </View>
+                </Pressable>
+                <View style={{ height: 1, backgroundColor: Colors.border, marginHorizontal: 24 }} />
+              </React.Fragment>
+            ))}
             <Pressable
-              onPress={handleChangeRoutine}
+              onPress={() => {
+                setMenuVisible(false);
+                Alert.alert(
+                  "Restart Setup",
+                  "This will walk you through onboarding again. Your workout history is kept, but profile and nutrition data may be overwritten.\n\nYou can also change individual settings anytime in the Settings tab.",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Continue", onPress: () => router.replace("/onboarding") },
+                  ]
+                );
+              }}
               style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 24, paddingVertical: 16, opacity: pressed ? 0.7 : 1 })}
             >
-              <Ionicons name="swap-horizontal" size={22} color={Colors.primary} />
-              <View>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>Change Routine</Text>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>Pick a different template or build your own</Text>
+              <Ionicons name="refresh-outline" size={22} color={Colors.textMuted} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Restart Setup</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>Re-run onboarding · history is preserved</Text>
               </View>
             </Pressable>
             <View style={{ height: 1, backgroundColor: Colors.border, marginHorizontal: 24 }} />
@@ -519,7 +630,7 @@ export default function DashboardScreen() {
               style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 24, paddingVertical: 16, opacity: pressed ? 0.7 : 1 })}
             >
               <Ionicons name="close" size={22} color={Colors.textMuted} />
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 15, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Cancel</Text>
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Cancel</Text>
             </Pressable>
           </View>
         </Pressable>
