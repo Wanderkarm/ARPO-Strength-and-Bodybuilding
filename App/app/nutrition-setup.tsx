@@ -395,7 +395,7 @@ export default function NutritionSetupScreen() {
                   placeholderTextColor={Colors.textMuted}
                   style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
                 />
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 40 }}>years</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }} numberOfLines={1}>yrs</Text>
               </View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 8 }}>
                 Age affects your BMR — metabolism slows ~1–2% per decade after 25.
