@@ -249,11 +249,11 @@ export default function DashboardScreen() {
 
   // ── Get all logs for a given day + week ──────────────────────────────────────
   function getLogsForDayWeek(dayNumber: number, weekNum: number): WorkoutLog[] {
-    return plan.logs.filter(l => l.dayNumber === dayNumber && l.weekNumber === weekNum);
+    return plan?.logs.filter(l => l.dayNumber === dayNumber && l.weekNumber === weekNum) ?? [];
   }
 
   function isDayCompleted(dayNumber: number): boolean {
-    return plan.logs.some(l => l.dayNumber === dayNumber && l.weekNumber === plan.currentWeek && l.completedAt);
+    return plan?.logs.some(l => l.dayNumber === dayNumber && l.weekNumber === plan.currentWeek && l.completedAt) ?? false;
   }
 
   return (

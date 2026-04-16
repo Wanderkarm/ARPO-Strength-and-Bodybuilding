@@ -160,6 +160,7 @@ export default function SettingsScreen() {
   const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>({
     workoutEnabled: false, workoutHour: 8,  workoutMinute: 0,
     weighinEnabled: false, weighinHour: 7,  weighinMinute: 0,
+    streakEnabled:  false, streakHour:  20, streakMinute:  0, streakDays: "daily",
   });
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [showWeighinPicker, setShowWeighinPicker] = useState(false);
