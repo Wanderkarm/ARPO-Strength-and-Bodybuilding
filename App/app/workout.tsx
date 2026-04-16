@@ -1169,6 +1169,44 @@ export default function WorkoutScreen() {
           })}
         </View>
 
+        {/* Plate calculator shortcut — shown below the set table for barbell/weighted exercises */}
+        {!isBodyweight && (
+          <Pressable
+            onPress={() => {
+              const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
+              setPlateCalcTarget(target);
+              setPlateCalcBar(null);
+              if (target) setPlateResult(calculatePlates(parseFloat(target), unit));
+              else setPlateResult(null);
+              setPlateCalcVisible(true);
+            }}
+            style={({ pressed }) => ({
+              marginHorizontal: 20,
+              marginTop: 10,
+              borderWidth: 1,
+              borderColor: Colors.border,
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Ionicons name="barbell-outline" size={16} color={Colors.primary} />
+            <Text style={{
+              fontFamily: "Rubik_600SemiBold",
+              fontSize: 12,
+              color: Colors.primary,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}>
+              Plate Calculator
+            </Text>
+          </Pressable>
+        )}
+
         {/* Per-exercise ratings — appear inline as soon as all sets are complete */}
         {isExerciseComplete(currentEx) && (
           <View
