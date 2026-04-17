@@ -8,6 +8,8 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
+  InputAccessoryView,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -268,10 +270,18 @@ export default function BodyScreen() {
     !latestMeasurement?.hipsCm;
 
   // ── Render ───────────────────────────────────────────────────────────────────
+  const WEIGH_IN_INPUT_ID = "weighin-accessory";
+
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: Colors.bg }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+    <View style={{ flex: 1, paddingTop: topInset }}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
@@ -400,6 +410,7 @@ export default function BodyScreen() {
                 keyboardType="decimal-pad"
                 placeholder={`Weight (${unit})`}
                 placeholderTextColor={Colors.textMuted}
+                inputAccessoryViewID={Platform.OS === "ios" ? WEIGH_IN_INPUT_ID : undefined}
                 style={{
                   flex: 1, borderWidth: 1, borderColor: Colors.border,
                   backgroundColor: Colors.bgAccent, color: Colors.text,
@@ -407,22 +418,25 @@ export default function BodyScreen() {
                   paddingHorizontal: 12, paddingVertical: 10,
                 }}
               />
-              <Pressable
-                onPress={handleLogWeight}
-                disabled={loggingWeight || !weightInput}
-                style={({ pressed }) => ({
-                  backgroundColor: weightLogged ? "#2E7D32" : Colors.primary,
-                  paddingHorizontal: 18, justifyContent: "center",
-                  opacity: (pressed || loggingWeight || !weightInput) ? 0.7 : 1,
-                })}
-              >
-                {loggingWeight
-                  ? <ActivityIndicator color={Colors.text} size="small" />
-                  : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                      {weightLogged ? "Logged ✓" : "Log"}
-                    </Text>
-                }
-              </Pressable>
+              {/* On Android the Log button stays inline; on iOS it moves to the keyboard toolbar */}
+              {Platform.OS !== "ios" && (
+                <Pressable
+                  onPress={handleLogWeight}
+                  disabled={loggingWeight || !weightInput}
+                  style={({ pressed }) => ({
+                    backgroundColor: weightLogged ? "#2E7D32" : Colors.primary,
+                    paddingHorizontal: 18, justifyContent: "center",
+                    opacity: (pressed || loggingWeight || !weightInput) ? 0.7 : 1,
+                  })}
+                >
+                  {loggingWeight
+                    ? <ActivityIndicator color={Colors.text} size="small" />
+                    : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                        {weightLogged ? "Logged ✓" : "Log"}
+                      </Text>
+                  }
+                </Pressable>
+              )}
             </View>
           </View>
 
@@ -750,6 +764,48 @@ export default function BodyScreen() {
 
         </View>
       </ScrollView>
+
+      {/* iOS keyboard toolbar — Log button floats above the keyboard */}
+      {Platform.OS === "ios" && (
+        <InputAccessoryView nativeID={WEIGH_IN_INPUT_ID}>
+          <View style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: Colors.bgAccent,
+            borderTopWidth: 1,
+            borderTopColor: Colors.border,
+            gap: 10,
+          }}>
+            {weightInput.trim() !== "" && (
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>
+                {weightInput} {unit}
+              </Text>
+            )}
+            <Pressable
+              onPress={handleLogWeight}
+              disabled={loggingWeight || !weightInput}
+              style={({ pressed }) => ({
+                backgroundColor: weightLogged ? "#2E7D32" : Colors.primary,
+                paddingHorizontal: 20,
+                paddingVertical: 9,
+                opacity: (pressed || loggingWeight || !weightInput) ? 0.7 : 1,
+              })}
+            >
+              {loggingWeight
+                ? <ActivityIndicator color={Colors.text} size="small" />
+                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {weightLogged ? "Logged ✓" : "Log Weight"}
+                  </Text>
+              }
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      )}
+
     </View>
+    </KeyboardAvoidingView>
   );
 }

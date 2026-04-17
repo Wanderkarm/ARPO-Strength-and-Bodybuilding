@@ -11,6 +11,7 @@ import {
   Alert,
   Dimensions,
   TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -673,7 +674,11 @@ export default function DashboardScreen() {
 
       {/* ── Steps Log Modal ── */}
       <Modal visible={stepsModalVisible} transparent animationType="slide" onRequestClose={() => setStepsModalVisible(false)}>
-        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000088" }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1, justifyContent: "flex-end" }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <Pressable style={{ flex: 1 }} onPress={() => setStepsModalVisible(false)} />
           <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 24, paddingBottom: 36 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
@@ -788,7 +793,7 @@ export default function DashboardScreen() {
               }
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── Menu modal ── */}
