@@ -599,9 +599,23 @@ export default function DashboardScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 5 }}>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    Steps Today
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                      Steps Today
+                    </Text>
+                    {(todaySteps.source === "apple_health" || todaySteps.source === "google_fit") && (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 5, paddingVertical: 1 }}>
+                        <Ionicons
+                          name={todaySteps.source === "apple_health" ? "heart-circle-outline" : "fitness-outline"}
+                          size={9}
+                          color={Colors.primary}
+                        />
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 8, color: Colors.primary }}>
+                          {todaySteps.source === "apple_health" ? "Health" : "Fit"}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted }}>
                     {todaySteps.steps.toLocaleString()} / {todaySteps.goal.toLocaleString()}
                   </Text>

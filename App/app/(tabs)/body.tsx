@@ -164,8 +164,8 @@ export default function BodyScreen() {
       setLastSyncAt(result.syncedAt);
       if (result.error) {
         setSyncError(result.error);
-      } else if (!result.weightSynced && !result.bodyFatSynced) {
-        setSyncError("No new data found in Apple Health.");
+      } else if (!result.weightSynced && !result.bodyFatSynced && !result.stepsSynced) {
+        setSyncError(`No new data found in ${Platform.OS === "ios" ? "Apple Health" : "Health Connect"}.`);
       } else {
         if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         await loadAll();
