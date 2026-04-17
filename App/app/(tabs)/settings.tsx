@@ -1261,6 +1261,65 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* ── Danger Zone ── */}
+        <SectionHeader title="Danger Zone" />
+        <View style={{ borderWidth: 1, borderColor: "#E5393522", borderLeftWidth: 3, borderLeftColor: "#E53935", padding: 16, marginBottom: 8 }}>
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
+            Permanently delete all your data — workout history, body logs, plans, and profile. This cannot be undone. Export a backup first if you want to keep your data.
+          </Text>
+          <Pressable
+            onPress={() => {
+              Alert.alert(
+                "Delete All Data",
+                "This will permanently erase your entire profile, workout history, body measurements, and all plans. There is no undo.\n\nAre you sure?",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Delete Everything",
+                    style: "destructive",
+                    onPress: () => {
+                      Alert.alert(
+                        "Final Confirmation",
+                        "Last chance — all data will be gone forever.",
+                        [
+                          { text: "Go Back", style: "cancel" },
+                          {
+                            text: "Yes, Delete All",
+                            style: "destructive",
+                            onPress: async () => {
+                              try {
+                                await AsyncStorage.clear();
+                                router.replace("/");
+                              } catch (err) {
+                                Alert.alert("Error", "Something went wrong. Please try again.");
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    },
+                  },
+                ]
+              );
+            }}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              borderWidth: 1,
+              borderColor: "#E53935",
+              paddingVertical: 13,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Ionicons name="trash-outline" size={16} color="#E53935" />
+            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: "#E53935", textTransform: "uppercase", letterSpacing: 1 }}>
+              Delete All Data
+            </Text>
+          </Pressable>
+        </View>
+
       </ScrollView>
     </View>
     </KeyboardAvoidingView>

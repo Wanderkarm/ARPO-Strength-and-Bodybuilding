@@ -230,4 +230,16 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
     citation:
       "Epley B. (1985). Poundage Chart. Boyd Epley Workout. University of Nebraska. / Brzycki M. (1993). Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue. Journal of Physical Education, Recreation & Dance.",
   },
+  "BMI": {
+    explanation:
+      "Body Mass Index — your weight divided by height squared (kg/m²). It's a population-level screening tool, not a direct measure of body composition.\n\n• Underweight: < 18.5\n• Normal: 18.5 – 24.9\n• Overweight: 25 – 29.9\n• Obese: ≥ 30\n\nImportant caveat: BMI cannot distinguish muscle from fat. A muscular lifter will often register 'overweight' or 'obese' despite being extremely lean. If your FFMI is high, your elevated BMI reflects muscle, not excess fat.",
+    citation:
+      "Keys A et al. (1972). Indices of relative weight and obesity. Journal of Chronic Diseases.",
+  },
+  "FFMI": {
+    explanation:
+      "Fat-Free Mass Index — a measure of your muscle mass relative to your height (lean mass in kg ÷ height in m²). Unlike BMI, FFMI filters out body fat so you're only measuring how much muscle you carry for your frame.\n\n• Average untrained: 17–18 (men), 14–15 (women)\n• Fit / recreational lifter: 19–21 (men), 16–17 (women)\n• Advanced natural athlete: 22–24 (men), 18–20 (women)\n• Exceptional natural ceiling: ~25 (men), ~22 (women)\n\nFFMI is the most practical body composition metric for strength athletes — use it alongside body fat % rather than relying on BMI alone.",
+    citation:
+      "Kouri EM et al. (1995). Fat-Free Mass Index in Users and Nonusers of Anabolic-Androgenic Steroids. Clinical Journal of Sport Medicine.",
+  },
 };

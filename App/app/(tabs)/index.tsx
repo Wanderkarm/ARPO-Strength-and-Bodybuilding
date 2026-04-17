@@ -12,6 +12,7 @@ import {
   Dimensions,
   TextInput,
   KeyboardAvoidingView,
+  Linking,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,7 +27,7 @@ import {
   getStreakInfo, getTodaySteps, updateDailySteps,
   type WorkoutPlan, type WorkoutLog, type StreakInfo, type DailyStepsEntry,
 } from "@/lib/local-db";
-import { syncFromHealth } from "@/lib/healthSync";
+import { syncFromHealth, syncRecoveryMetrics, getCachedRecoveryMetrics, type RecoveryMetrics } from "@/lib/healthSync";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -74,6 +75,13 @@ export default function DashboardScreen() {
   const [savingSteps, setSavingSteps] = useState(false);
   const [syncingSteps, setSyncingSteps] = useState(false);
 
+  // Recovery metrics
+  const [recovery, setRecovery] = useState<RecoveryMetrics | null>(null);
+  const [syncingRecovery, setSyncingRecovery] = useState(false);
+
+  // Body comp nudge
+  const [bodyCompPromptDismissed, setBodyCompPromptDismissed] = useState(true); // start hidden, load below
+
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
     if (planId) {
@@ -89,7 +97,7 @@ export default function DashboardScreen() {
       }
     }
 
-    // Load streak + steps
+    // Load streak + steps + recovery
     const uid = await AsyncStorage.getItem("userId");
     if (uid) {
       const [s, steps] = await Promise.all([
@@ -99,6 +107,12 @@ export default function DashboardScreen() {
       setStreak(s);
       setTodaySteps(steps);
     }
+    getCachedRecoveryMetrics().then(setRecovery);
+
+    // Body comp nudge
+    AsyncStorage.getItem("bodyCompPromptDismissed").then((val) => {
+      setBodyCompPromptDismissed(val === "1");
+    });
 
     setIsLoading(false);
   }, []);
@@ -236,6 +250,38 @@ export default function DashboardScreen() {
       </View>
     );
   }
+
+  // ── Recovery helpers ─────────────────────────────────────────────────────────
+  function recoveryTile(value: number | undefined, thresholds: [number, number], invert = false): "good" | "fair" | "poor" {
+    if (value === undefined) return "fair";
+    const [lo, hi] = thresholds;
+    if (invert) {
+      // Lower is better (e.g. RHR)
+      if (value <= lo) return "good";
+      if (value <= hi) return "fair";
+      return "poor";
+    }
+    // Higher is better (e.g. HRV, sleep)
+    if (value >= hi) return "good";
+    if (value >= lo) return "fair";
+    return "poor";
+  }
+
+  const rhrStatus   = recoveryTile(recovery?.rhr,        [55, 75], true);   // ≤55 good, 55-75 fair, >75 poor
+  const hrvStatus   = recoveryTile(recovery?.hrv,        [30, 60], false);  // ≥60 good, 30-60 fair, <30 poor
+  const sleepStatus = recoveryTile(recovery?.sleepHours, [6,  7],  false);  // ≥7h good, 6-7h fair, <6h poor
+
+  const statusOrder: Record<string, number> = { poor: 0, fair: 1, good: 2 };
+  const hasRecovery = recovery !== null && (recovery.rhr !== undefined || recovery.hrv !== undefined || recovery.sleepHours !== undefined);
+  const overallStatus: "good" | "fair" | "poor" = hasRecovery
+    ? (["rhrStatus", "hrvStatus", "sleepStatus"] as const).reduce<"good" | "fair" | "poor">((worst, key) => {
+        const s = key === "rhrStatus" ? rhrStatus : key === "hrvStatus" ? hrvStatus : sleepStatus;
+        return statusOrder[s] < statusOrder[worst] ? s : worst;
+      }, "good")
+    : "fair";
+
+  const STATUS_COLOR = { good: "#43A047", fair: "#F59E0B", poor: "#E53935" };
+  const STATUS_LABEL = { good: "Good", fair: "Moderate", poor: "Low" };
 
   const mesoWeek = mesoWeekOf(plan.currentWeek);
   const isDeload = mesoWeek === 4;
@@ -640,6 +686,186 @@ export default function DashboardScreen() {
               </View>
               <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
             </Pressable>
+          </View>
+        )}
+
+        {/* ── Recovery Card ── */}
+        {(Platform.OS === "ios" || Platform.OS === "android") && (
+          <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
+            <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14 }}>
+              {/* Header row */}
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: hasRecovery ? 12 : 0 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasRecovery ? STATUS_COLOR[overallStatus] : Colors.textMuted }} />
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    Recovery
+                  </Text>
+                  {hasRecovery && (
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: STATUS_COLOR[overallStatus], textTransform: "uppercase", letterSpacing: 1 }}>
+                      · {STATUS_LABEL[overallStatus]}
+                    </Text>
+                  )}
+                </View>
+                <Pressable
+                  onPress={async () => {
+                    setSyncingRecovery(true);
+                    const result = await syncRecoveryMetrics();
+                    setRecovery(result);
+                    setSyncingRecovery(false);
+                    const gotData = result.rhr !== undefined || result.hrv !== undefined || result.sleepHours !== undefined;
+                    if (Platform.OS !== "web") {
+                      Haptics.notificationAsync(
+                        gotData
+                          ? Haptics.NotificationFeedbackType.Success
+                          : Haptics.NotificationFeedbackType.Warning
+                      );
+                    }
+                    if (!gotData) Alert.alert("No data found", "No sleep, RHR, or HRV data was found in " + (Platform.OS === "ios" ? "Apple Health" : "Google Fit") + " for today. Make sure your device has recorded this data.");
+                  }}
+                  disabled={syncingRecovery}
+                  hitSlop={10}
+                  style={({ pressed }) => ({ opacity: pressed || syncingRecovery ? 0.5 : 1, flexDirection: "row", alignItems: "center", gap: 4 })}
+                >
+                  {syncingRecovery
+                    ? <ActivityIndicator size="small" color={Colors.primary} />
+                    : <>
+                        <Ionicons name={Platform.OS === "ios" ? "heart-circle-outline" : "fitness-outline"} size={13} color={Colors.primary} />
+                        <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Sync</Text>
+                      </>
+                  }
+                </Pressable>
+              </View>
+
+              {/* Metric tiles — only shown once we have data */}
+              {hasRecovery && (
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {/* Sleep */}
+                  {recovery?.sleepHours !== undefined && (
+                    <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
+                      <Ionicons name="moon-outline" size={14} color={STATUS_COLOR[sleepStatus]} />
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: STATUS_COLOR[sleepStatus] }}>
+                        {recovery.sleepHours}h
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        Sleep
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* RHR */}
+                  {recovery?.rhr !== undefined && (
+                    <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
+                      <Ionicons name="heart-outline" size={14} color={STATUS_COLOR[rhrStatus]} />
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: STATUS_COLOR[rhrStatus] }}>
+                        {recovery.rhr}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        RHR bpm
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* HRV */}
+                  {recovery?.hrv !== undefined && (
+                    <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
+                      <Ionicons name="pulse-outline" size={14} color={STATUS_COLOR[hrvStatus]} />
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: STATUS_COLOR[hrvStatus] }}>
+                        {recovery.hrv}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        HRV ms
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Empty state — no data synced yet */}
+              {!hasRecovery && (
+                <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, flex: 1 }}>
+                    Tap Sync to pull sleep, RHR & HRV from {Platform.OS === "ios" ? "Apple Health" : "Google Fit"}.
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      const url = Platform.OS === "ios"
+                        ? "x-apple-health://"
+                        : "com.google.android.apps.fitness://";
+                      Linking.openURL(url).catch(() => {});
+                    }}
+                    hitSlop={10}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, marginLeft: 12 })}
+                  >
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                      Open →
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {/* "Open Health App" link when data is present */}
+              {hasRecovery && (
+                <Pressable
+                  onPress={() => {
+                    const url = Platform.OS === "ios"
+                      ? "x-apple-health://"
+                      : "com.google.android.apps.fitness://";
+                    Linking.openURL(url).catch(() => {});
+                  }}
+                  style={({ pressed }) => ({ marginTop: 10, alignSelf: "flex-end", opacity: pressed ? 0.5 : 1 })}
+                  hitSlop={8}
+                >
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {Platform.OS === "ios" ? "Open Apple Health →" : "Open Google Fit →"}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* ── Body Composition Nudge ── */}
+        {!bodyCompPromptDismissed && (
+          <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
+            <View style={{
+              borderWidth: 1,
+              borderColor: Colors.border,
+              borderLeftWidth: 3,
+              borderLeftColor: Colors.primary,
+              backgroundColor: Colors.primary + "08",
+              padding: 14,
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: 10,
+            }}>
+              <Ionicons name="body-outline" size={18} color={Colors.primary} style={{ marginTop: 1 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 4 }}>
+                  Track Body Composition
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18 }}>
+                  Log waist + neck measurements to unlock body fat % and FFMI tracking using the Navy formula.
+                </Text>
+                <Pressable
+                  onPress={() => router.push("/(tabs)/body" as any)}
+                  style={({ pressed }) => ({ marginTop: 10, opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                    Log Measurements →
+                  </Text>
+                </Pressable>
+              </View>
+              <Pressable
+                onPress={async () => {
+                  await AsyncStorage.setItem("bodyCompPromptDismissed", "1");
+                  setBodyCompPromptDismissed(true);
+                }}
+                hitSlop={12}
+                style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, marginTop: 1 })}
+              >
+                <Ionicons name="close" size={16} color={Colors.textMuted} />
+              </Pressable>
+            </View>
           </View>
         )}
 

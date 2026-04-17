@@ -28,7 +28,7 @@ function v(val: unknown): SQLVal {
 
 // ─── Version ──────────────────────────────────────────────────────────────────
 // Bump this when the schema changes so restore can handle migrations.
-const BACKUP_VERSION = 2;
+const BACKUP_VERSION = 3;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -79,6 +79,12 @@ const ASYNC_KEYS_TO_BACKUP = [
   "notif_weighin_enabled",
   "notif_weighin_hour",
   "notif_weighin_minute",
+  // Added in v3
+  "notifPromptDismissed",
+  "bodyCompPromptDismissed",
+  "exerciseSwaps",
+  "gymType",
+  "userGender",
 ];
 
 // ─── Export ───────────────────────────────────────────────────────────────────

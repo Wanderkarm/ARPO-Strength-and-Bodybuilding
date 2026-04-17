@@ -155,8 +155,8 @@ export default function CustomExerciseScreen() {
         </Pressable>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
 
           {/* Create form */}
           {showForm && (
@@ -193,6 +193,7 @@ export default function CustomExerciseScreen() {
                 Muscle Group / Category
               </Text>
               <ScrollView
+                keyboardShouldPersistTaps="handled"
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: 16 }}

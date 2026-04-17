@@ -334,19 +334,15 @@ export default function TemplatesScreen() {
           </View>
         )}
 
-        <Pressable
-          onPress={() => {
-            if (isOnboarding) {
-              router.replace("/nutrition-setup?from=onboarding");
-            } else {
-              router.canGoBack() ? router.back() : router.replace("/(tabs)");
-            }
-          }}
-          hitSlop={12}
-          style={{ marginBottom: isOnboarding ? 8 : 16 }}
-        >
-          <Ionicons name="chevron-back" size={24} color={Colors.text} />
-        </Pressable>
+        {!isOnboarding && (
+          <Pressable
+            onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}
+            hitSlop={12}
+            style={{ marginBottom: 16 }}
+          >
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          </Pressable>
+        )}
 
         {isOnboarding && (
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>

@@ -7,6 +7,7 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,29 +29,16 @@ import {
 import {
   createUser,
   updateNutritionProfile,
-  logBodyMeasurements,
 } from "@/lib/local-db";
 import { useUnit, type WeightUnit } from "@/contexts/UnitContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step =
-  | "welcome"
-  | "unit"
-  | "gender"
-  | "bodyweight"
-  | "experience"
-  | "goal"
-  | "details"
-  | "activity"
-  | "body_comp";
+type Step = "welcome" | "unit" | "identity" | "goals";
 
 // Steps that get a number in the progress bar (welcome is the intro, not counted)
-const NUMBERED_STEPS: Step[] = [
-  "unit", "gender", "bodyweight", "experience",
-  "goal", "details", "activity", "body_comp",
-];
-const TOTAL_FLOW_STEPS = 11; // 8 here + templates (9) + weights (10) + notifications (11)
+const NUMBERED_STEPS: Step[] = ["unit", "identity", "goals"];
+const TOTAL_FLOW_STEPS = 5; // unit=1, identity=2, goals=3, templates=4, starting-weights=5
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -92,33 +80,29 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState<Step>("welcome");
   const [saving, setSaving] = useState(false);
 
-  // Step 1 — unit
+  // Step: unit
   const [weightUnit, setWeightUnit] = useState<WeightUnit>("lbs");
 
-  // Step 2 — gender
+  // Step: identity — gender
   const [gender, setGender] = useState<Gender | null>(null);
 
-  // Step 3 — bodyweight
+  // Step: identity — bodyweight (optional)
   const [bodyweight, setBodyweight] = useState("");
 
-  // Step 4 — experience
+  // Step: identity — experience
   const [experience, setExperience] = useState<ExperienceLevel | null>(null);
 
-  // Step 5 — goal
+  // Step: goals — body goal
   const [bodyGoal, setBodyGoal] = useState<BodyGoal>("recomp");
 
-  // Step 6 — details (height + age)
+  // Step: goals — height + age
   const [heightFt, setHeightFt] = useState("5");
   const [heightIn, setHeightIn] = useState("10");
   const [heightCm, setHeightCm] = useState("178");
   const [age, setAge] = useState("");
 
-  // Step 7 — activity
+  // Step: goals — activity
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
-
-  // Step 8 — body composition (optional)
-  const [waist, setWaist] = useState("");
-  const [neck, setNeck] = useState("");
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -141,7 +125,7 @@ export default function OnboardingScreen() {
 
   // ── Save & navigate ──────────────────────────────────────────────────────────
 
-  async function handleComplete(skipBodyComp = false) {
+  async function handleComplete() {
     if (!gender || !experience) return;
     setSaving(true);
     try {
@@ -180,26 +164,6 @@ export default function OnboardingScreen() {
         weeksToGoal: null,
       });
 
-      // 4. Optionally save waist + neck measurements
-      if (!skipBodyComp && (waist || neck)) {
-        const tocm = (val: string) => {
-          const n = parseFloat(val);
-          return isNaN(n) ? null : weightUnit === "lbs" ? n * 2.54 : n;
-        };
-        await logBodyMeasurements(user.id, {
-          waistCm: tocm(waist),
-          neckCm: toNeck(neck),
-          chestCm: null,
-          hipsCm: null,
-          leftArmCm: null,
-          rightArmCm: null,
-          leftThighCm: null,
-          notes: null,
-          bodyFatPct: null,
-          source: "manual",
-        });
-      }
-
       router.replace("/templates?from=onboarding");
     } catch (err) {
       console.error(err);
@@ -208,19 +172,15 @@ export default function OnboardingScreen() {
     }
   }
 
-  // Helper used above (defined after function for clarity)
-  function toNeck(val: string) {
-    const n = parseFloat(val);
-    return isNaN(n) ? null : weightUnit === "lbs" ? n * 2.54 : n;
-  }
-
   function goBack() {
-    const order: Step[] = ["welcome", ...NUMBERED_STEPS];
-    const idx = order.indexOf(step);
-    if (idx <= 0) {
+    if (step === "welcome") {
       router.canGoBack() ? router.back() : router.replace("/(tabs)");
-    } else {
-      setStep(order[idx - 1]);
+    } else if (step === "unit") {
+      setStep("welcome");
+    } else if (step === "identity") {
+      setStep("unit");
+    } else if (step === "goals") {
+      setStep("identity");
     }
   }
 
@@ -298,7 +258,7 @@ export default function OnboardingScreen() {
         </Text>
       </View>
 
-      {/* Segmented progress bar — all 11 steps */}
+      {/* Segmented progress bar — all 5 steps */}
       <View style={{ flexDirection: "row", gap: 3 }}>
         {Array.from({ length: TOTAL_FLOW_STEPS }).map((_, i) => (
           <View
@@ -317,6 +277,7 @@ export default function OnboardingScreen() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
       {header}
 
@@ -347,8 +308,8 @@ export default function OnboardingScreen() {
             </Text>
 
             {[
-              { icon: "checkmark-circle-outline" as const, text: "2 required questions — under 1 minute" },
-              { icon: "options-outline" as const,          text: "Optional questions personalise your nutrition" },
+              { icon: "checkmark-circle-outline" as const, text: "2 required fields — under 30 seconds" },
+              { icon: "options-outline" as const,          text: "Optional details personalise your nutrition targets" },
               { icon: "settings-outline" as const,         text: "Everything is editable later in Settings" },
             ].map(item => (
               <View key={item.text} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 }}>
@@ -385,7 +346,7 @@ export default function OnboardingScreen() {
       {/* ── UNIT ────────────────────────────────────────────────────────────── */}
       {step === "unit" && (
         <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
             <Text style={titleStyle}>Pounds or Kilograms?</Text>
             <Text style={subtitleStyle}>
               Every weight in ARPO — your lifts, targets, and bodyweight — uses this unit throughout the app.
@@ -394,7 +355,7 @@ export default function OnboardingScreen() {
             {(["lbs", "kg"] as WeightUnit[]).map(u => (
               <Pressable
                 key={u}
-                onPress={() => { haptic(); setWeightUnit(u); setStep("gender"); }}
+                onPress={() => { haptic(); setWeightUnit(u); setStep("identity"); }}
                 style={({ pressed }) => ({
                   borderWidth: 1,
                   borderColor: weightUnit === u ? Colors.primary : Colors.border,
@@ -425,19 +386,24 @@ export default function OnboardingScreen() {
         </>
       )}
 
-      {/* ── GENDER ──────────────────────────────────────────────────────────── */}
-      {step === "gender" && (
+      {/* ── IDENTITY ────────────────────────────────────────────────────────── */}
+      {step === "identity" && (
         <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Biological Sex</Text>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+            <Text style={titleStyle}>About You</Text>
             <Text style={subtitleStyle}>
-              Used for BMR calculation and strength baseline estimates.
+              These two inputs are required. Bodyweight is optional.
+            </Text>
+
+            {/* ── Biological Sex ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
+              Biological Sex
             </Text>
 
             {([["MALE", "male"], ["FEMALE", "female"]] as [Gender, keyof typeof Ionicons.glyphMap][]).map(([g, icon]) => (
               <Pressable
                 key={g}
-                onPress={() => { haptic(); setGender(g); setStep("bodyweight"); }}
+                onPress={() => { haptic(); setGender(g); }}
                 style={({ pressed }) => ({
                   borderWidth: 1,
                   borderColor: gender === g ? Colors.primary : Colors.border,
@@ -457,42 +423,26 @@ export default function OnboardingScreen() {
                 <Ionicons name={icon} size={24} color={gender === g ? Colors.primary : Colors.textMuted} />
               </Pressable>
             ))}
-          </ScrollView>
-        </>
-      )}
 
-      {/* ── BODYWEIGHT ──────────────────────────────────────────────────────── */}
-      {step === "bodyweight" && (
-        <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            {/* Optional badge + skip */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <View style={{ height: 24 }} />
+
+            {/* ── Current Weight (optional) ── */}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                Current Weight
+              </Text>
               <View style={{
                 borderWidth: 1,
                 borderColor: Colors.primary + "44",
                 backgroundColor: Colors.primary + "11",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
               }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
                   Optional
                 </Text>
               </View>
-              <Pressable
-                onPress={() => { haptic(); setStep("experience"); }}
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
-                  Skip →
-                </Text>
-              </Pressable>
             </View>
-
-            <Text style={titleStyle}>Current Bodyweight</Text>
-            <Text style={subtitleStyle}>
-              Used to estimate your starting lift targets. Skip if you prefer — ARPO will use a typical value and you can update it any time in the Body tab.
-            </Text>
 
             <View style={{
               borderWidth: 1,
@@ -500,6 +450,7 @@ export default function OnboardingScreen() {
               backgroundColor: Colors.bgAccent,
               flexDirection: "row",
               alignItems: "center",
+              marginBottom: 28,
             }}>
               <TextInput
                 value={bodyweight}
@@ -507,7 +458,6 @@ export default function OnboardingScreen() {
                 keyboardType="numeric"
                 placeholder="0"
                 placeholderTextColor={Colors.textMuted}
-                autoFocus
                 style={{
                   flex: 1,
                   fontFamily: "Rubik_700Bold",
@@ -522,27 +472,16 @@ export default function OnboardingScreen() {
                 {weightUnit}
               </Text>
             </View>
-          </ScrollView>
-          {continueBtn(
-            () => { haptic(); setStep("experience"); },
-            bodyweight.length > 0 && parseFloat(bodyweight) <= 0  // only disable if something was typed but is invalid
-          )}
-        </>
-      )}
 
-      {/* ── EXPERIENCE ──────────────────────────────────────────────────────── */}
-      {step === "experience" && (
-        <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Training Experience</Text>
-            <Text style={subtitleStyle}>
-              Sets your starting training volume. Beginners recover faster and need less; advanced lifters need more stimulus to keep progressing.
+            {/* ── Training Experience ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
+              Training Experience
             </Text>
 
             {EXPERIENCE_OPTIONS.map(opt => (
               <Pressable
                 key={opt.value}
-                onPress={() => { haptic(); setExperience(opt.value); setStep("goal"); }}
+                onPress={() => { haptic(); setExperience(opt.value); }}
                 style={({ pressed }) => ({
                   borderWidth: 1,
                   borderColor: experience === opt.value ? Colors.primary : Colors.border,
@@ -565,40 +504,25 @@ export default function OnboardingScreen() {
               </Pressable>
             ))}
           </ScrollView>
+          {continueBtn(
+            () => { haptic(); setStep("goals"); },
+            !(gender !== null && experience !== null)
+          )}
         </>
       )}
 
-      {/* ── GOAL ────────────────────────────────────────────────────────────── */}
-      {step === "goal" && (
+      {/* ── GOALS ───────────────────────────────────────────────────────────── */}
+      {step === "goals" && (
         <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            {/* Optional badge + skip */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <View style={{
-                borderWidth: 1,
-                borderColor: Colors.primary + "44",
-                backgroundColor: Colors.primary + "11",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Optional
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => { haptic(); setStep("details"); }}
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
-                  Skip →
-                </Text>
-              </Pressable>
-            </View>
-
-            <Text style={titleStyle}>What's the Goal?</Text>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+            <Text style={titleStyle}>Your Goals</Text>
             <Text style={subtitleStyle}>
-              Sets your calorie target and macro split. Defaults to Recompose if skipped — you can change it any time in the Body tab.
+              All optional — defaults are applied if skipped. You can change everything in Settings.
+            </Text>
+
+            {/* ── Body Goal ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
+              Body Goal
             </Text>
 
             {BODY_GOALS.map(g => (
@@ -634,7 +558,7 @@ export default function OnboardingScreen() {
             ))}
 
             {bodyGoal === "recomp" && (
-              <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginTop: 4, backgroundColor: Colors.bgAccent }}>
+              <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginTop: 4, marginBottom: 16, backgroundColor: Colors.bgAccent }}>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
                   Who Is Recomposition For?
                 </Text>
@@ -643,44 +567,10 @@ export default function OnboardingScreen() {
                 </Text>
               </View>
             )}
-          </ScrollView>
-          {continueBtn(() => { haptic(); setStep("details"); })}
-        </>
-      )}
 
-      {/* ── DETAILS ─────────────────────────────────────────────────────────── */}
-      {step === "details" && (
-        <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            {/* Optional badge + skip */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <View style={{
-                borderWidth: 1,
-                borderColor: Colors.primary + "44",
-                backgroundColor: Colors.primary + "11",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Optional
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => { haptic(); setStep("activity"); }}
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
-                  Skip →
-                </Text>
-              </Pressable>
-            </View>
+            <View style={{ height: bodyGoal === "recomp" ? 8 : 24 }} />
 
-            <Text style={titleStyle}>A Few More Details</Text>
-            <Text style={subtitleStyle}>
-              Height and age let ARPO calculate your calorie needs using the Mifflin-St Jeor formula. Skip if you'd rather set these later.
-            </Text>
-
+            {/* ── Height ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
               Height
             </Text>
@@ -716,6 +606,7 @@ export default function OnboardingScreen() {
               </View>
             )}
 
+            {/* ── Age ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
               Age
             </Text>
@@ -730,45 +621,13 @@ export default function OnboardingScreen() {
               />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>yrs</Text>
             </View>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 28 }}>
               Metabolism slows ~1–2% per decade after 25 — age adjusts your TDEE accordingly.
             </Text>
-          </ScrollView>
-          {continueBtn(() => { haptic(); setStep("activity"); })}
-        </>
-      )}
 
-      {/* ── ACTIVITY ────────────────────────────────────────────────────────── */}
-      {step === "activity" && (
-        <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            {/* Optional badge + skip */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <View style={{
-                borderWidth: 1,
-                borderColor: Colors.primary + "44",
-                backgroundColor: Colors.primary + "11",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Optional
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => { haptic(); setStep("body_comp"); }}
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
-                  Skip →
-                </Text>
-              </Pressable>
-            </View>
-
-            <Text style={titleStyle}>How Active Are You?</Text>
-            <Text style={subtitleStyle}>
-              Count your <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>total daily activity</Text>, including training sessions. Defaults to Moderately Active if skipped.
+            {/* ── Activity Level ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
+              Activity Level
             </Text>
 
             {(Object.entries(ACTIVITY_LABELS) as [ActivityLevel, typeof ACTIVITY_LABELS[ActivityLevel]][]).map(([key, val]) => (
@@ -802,143 +661,10 @@ export default function OnboardingScreen() {
               </Pressable>
             ))}
           </ScrollView>
-          {continueBtn(() => { haptic(); setStep("body_comp"); })}
-        </>
-      )}
-
-      {/* ── BODY COMPOSITION ────────────────────────────────────────────────── */}
-      {step === "body_comp" && (
-        <>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            {/* Step label + skip */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <View style={{
-                borderWidth: 1,
-                borderColor: Colors.primary + "44",
-                backgroundColor: Colors.primary + "11",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Optional
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => handleComplete(true)}
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
-                  Skip →
-                </Text>
-              </Pressable>
-            </View>
-
-            <Text style={titleStyle}>Body Composition</Text>
-            <Text style={subtitleStyle}>
-              Waist and neck measurements enable an estimated body fat % using the U.S. Navy formula — no scale needed.
-            </Text>
-
-            {/* Info box */}
-            <View style={{
-              borderWidth: 1,
-              borderColor: Colors.border,
-              backgroundColor: Colors.bgAccent,
-              padding: 14,
-              marginBottom: 28,
-              flexDirection: "row",
-              gap: 10,
-            }}>
-              <Ionicons name="information-circle-outline" size={18} color={Colors.primary} style={{ marginTop: 1 }} />
-              <Text style={{ flex: 1, fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18 }}>
-                You can add these later in the <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>Body tab</Text>, or they'll sync automatically from your smart scale, Apple Watch, or Google Fit.
-              </Text>
-            </View>
-
-            {/* Measurement unit label */}
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 20, textAlign: "center" }}>
-              Enter measurements in <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>{weightUnit === "lbs" ? "inches" : "centimetres"}</Text>
-            </Text>
-
-            {/* Waist */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Waist — measured at navel
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 20 }}>
-              <TextInput
-                value={waist}
-                onChangeText={setWaist}
-                keyboardType="decimal-pad"
-                placeholder={weightUnit === "lbs" ? "e.g. 34" : "e.g. 86"}
-                placeholderTextColor={Colors.textMuted}
-                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
-              />
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>
-                {weightUnit === "lbs" ? "in" : "cm"}
-              </Text>
-            </View>
-
-            {/* Neck */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Neck — measured at mid-point
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <TextInput
-                value={neck}
-                onChangeText={setNeck}
-                keyboardType="decimal-pad"
-                placeholder={weightUnit === "lbs" ? "e.g. 15" : "e.g. 38"}
-                placeholderTextColor={Colors.textMuted}
-                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
-              />
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>
-                {weightUnit === "lbs" ? "in" : "cm"}
-              </Text>
-            </View>
-
-            {gender === "FEMALE" && (
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginTop: 8, fontStyle: "italic" }}>
-                For a more accurate female body fat estimate, also add your hip measurement in the Body tab.
-              </Text>
-            )}
-          </ScrollView>
-
-          <View style={{
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderTopWidth: 1,
-            borderTopColor: Colors.border,
-            paddingBottom: 12 + bottomInset,
-            gap: 10,
-          }}>
-            <Pressable
-              onPress={() => handleComplete(false)}
-              disabled={saving}
-              style={({ pressed }) => ({
-                backgroundColor: Colors.primary,
-                paddingVertical: 16,
-                alignItems: "center",
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              {saving
-                ? <ActivityIndicator color={Colors.text} />
-                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                    Continue →
-                  </Text>
-              }
-            </Pressable>
-            <Pressable
-              onPress={() => handleComplete(true)}
-              style={({ pressed }) => ({ alignSelf: "center", opacity: pressed ? 0.6 : 1 })}
-            >
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Skip — add later in Body tab
-              </Text>
-            </Pressable>
-          </View>
+          {continueBtn(() => { haptic(); handleComplete(); })}
         </>
       )}
     </View>
+    </KeyboardAvoidingView>
   );
 }

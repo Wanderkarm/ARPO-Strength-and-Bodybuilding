@@ -27,7 +27,178 @@ export interface SyncResult {
   error?: string;
 }
 
+export interface RecoveryMetrics {
+  /** Resting heart rate in bpm */
+  rhr?: number;
+  /** Heart rate variability (SDNN) in ms */
+  hrv?: number;
+  /** Sleep duration last night in hours */
+  sleepHours?: number;
+  syncedAt: string;
+}
+
 const LAST_SYNC_KEY = "healthSyncLastAt";
+const RECOVERY_CACHE_KEY = "recoveryMetricsCache";
+
+export async function getCachedRecoveryMetrics(): Promise<RecoveryMetrics | null> {
+  try {
+    const raw = await AsyncStorage.getItem(RECOVERY_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function syncRecoveryMetrics(): Promise<RecoveryMetrics> {
+  if (Platform.OS === "ios") return _syncRecoveryAppleHealth();
+  if (Platform.OS === "android") return _syncRecoveryHealthConnect();
+  return { syncedAt: new Date().toISOString() };
+}
+
+async function _syncRecoveryAppleHealth(): Promise<RecoveryMetrics> {
+  const syncedAt = new Date().toISOString();
+  try {
+    const _hkModule = require("@kingstinct/react-native-healthkit");
+    const HealthKit = _hkModule.default ?? _hkModule;
+
+    await HealthKit.requestAuthorization({
+      toRead: [
+        "HKQuantityTypeIdentifierRestingHeartRate",
+        "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+        "HKCategoryTypeIdentifierSleepAnalysis",
+      ],
+      toShare: [],
+    });
+
+    let rhr: number | undefined;
+    let hrv: number | undefined;
+    let sleepHours: number | undefined;
+
+    // Resting heart rate
+    const rhrSample = await HealthKit.getMostRecentQuantitySample(
+      "HKQuantityTypeIdentifierRestingHeartRate",
+      "count/min"
+    );
+    if (rhrSample?.quantity > 0) {
+      rhr = Math.round(rhrSample.quantity);
+    }
+
+    // HRV (SDNN)
+    const hrvSample = await HealthKit.getMostRecentQuantitySample(
+      "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+      "ms"
+    );
+    if (hrvSample?.quantity > 0) {
+      hrv = Math.round(hrvSample.quantity);
+    }
+
+    // Sleep: window from 8 pm yesterday to noon today
+    const now = new Date();
+    const sleepWindowStart = new Date(now);
+    sleepWindowStart.setDate(sleepWindowStart.getDate() - 1);
+    sleepWindowStart.setHours(20, 0, 0, 0);
+    const sleepWindowEnd = new Date(now);
+    if (now.getHours() < 12) {
+      // Still morning — end at now
+    } else {
+      sleepWindowEnd.setHours(12, 0, 0, 0);
+    }
+
+    try {
+      const sleepSamples = await HealthKit.querySamples(
+        "HKCategoryTypeIdentifierSleepAnalysis",
+        { startDate: sleepWindowStart, endDate: sleepWindowEnd }
+      );
+      // Values: 0=InBed, 1=Asleep, 2=Awake, 3=Core, 4=Deep, 5=REM
+      const asleepValues = new Set([1, 3, 4, 5]);
+      let totalMs = 0;
+      for (const s of sleepSamples ?? []) {
+        if (asleepValues.has(s.value)) {
+          const start = new Date(s.startDate).getTime();
+          const end = new Date(s.endDate).getTime();
+          totalMs += Math.max(0, end - start);
+        }
+      }
+      if (totalMs > 0) {
+        sleepHours = Math.round((totalMs / 3_600_000) * 10) / 10;
+      }
+    } catch {
+      // querySamples may not be available on all builds — silently skip sleep
+    }
+
+    const metrics: RecoveryMetrics = { rhr, hrv, sleepHours, syncedAt };
+    await AsyncStorage.setItem(RECOVERY_CACHE_KEY, JSON.stringify(metrics));
+    return metrics;
+  } catch {
+    return { syncedAt };
+  }
+}
+
+async function _syncRecoveryHealthConnect(): Promise<RecoveryMetrics> {
+  const syncedAt = new Date().toISOString();
+  try {
+    const _hcModule = require("react-native-health-connect");
+    const { initialize, requestPermission, readRecords } = _hcModule.default ?? _hcModule;
+
+    const available = await initialize();
+    if (!available) return { syncedAt };
+
+    await requestPermission([
+      { accessType: "read", recordType: "RestingHeartRate" },
+      { accessType: "read", recordType: "HeartRateVariabilitySdnn" },
+      { accessType: "read", recordType: "SleepSession" },
+    ]);
+
+    const endTime = new Date().toISOString();
+    let rhr: number | undefined;
+    let hrv: number | undefined;
+    let sleepHours: number | undefined;
+
+    const rhrResult = await readRecords("RestingHeartRate", {
+      timeRangeFilter: { operator: "before", endTime },
+      ascendingOrder: false, pageSize: 1,
+    });
+    const latestRhr = rhrResult?.records?.[0];
+    if (latestRhr?.beatsPerMinute > 0) {
+      rhr = Math.round(latestRhr.beatsPerMinute);
+    }
+
+    const hrvResult = await readRecords("HeartRateVariabilitySdnn", {
+      timeRangeFilter: { operator: "before", endTime },
+      ascendingOrder: false, pageSize: 1,
+    });
+    const latestHrv = hrvResult?.records?.[0];
+    if (latestHrv?.heartRateVariabilityMillis > 0) {
+      hrv = Math.round(latestHrv.heartRateVariabilityMillis);
+    }
+
+    // Sleep: last session starting after 8 pm yesterday
+    const sleepWindowStart = new Date();
+    sleepWindowStart.setDate(sleepWindowStart.getDate() - 1);
+    sleepWindowStart.setHours(20, 0, 0, 0);
+    const sleepResult = await readRecords("SleepSession", {
+      timeRangeFilter: {
+        operator: "between",
+        startTime: sleepWindowStart.toISOString(),
+        endTime,
+      },
+      ascendingOrder: false, pageSize: 1,
+    });
+    const latestSleep = sleepResult?.records?.[0];
+    if (latestSleep?.startTime && latestSleep?.endTime) {
+      const durationMs = new Date(latestSleep.endTime).getTime() - new Date(latestSleep.startTime).getTime();
+      if (durationMs > 0) {
+        sleepHours = Math.round((durationMs / 3_600_000) * 10) / 10;
+      }
+    }
+
+    const metrics: RecoveryMetrics = { rhr, hrv, sleepHours, syncedAt };
+    await AsyncStorage.setItem(RECOVERY_CACHE_KEY, JSON.stringify(metrics));
+    return metrics;
+  } catch {
+    return { syncedAt };
+  }
+}
 
 export async function getLastSyncTime(): Promise<string | null> {
   return AsyncStorage.getItem(LAST_SYNC_KEY);

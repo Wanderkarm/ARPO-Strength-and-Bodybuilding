@@ -10,6 +10,7 @@ import {
   Modal,
   SectionList,
   Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -157,6 +158,7 @@ export default function CustomBuilderScreen() {
   }
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
         <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/templates")} hitSlop={12}>
@@ -170,7 +172,7 @@ export default function CustomBuilderScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
         <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
           Routine Name
         </Text>
@@ -343,7 +345,7 @@ export default function CustomBuilderScreen() {
               </View>
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: Colors.border }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 6 }}>
+            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: Colors.border }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 6 }}>
               <Pressable
                 onPress={() => setSelectedCategory(null)}
                 style={{
@@ -430,5 +432,6 @@ export default function CustomBuilderScreen() {
         </View>
       </Modal>
     </View>
+    </KeyboardAvoidingView>
   );
 }

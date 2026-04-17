@@ -8,6 +8,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -136,6 +137,7 @@ export default function AutoBuilderScreen() {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
       {/* Header */}
       <View style={{
@@ -193,7 +195,7 @@ export default function AutoBuilderScreen() {
       {/* ── Step 1: Name + Days ── */}
       {step === 1 && (
         <>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginBottom: 24 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
                 ARPO will build a science-based program around your muscle priorities using{" "}
@@ -309,7 +311,7 @@ export default function AutoBuilderScreen() {
       {/* ── Step 2: Muscle Priorities ── */}
       {step === 2 && (
         <>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginBottom: 20 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
                 Set the priority for each muscle group.{" "}
@@ -429,7 +431,7 @@ export default function AutoBuilderScreen() {
       {/* ── Step 3: Preview + Save ── */}
       {step === 3 && (
         <>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <View>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
@@ -564,5 +566,6 @@ export default function AutoBuilderScreen() {
         </>
       )}
     </View>
+    </KeyboardAvoidingView>
   );
 }

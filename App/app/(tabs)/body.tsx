@@ -45,6 +45,7 @@ import {
   bmiMisleadingForAthlete,
 } from "@/utils/bodyComposition";
 import { syncFromHealth, getLastSyncTime, type SyncResult } from "@/lib/healthSync";
+import InfoTip from "@/components/InfoTip";
 
 interface WeightEntry { id: string; weightKg: number; loggedAt: string; }
 
@@ -481,9 +482,12 @@ export default function BodyScreen() {
                       borderLeftColor: isBmiMisleading ? Colors.textMuted : bmiMeta.color,
                       paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
                     }}>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                        BMI
-                      </Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                          BMI
+                        </Text>
+                        <InfoTip term="BMI" size={11} />
+                      </View>
                       <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: isBmiMisleading ? Colors.textMuted : bmiMeta.color, lineHeight: 26 }}>
                         {bmi.toFixed(1)}
                       </Text>
@@ -523,9 +527,12 @@ export default function BodyScreen() {
                       borderLeftColor: ffmiMeta.color,
                       paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
                     }}>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                        FFMI
-                      </Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                          FFMI
+                        </Text>
+                        <InfoTip term="FFMI" size={11} />
+                      </View>
                       <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: ffmiMeta.color, lineHeight: 26 }}>
                         {ffmi.toFixed(1)}
                       </Text>
