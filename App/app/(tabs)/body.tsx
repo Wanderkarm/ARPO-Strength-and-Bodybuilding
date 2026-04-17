@@ -259,6 +259,13 @@ export default function BodyScreen() {
   const hasCompositionData = bmi !== null || bodyFatPct !== null;
   const isBmiMisleading = bmi !== null && ffmi !== null && bmiMisleadingForAthlete(bmi, ffmi);
   const needsMeasurements = !navyBodyFatPct && !storedBodyFatPct;
+  // Female users who've already logged waist + neck but are missing hips — Navy formula requires it
+  const needsHipsForFemale =
+    gender === "FEMALE" &&
+    !storedBodyFatPct &&
+    !!latestMeasurement?.waistCm &&
+    !!latestMeasurement?.neckCm &&
+    !latestMeasurement?.hipsCm;
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -562,12 +569,25 @@ export default function BodyScreen() {
                   >
                     <Ionicons name="add-circle-outline" size={18} color={Colors.textMuted} />
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }}>
-                        Add waist &amp; neck to unlock body fat % and FFMI
-                      </Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                        Calculated using the U.S. Navy formula — no scale needed
-                      </Text>
+                      {needsHipsForFemale ? (
+                        <>
+                          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }}>
+                            Add hip measurement to unlock body fat % and FFMI
+                          </Text>
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                            The Navy formula for women requires waist, hips &amp; neck
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }}>
+                            Add waist &amp; neck to unlock body fat % and FFMI
+                          </Text>
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                            Calculated using the U.S. Navy formula — no scale needed
+                          </Text>
+                        </>
+                      )}
                     </View>
                     <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
                   </Pressable>

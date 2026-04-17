@@ -1044,7 +1044,7 @@ export default function SettingsScreen() {
             Daily Step Goal
           </Text>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12 }}>
-            Track steps manually today. Apple Watch & Google Fit sync coming in a future update.
+            Log your daily steps from the Home tab. Your progress toward this goal is shown there each day.
           </Text>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <TextInput
