@@ -196,7 +196,7 @@ export default function AutoBuilderScreen() {
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginBottom: 24 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
-                ARPO will build a science-based programme around your muscle priorities using{" "}
+                ARPO will build a science-based program around your muscle priorities using{" "}
                 <Text style={{ color: Colors.text }}>MEV</Text>/<Text style={{ color: Colors.text }}>MAV</Text> volume targets.
               </Text>
               <View style={{ flexDirection: "row", gap: 8, paddingTop: 2 }}>

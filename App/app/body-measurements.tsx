@@ -291,11 +291,12 @@ export default function BodyMeasurementsScreen() {
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
                           {dateStr}
                         </Text>
-                        {/* Quick summary: waist + chest */}
+                        {/* Quick summary: waist + chest + body fat */}
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 3 }}>
                           {[
                             entry.chestCm ? `Chest ${displayMeasurement(entry.chestCm, unit)}` : null,
                             entry.waistCm ? `Waist ${displayMeasurement(entry.waistCm, unit)}` : null,
+                            (!entry.chestCm && !entry.waistCm && entry.bodyFatPct != null) ? `Body Fat ${entry.bodyFatPct}%` : null,
                           ].filter(Boolean).join(" · ") || "Tap to view"}
                         </Text>
                       </View>
@@ -311,6 +312,29 @@ export default function BodyMeasurementsScreen() {
                     {isExpanded && (
                       <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, padding: 14 }}>
                         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                          {/* Body fat % — shown first if present */}
+                          {entry.bodyFatPct != null && (
+                            <View style={{ width: "47%", marginBottom: 4 }}>
+                              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 }}>
+                                Body Fat
+                              </Text>
+                              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
+                                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text }}>
+                                  {entry.bodyFatPct}%
+                                </Text>
+                                {prev?.bodyFatPct != null && Math.abs(entry.bodyFatPct - prev.bodyFatPct) >= 0.05 && (
+                                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: entry.bodyFatPct > prev.bodyFatPct ? Colors.warning : Colors.success }}>
+                                    {entry.bodyFatPct > prev.bodyFatPct ? "+" : ""}{(entry.bodyFatPct - prev.bodyFatPct).toFixed(1)}%
+                                  </Text>
+                                )}
+                              </View>
+                              {entry.source && entry.source !== "manual" && (
+                                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, marginTop: 2 }}>
+                                  via {entry.source === "apple_health" ? "Apple Health" : "Google Fit"}
+                                </Text>
+                              )}
+                            </View>
+                          )}
                           {FIELDS.map(field => {
                             const val = entry[field.key] as number | null;
                             if (val === null) return null;

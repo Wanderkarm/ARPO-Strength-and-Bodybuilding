@@ -82,8 +82,9 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
       "%"
     );
     if (bodyFatSample?.quantity != null && bodyFatSample.quantity > 0) {
-      // Value arrives as 0–100 when queried with '%' unit
-      bodyFatPct = Math.round(bodyFatSample.quantity * 10) / 10;
+      // HealthKit returns body fat as a fraction (0.135 = 13.5%) regardless of
+      // the '%' unit request — multiply by 100 to convert to a real percentage.
+      bodyFatPct = Math.round(bodyFatSample.quantity * 100 * 10) / 10;
       await logBodyMeasurements(userId, {
         chestCm: null, waistCm: null, hipsCm: null,
         leftArmCm: null, rightArmCm: null, leftThighCm: null, neckCm: null,

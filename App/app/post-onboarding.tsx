@@ -217,7 +217,7 @@ export default function PostOnboardingScreen() {
             }}>
               <Ionicons name="information-circle-outline" size={16} color={Colors.primary} style={{ marginTop: 2 }} />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
-                These are your <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>1-rep max estimates</Text> used to calculate your starting loads. ARPO auto-adjusts them every session as you log your sets.
+                These are your <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>working set weights</Text> — what you currently lift for a typical work set. ARPO uses them to estimate starting loads for each exercise and auto-adjusts every session as you log your sets.
               </Text>
             </View>
 

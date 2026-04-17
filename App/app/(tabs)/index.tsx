@@ -25,6 +25,7 @@ import {
   getStreakInfo, getTodaySteps, updateDailySteps,
   type WorkoutPlan, type WorkoutLog, type StreakInfo, type DailyStepsEntry,
 } from "@/lib/local-db";
+import { syncFromHealth } from "@/lib/healthSync";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -70,6 +71,7 @@ export default function DashboardScreen() {
   const [stepsModalVisible, setStepsModalVisible] = useState(false);
   const [stepsInput, setStepsInput] = useState("");
   const [savingSteps, setSavingSteps] = useState(false);
+  const [syncingSteps, setSyncingSteps] = useState(false);
 
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
@@ -682,15 +684,67 @@ export default function DashboardScreen() {
               </Pressable>
             </View>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginBottom: 16 }}>
-              Goal: {todaySteps?.goal.toLocaleString() ?? 8000} steps per day. Apple Watch / Google Fit sync coming soon.
+              Daily goal: {todaySteps?.goal.toLocaleString() ?? 8000} steps.
+            </Text>
+
+            {/* Apple Health / Google Fit sync button */}
+            {(Platform.OS === "ios" || Platform.OS === "android") && (
+              <Pressable
+                onPress={async () => {
+                  const uid = await AsyncStorage.getItem("userId");
+                  if (!uid) return;
+                  setSyncingSteps(true);
+                  const result = await syncFromHealth(uid);
+                  setSyncingSteps(false);
+                  if (result.stepsSynced && result.stepsCount != null) {
+                    const updated = await getTodaySteps(uid);
+                    const s = await getStreakInfo(uid);
+                    setTodaySteps(updated);
+                    setStreak(s);
+                    setStepsModalVisible(false);
+                    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  } else {
+                    Alert.alert("Sync failed", result.error ?? "No step data found in Health.");
+                  }
+                }}
+                disabled={syncingSteps}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  borderWidth: 1,
+                  borderColor: Colors.primary,
+                  paddingVertical: 13,
+                  marginBottom: 14,
+                  opacity: pressed || syncingSteps ? 0.7 : 1,
+                })}
+              >
+                {syncingSteps
+                  ? <ActivityIndicator color={Colors.primary} size="small" />
+                  : <>
+                      <Ionicons
+                        name={Platform.OS === "ios" ? "heart-circle-outline" : "fitness-outline"}
+                        size={17}
+                        color={Colors.primary}
+                      />
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                        {Platform.OS === "ios" ? "Sync from Apple Health" : "Sync from Google Fit"}
+                      </Text>
+                    </>
+                }
+              </Pressable>
+            )}
+
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
+              Or enter manually
             </Text>
             <TextInput
               value={stepsInput}
               onChangeText={setStepsInput}
-              keyboardType="number-pad"
+              keyboardType="numeric"
               placeholder="e.g. 7500"
               placeholderTextColor={Colors.textMuted}
-              autoFocus
               style={{
                 fontFamily: "Rubik_700Bold",
                 fontSize: 28,
@@ -701,7 +755,7 @@ export default function DashboardScreen() {
                 paddingHorizontal: 16,
                 paddingVertical: 12,
                 textAlign: "center",
-                marginBottom: 20,
+                marginBottom: 14,
               }}
             />
             <Pressable
@@ -711,7 +765,7 @@ export default function DashboardScreen() {
                 const uid = await AsyncStorage.getItem("userId");
                 if (!uid) return;
                 setSavingSteps(true);
-                await updateDailySteps(uid, steps);
+                await updateDailySteps(uid, steps, "manual");
                 const updated = await getTodaySteps(uid);
                 const s = await getStreakInfo(uid);
                 setTodaySteps(updated);
@@ -720,12 +774,12 @@ export default function DashboardScreen() {
                 setStepsModalVisible(false);
                 if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               }}
-              disabled={savingSteps}
+              disabled={savingSteps || !stepsInput.trim()}
               style={({ pressed }) => ({
                 backgroundColor: Colors.primary,
                 paddingVertical: 16,
                 alignItems: "center",
-                opacity: pressed || savingSteps ? 0.75 : 1,
+                opacity: pressed || savingSteps || !stepsInput.trim() ? 0.65 : 1,
               })}
             >
               {savingSteps

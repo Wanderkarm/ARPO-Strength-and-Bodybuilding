@@ -1699,8 +1699,12 @@ export async function logBodyWeight(userId: string, weightKg: number): Promise<v
     "INSERT INTO body_weight_logs (id, user_id, weight_kg, logged_at) VALUES (?, ?, ?, ?)",
     [generateId(), userId, weightKg, now]
   );
-  // Also update the users.bodyweight for use throughout the app
-  await db.runAsync("UPDATE users SET bodyweight = ? WHERE id = ?", [weightKg, userId]);
+  // NOTE: We intentionally do NOT update users.bodyweight here.
+  // users.bodyweight is the profile bodyweight set in onboarding/settings and
+  // is stored in the user's preferred unit (lbs or kg).  Overwriting it with
+  // a raw kg value from Apple Health / manual weigh-ins would cause a unit
+  // double-conversion in nutrition calculations (body.tsx applies lbsToKg
+  // again when the user's unit is lbs).
   // Update streak — a weigh-in counts as daily activity
   await calculateAndUpdateStreak(userId);
 }

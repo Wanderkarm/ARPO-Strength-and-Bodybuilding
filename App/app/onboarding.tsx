@@ -334,7 +334,7 @@ export default function OnboardingScreen() {
               marginBottom: 16,
               lineHeight: 38,
             }}>
-              Build Your{"\n"}Programme
+              Build Your{"\n"}Program
             </Text>
             <Text style={{
               fontFamily: "Rubik_400Regular",
@@ -431,7 +431,7 @@ export default function OnboardingScreen() {
           <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
             <Text style={titleStyle}>Biological Sex</Text>
             <Text style={subtitleStyle}>
-              Used for BMR calculation and strength baseline estimates. This is a physiological input, not a preference.
+              Used for BMR calculation and strength baseline estimates.
             </Text>
 
             {([["MALE", "male"], ["FEMALE", "female"]] as [Gender, keyof typeof Ionicons.glyphMap][]).map(([g, icon]) => (
