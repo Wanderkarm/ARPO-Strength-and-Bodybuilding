@@ -6,14 +6,18 @@ import {
   Platform,
   ActivityIndicator,
   FlatList,
+  Alert,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
 import {
   getCompletedWorkoutHistory,
+  unSkipSession,
   type HistoryEntry,
 } from "@/lib/local-db";
 
@@ -60,8 +64,37 @@ export default function HistoryScreen() {
     }
   }
 
+  const [undoingSkip, setUndoingSkip] = useState<string | null>(null); // planId being undone
+
   function toggleExpand(index: number) {
     setExpandedIndex(expandedIndex === index ? null : index);
+  }
+
+  async function handleUndoSkip(item: HistoryEntry) {
+    Alert.alert(
+      "Undo Skip",
+      `This will restore W${item.weekNumber} Day ${item.dayNumber} so you can log your sets. Your plan will roll back to that session.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Undo Skip",
+          style: "default",
+          onPress: async () => {
+            setUndoingSkip(item.planId);
+            try {
+              await unSkipSession(item.planId, item.weekNumber, item.dayNumber);
+              await AsyncStorage.setItem("activePlanId", item.planId);
+              if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              router.replace("/(tabs)");
+            } catch (err) {
+              console.error(err);
+            } finally {
+              setUndoingSkip(null);
+            }
+          },
+        },
+      ]
+    );
   }
 
   function renderItem({ item, index }: { item: HistoryEntry; index: number }) {
@@ -122,25 +155,30 @@ export default function HistoryScreen() {
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             {item.isSkipped ? (
-              <View
-                style={{
-                  borderWidth: 1,
-                  borderColor: Colors.border,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "Rubik_500Medium",
-                    fontSize: 10,
-                    color: Colors.textMuted,
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                  }}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View style={{ borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 8, paddingVertical: 2 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    Skipped
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={(e) => { e.stopPropagation?.(); handleUndoSkip(item); }}
+                  disabled={undoingSkip === item.planId}
+                  style={({ pressed }) => ({
+                    borderWidth: 1,
+                    borderColor: Colors.primary + "88",
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    opacity: pressed || undoingSkip === item.planId ? 0.6 : 1,
+                  })}
                 >
-                  Skipped
-                </Text>
+                  {undoingSkip === item.planId
+                    ? <ActivityIndicator size="small" color={Colors.primary} />
+                    : <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                        Undo
+                      </Text>
+                  }
+                </Pressable>
               </View>
             ) : (
               <Text

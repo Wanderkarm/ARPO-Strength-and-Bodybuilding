@@ -10,6 +10,7 @@ import {
   Alert,
   Switch,
   Modal,
+  KeyboardAvoidingView,
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -346,8 +347,9 @@ export default function SettingsScreen() {
   const goalMeta = GOAL_META.find(g => g.key === goalType);
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48 }}>
 
         {/* Header */}
         <View style={{ paddingTop: 24, paddingBottom: 8 }}>
@@ -637,11 +639,11 @@ export default function SettingsScreen() {
 
         <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, marginRight: 10 }}>
+              <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Text style={{ fontSize: 18, lineHeight: 22 }}>⌚</Text>
               </View>
-              <View style={{ flex: 1, marginRight: 12 }}>
+              <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
                   Workout Tracker Reminder
                 </Text>
@@ -676,8 +678,7 @@ export default function SettingsScreen() {
                 {Platform.OS === "ios" ? " The notification also vibrates your Apple Watch automatically when your phone is pocketed." : ""}
                 {"\n\n"}
                 <Text style={{ color: Colors.textMuted, fontStyle: "italic" }}>
-                  {Platform.OS === "ios" ? "Apple Health" : "Health Connect"} sync is available via the Body tab. Body weight and body fat % will be pulled from your last recorded entry.
-                  {"\n"}Note: health platform access requires a development or production build — not available in Expo Go.
+                  {Platform.OS === "ios" ? "Apple Health" : "Health Connect"} sync is available via the Body tab. Body weight, body fat % and steps will be pulled from your last recorded entry.
                 </Text>
               </Text>
             </View>
@@ -1262,5 +1263,6 @@ export default function SettingsScreen() {
 
       </ScrollView>
     </View>
+    </KeyboardAvoidingView>
   );
 }

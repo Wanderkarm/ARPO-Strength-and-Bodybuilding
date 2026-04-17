@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Colors from "@/constants/colors";
-import { getWorkoutPlan } from "@/lib/local-db";
+import { getWorkoutPlan, getActivePlanForUser } from "@/lib/local-db";
 
 const CRIMSON = "#C62828";
 
@@ -36,18 +36,32 @@ export default function LandingScreen() {
   async function checkExistingUser() {
     try {
       const userId = await AsyncStorage.getItem("userId");
-      const planId = await AsyncStorage.getItem("activePlanId");
-      if (userId && planId) {
+      if (!userId) return; // New user — stay on landing page
+
+      let planId = await AsyncStorage.getItem("activePlanId");
+
+      if (planId) {
         const plan = await getWorkoutPlan(planId);
         if (plan && plan.isActive) {
           router.replace("/(tabs)");
-        } else {
-          await AsyncStorage.removeItem("activePlanId");
-          if (userId) {
-            router.replace("/templates");
-          }
+          return;
         }
+        // Stored planId is stale — clear it and try to recover
+        await AsyncStorage.removeItem("activePlanId");
+        planId = null;
       }
+
+      // Recovery: activePlanId was missing or stale — search the DB directly.
+      // This handles cases where the key was cleared (meso complete, reinstall, etc.)
+      const recoveredId = await getActivePlanForUser(userId);
+      if (recoveredId) {
+        await AsyncStorage.setItem("activePlanId", recoveredId);
+        router.replace("/(tabs)");
+        return;
+      }
+
+      // No active plan anywhere — send to template picker
+      router.replace("/templates");
     } catch {}
   }
 

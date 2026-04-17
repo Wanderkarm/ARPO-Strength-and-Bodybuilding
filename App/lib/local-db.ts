@@ -757,6 +757,16 @@ export async function createWorkoutPlan(
   return (await getWorkoutPlan(planId))!;
 }
 
+/** Find the most recent active plan for a user — used to recover a lost activePlanId. */
+export async function getActivePlanForUser(userId: string): Promise<string | null> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ id: string }>(
+    "SELECT id FROM workout_plans WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1",
+    [userId]
+  );
+  return row?.id ?? null;
+}
+
 export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null> {
   const db = getDb();
   const plan = await db.getFirstAsync<{
@@ -1026,6 +1036,7 @@ export async function skipSession(
 }
 
 export interface HistoryEntry {
+  planId: string;
   date: string;
   routineName: string;
   weekNumber: number;
@@ -1036,6 +1047,28 @@ export interface HistoryEntry {
     exerciseName: string;
     sets: { setNumber: number; weight: number; reps: number }[];
   }[];
+}
+
+/**
+ * Reverse a skip: clear is_skipped/completed_at on the session logs and roll
+ * the plan's current position back to that day so the user can log it properly.
+ */
+export async function unSkipSession(
+  planId: string,
+  weekNumber: number,
+  dayNumber: number
+): Promise<void> {
+  const db = getDb();
+  // Un-skip all workout_logs for this session
+  await db.runAsync(
+    "UPDATE workout_logs SET is_skipped = 0, completed_at = NULL WHERE workout_plan_id = ? AND week_number = ? AND day_number = ?",
+    [planId, weekNumber, dayNumber]
+  );
+  // Roll the plan back to this session so the home screen loads it
+  await db.runAsync(
+    "UPDATE workout_plans SET current_week = ?, current_day = ? WHERE id = ?",
+    [weekNumber, dayNumber, planId]
+  );
 }
 
 export async function getCompletedWorkoutHistory(): Promise<HistoryEntry[]> {
@@ -1101,6 +1134,7 @@ export async function getCompletedWorkoutHistory(): Promise<HistoryEntry[]> {
     const allSkipped = exerciseLogs.every(e => e.is_skipped === 1);
 
     history.push({
+      planId: session.workout_plan_id,
       date: session.completed_at,
       routineName: session.template_name,
       weekNumber: session.week_number,

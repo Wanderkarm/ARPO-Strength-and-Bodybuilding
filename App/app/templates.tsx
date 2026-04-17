@@ -46,7 +46,7 @@ export default function TemplatesScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Existing plan guard
-  const [activePlanInfo, setActivePlanInfo] = useState<{ name: string; week: number } | null>(null);
+  const [activePlanInfo, setActivePlanInfo] = useState<{ name: string; week: number; templateId: string; planId: string } | null>(null);
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
   const [pendingIsHome, setPendingIsHome] = useState(false);
 
@@ -78,7 +78,7 @@ export default function TemplatesScreen() {
       if (pid) {
         const plan = await getWorkoutPlan(pid);
         if (plan && plan.isActive) {
-          setActivePlanInfo({ name: plan.template.name, week: plan.currentWeek });
+          setActivePlanInfo({ name: plan.template.name, week: plan.currentWeek, templateId: plan.templateId, planId: plan.id });
         }
       }
     } catch (err) {
@@ -961,6 +961,45 @@ export default function TemplatesScreen() {
       >
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, width: "100%", padding: 24 }}>
+            {/* Detect same-template selection: user tapped their current plan */}
+            {activePlanInfo && selectedTemplate && activePlanInfo.templateId === selectedTemplate.id ? (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={28} color={Colors.primary} style={{ alignSelf: "center", marginBottom: 12 }} />
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
+                  Already Active
+                </Text>
+                <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 16 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{activePlanInfo.name}</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>Week {activePlanInfo.week} · In progress</Text>
+                </View>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
+                  This is your current plan. Continue where you left off, or start a fresh mesocycle from Week 1.
+                </Text>
+                <Pressable
+                  onPress={() => { setShowSwitchConfirm(false); router.replace("/(tabs)"); }}
+                  style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 14, alignItems: "center", marginBottom: 10, opacity: pressed ? 0.8 : 1 })}
+                >
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                    Continue Plan
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => doCreatePlan(pendingIsHome)}
+                  disabled={creating}
+                  style={({ pressed }) => ({ borderWidth: 1, borderColor: Colors.border, paddingVertical: 14, alignItems: "center", marginBottom: 10, opacity: pressed || creating ? 0.6 : 1 })}
+                >
+                  {creating ? <ActivityIndicator color={Colors.text} size="small" /> : (
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                      Start Fresh (Week 1)
+                    </Text>
+                  )}
+                </Pressable>
+                <Pressable onPress={() => setShowSwitchConfirm(false)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignItems: "center", paddingVertical: 8 })}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Cancel</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
             <Ionicons name="warning-outline" size={28} color={Colors.warning} style={{ alignSelf: "center", marginBottom: 12 }} />
 
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
@@ -1010,6 +1049,8 @@ export default function TemplatesScreen() {
                 Keep Current Plan
               </Text>
             </Pressable>
+              </>
+            )}
           </View>
         </View>
       </Modal>
