@@ -28,7 +28,7 @@ function v(val: unknown): SQLVal {
 
 // ─── Version ──────────────────────────────────────────────────────────────────
 // Bump this when the schema changes so restore can handle migrations.
-const BACKUP_VERSION = 1;
+const BACKUP_VERSION = 2;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -380,10 +380,11 @@ export async function restoreBackup(backup: ARPOBackup): Promise<{ success: bool
     for (const bm of backup.bodyMeasurements) {
       await db.runAsync(
         `INSERT OR REPLACE INTO body_measurements
-         (id, user_id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm, left_thigh_cm, neck_cm, notes, logged_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id, user_id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm, left_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [v(bm.id), v(bm.user_id), v(bm.chest_cm), v(bm.waist_cm), v(bm.hips_cm),
-         v(bm.left_arm_cm), v(bm.right_arm_cm), v(bm.left_thigh_cm), v(bm.neck_cm), v(bm.notes), v(bm.logged_at)]
+         v(bm.left_arm_cm), v(bm.right_arm_cm), v(bm.left_thigh_cm), v(bm.neck_cm),
+         v(bm.notes), v(bm.body_fat_pct) ?? null, v(bm.source) ?? "manual", v(bm.logged_at)]
       );
     }
 

@@ -46,6 +46,10 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE users ADD COLUMN weeks_to_goal INTEGER`).catch(() => {});
   await database.execAsync(`ALTER TABLE exercises ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0`).catch(() => {});
 
+  // Body composition columns — source tracks data origin for future smart scale / Health sync
+  await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN body_fat_pct REAL`).catch(() => {});
+  await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'`).catch(() => {});
+
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS workout_sessions (
       id TEXT PRIMARY KEY,

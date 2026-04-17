@@ -45,6 +45,7 @@ import {
   type Exercise,
 } from "@/lib/local-db";
 import { firePRNotification } from "@/lib/notifications";
+import * as Notifications from "expo-notifications";
 import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
 
 interface SetState {
@@ -197,6 +198,8 @@ export default function WorkoutScreen() {
   const weightInputRefs = useRef<Record<string, TextInput | null>>({});
   // Track which exerciseIds have already shown the huge-jump warning this install
   const warnedJumpExercisesRef = useRef<Set<string>>(new Set());
+  // ── Watch reminder banner ────────────────────────────────────────────────
+  const [watchBannerVisible, setWatchBannerVisible] = useState(false);
 
   useEffect(() => {
     loadPlan();
@@ -246,9 +249,30 @@ export default function WorkoutScreen() {
       }
 
       // Start session timer (idempotent — INSERT OR IGNORE in DB)
-      startWorkoutSession(plan.id, plan.currentWeek, currentDayNum).then((startedAt) => {
+      startWorkoutSession(plan.id, plan.currentWeek, currentDayNum).then(async (startedAt) => {
         startedAtRef.current = startedAt;
         const initial = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+        // Only trigger watch reminder on a fresh session start (not resume)
+        if (initial < 10) {
+          const watchEnabled = await AsyncStorage.getItem("watchReminderEnabled");
+          if (watchEnabled === "true") {
+            setWatchBannerVisible(true);
+            // Fire a local notification — this vibrates Apple Watch / Android Wear
+            // automatically when the phone notification arrives on the wrist
+            try {
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: "Start your workout tracker ⌚",
+                  body: "Open the Workout app on your Apple Watch and select Strength Training",
+                  sound: false,
+                },
+                trigger: null, // fire immediately
+              });
+            } catch {}
+            // Auto-dismiss banner after 10 seconds
+            setTimeout(() => setWatchBannerVisible(false), 10000);
+          }
+        }
         setElapsedSeconds(Math.max(0, initial));
         if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = setInterval(() => {
@@ -834,6 +858,33 @@ export default function WorkoutScreen() {
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
+
+      {/* ── Watch reminder banner ── */}
+      {watchBannerVisible && (
+        <Pressable
+          onPress={() => setWatchBannerVisible(false)}
+          style={{
+            backgroundColor: "#1A237E",
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <Text style={{ fontSize: 18 }}>⌚</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: "#FFFFFF", letterSpacing: 0.5 }}>
+              Start Strength Training on your Apple Watch
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: "#9FA8DA", marginTop: 1 }}>
+              Open the Workout app → Strength Training · Tap to dismiss
+            </Text>
+          </View>
+          <Ionicons name="close" size={16} color="#9FA8DA" />
+        </Pressable>
+      )}
+
       <View
         style={{
           flexDirection: "row",

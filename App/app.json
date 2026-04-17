@@ -19,6 +19,10 @@
       "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.background-delivery": true
       }
     },
     "android": {
@@ -50,7 +54,15 @@
           ]
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "ARPO reads your body weight and body fat percentage from Apple Health to keep your composition metrics up to date. Smart scale data synced to Apple Health will appear automatically.",
+          "NSHealthUpdateUsageDescription": "ARPO saves your workout sessions to Apple Health."
+        }
+      ],
+      "react-native-health-connect"
     ],
     "experiments": {
       "typedRoutes": true,

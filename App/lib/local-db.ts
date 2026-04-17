@@ -1,7 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { getDb, initializeSchema } from "./database";
 import { exercises as exerciseSeedData, templates as templateSeedData } from "./seed-data";
-import { getCategoryWeight, type BaselineWeights } from "@/utils/categoryWeightMap";
+import { getCategoryWeight, baselineWeightsFromMap, type BaselineWeights } from "@/utils/categoryWeightMap";
 import { calculateNextWeekTargets, getRepTarget, type GoalType } from "@/utils/progressionAlgorithm";
 
 function generateId(): string {
@@ -644,6 +644,36 @@ export async function createUser(
   }
 
   return { id: userId, gender, bodyweight, experience, baselines };
+}
+
+export async function getWeightBaselines(userId: string): Promise<BaselineWeights | null> {
+  const db = getDb();
+  const rows = await db.getAllAsync<{ category: string; weight: number }>(
+    "SELECT category, weight FROM user_weight_baselines WHERE user_id = ?",
+    [userId]
+  );
+  if (!rows.length) return null;
+  const map: Record<string, number> = {};
+  for (const r of rows) map[r.category] = r.weight;
+  return baselineWeightsFromMap(map);
+}
+
+export async function updateWeightBaselines(userId: string, weights: BaselineWeights): Promise<void> {
+  const db = getDb();
+  const categories = [
+    "QUADS", "GLUTES", "HAMSTRINGS",
+    "HORIZONTAL PUSH", "INCLINE PUSH", "VERTICAL PUSH",
+    "HORIZONTAL BACK", "VERTICAL BACK",
+    "BICEPS", "TRICEPS",
+  ];
+  for (const cat of categories) {
+    const weight = getCategoryWeight(cat, weights);
+    await db.runAsync(
+      `INSERT OR REPLACE INTO user_weight_baselines (id, user_id, category, weight)
+       VALUES (COALESCE((SELECT id FROM user_weight_baselines WHERE user_id = ? AND category = ?), ?), ?, ?, ?)`,
+      [userId, cat, generateId(), userId, cat, weight]
+    );
+  }
 }
 
 export async function createWorkoutPlan(
@@ -1708,6 +1738,10 @@ export interface BodyMeasurement {
   neckCm: number | null;
   notes: string | null;
   loggedAt: string;
+  /** Stored body fat % — populated by smart scale / Health sync; null = use Navy formula */
+  bodyFatPct: number | null;
+  /** Where this entry came from: 'manual' | 'apple_health' | 'google_fit' | 'smart_scale' */
+  source: string;
 }
 
 export async function logBodyMeasurements(
@@ -1717,13 +1751,16 @@ export async function logBodyMeasurements(
   const db = getDb();
   await db.runAsync(
     `INSERT INTO body_measurements
-       (id, user_id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm, left_thigh_cm, neck_cm, notes, logged_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, user_id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm,
+        left_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       generateId(), userId,
       m.chestCm, m.waistCm, m.hipsCm,
       m.leftArmCm, m.rightArmCm, m.leftThighCm,
       m.neckCm, m.notes,
+      m.bodyFatPct ?? null,
+      m.source ?? "manual",
       new Date().toISOString(),
     ]
   );
@@ -1738,9 +1775,10 @@ export async function getBodyMeasurementHistory(
     id: string; chest_cm: number | null; waist_cm: number | null; hips_cm: number | null;
     left_arm_cm: number | null; right_arm_cm: number | null; left_thigh_cm: number | null;
     neck_cm: number | null; notes: string | null; logged_at: string;
+    body_fat_pct: number | null; source: string | null;
   }>(
     `SELECT id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm,
-            left_thigh_cm, neck_cm, notes, logged_at
+            left_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at
      FROM body_measurements WHERE user_id = ?
      ORDER BY logged_at DESC LIMIT ?`,
     [userId, limit]
@@ -1756,6 +1794,8 @@ export async function getBodyMeasurementHistory(
     neckCm: r.neck_cm,
     notes: r.notes,
     loggedAt: r.logged_at,
+    bodyFatPct: r.body_fat_pct ?? null,
+    source: r.source ?? "manual",
   }));
 }
 

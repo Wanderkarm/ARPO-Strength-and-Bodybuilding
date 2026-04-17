@@ -144,7 +144,7 @@ export default function TemplatesScreen() {
       const plan = await createWorkoutPlan(uid, selectedTemplate.id, exerciseSwaps, selectedGoal ?? "hypertrophy", gymType);
       await AsyncStorage.setItem("activePlanId", plan.id);
       setShowGymModal(false);
-      router.replace("/(tabs)");
+      router.replace(isOnboarding ? "/post-onboarding" : "/(tabs)");
     } catch (err) {
       console.error(err);
     } finally {
@@ -318,6 +318,22 @@ export default function TemplatesScreen() {
       }}
     >
       <View style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
+        {/* Progress bar — only shown during onboarding flow */}
+        {isOnboarding && (
+          <View style={{ flexDirection: "row", gap: 3, marginBottom: 16 }}>
+            {Array.from({ length: 11 }).map((_, i) => (
+              <View
+                key={i}
+                style={{
+                  flex: 1,
+                  height: 3,
+                  backgroundColor: i < 9 ? Colors.primary : Colors.border,
+                }}
+              />
+            ))}
+          </View>
+        )}
+
         <Pressable
           onPress={() => {
             if (isOnboarding) {
@@ -327,10 +343,17 @@ export default function TemplatesScreen() {
             }
           }}
           hitSlop={12}
-          style={{ marginBottom: 16 }}
+          style={{ marginBottom: isOnboarding ? 8 : 16 }}
         >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </Pressable>
+
+        {isOnboarding && (
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
+            Step 9 of 11
+          </Text>
+        )}
+
         <Text
           style={{
             fontFamily: "Rubik_700Bold",
@@ -350,7 +373,7 @@ export default function TemplatesScreen() {
             marginTop: 4,
           }}
         >
-          Select a mesocycle template
+          {isOnboarding ? "Pick a mesocycle — ARPO will set your Week 1 targets." : "Select a mesocycle template"}
         </Text>
       </View>
 

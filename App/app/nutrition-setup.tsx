@@ -233,7 +233,7 @@ export default function NutritionSetupScreen() {
           </Text>
         </View>
         {isOnboarding && step === 1 ? (
-          <Pressable onPress={() => router.replace("/templates")} hitSlop={12}>
+          <Pressable onPress={() => router.replace("/templates?from=onboarding")} hitSlop={12}>
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
               Skip
             </Text>

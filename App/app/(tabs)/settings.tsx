@@ -176,6 +176,8 @@ export default function SettingsScreen() {
   const [showStreakPicker, setShowStreakPicker] = useState(false);
   // Which days of week selected for streak reminder (0=Sun…6=Sat). null = daily
   const [streakReminderDays, setStreakReminderDays] = useState<"daily" | number[]>("daily");
+  // Watch / device reminder
+  const [watchReminderEnabled, setWatchReminderEnabled] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -217,6 +219,9 @@ export default function SettingsScreen() {
       const prefs = await loadNotificationPrefs();
       setNotifPrefs(prefs);
       setStreakReminderDays(prefs.streakDays);
+
+      const watchPref = await AsyncStorage.getItem("watchReminderEnabled");
+      setWatchReminderEnabled(watchPref === "true");
 
       if (uid) {
         const [s, steps] = await Promise.all([
@@ -626,6 +631,58 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
         </Pressable>
+
+        {/* ── Devices ── */}
+        <SectionHeader title="Devices" />
+
+        <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 18, lineHeight: 22 }}>⌚</Text>
+              </View>
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                  Workout Tracker Reminder
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2, lineHeight: 15 }}>
+                  {watchReminderEnabled
+                    ? "Reminds you to start Apple Watch / fitness app at workout start"
+                    : "Get a nudge to start your Apple Watch or fitness app"}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={watchReminderEnabled}
+              onValueChange={async (val) => {
+                setWatchReminderEnabled(val);
+                await AsyncStorage.setItem("watchReminderEnabled", val ? "true" : "false");
+                if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              trackColor={{ false: Colors.border, true: Colors.primary }}
+              thumbColor={Colors.text}
+            />
+          </View>
+          {watchReminderEnabled && (
+            <View style={{
+              borderTopWidth: 1, borderTopColor: Colors.border,
+              paddingHorizontal: 14, paddingVertical: 10,
+              backgroundColor: Colors.bgAccent,
+              flexDirection: "row", alignItems: "flex-start", gap: 8,
+            }}>
+              <Ionicons name="information-circle-outline" size={14} color={Colors.textMuted} style={{ marginTop: 1 }} />
+              <Text style={{ flex: 1, fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
+                When your workout begins, an in-app banner and a notification will remind you to start tracking on your device.
+                {Platform.OS === "ios" ? " The notification also vibrates your Apple Watch automatically when your phone is pocketed." : ""}
+                {"\n\n"}
+                <Text style={{ color: Colors.textMuted, fontStyle: "italic" }}>
+                  {Platform.OS === "ios" ? "Apple Health" : "Health Connect"} sync is available via the Body tab. Body weight and body fat % will be pulled from your last recorded entry.
+                  {"\n"}Note: health platform access requires a development or production build — not available in Expo Go.
+                </Text>
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* ── Notifications ── */}
         <SectionHeader title="Notifications" />

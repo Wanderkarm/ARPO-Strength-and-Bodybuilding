@@ -118,6 +118,8 @@ export default function BodyMeasurementsScreen() {
         leftThighCm: parseCm("leftThighCm"),
         neckCm:      parseCm("neckCm"),
         notes:       notes.trim() || null,
+        bodyFatPct:  null,
+        source:      "manual",
       });
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setInputs({ chestCm: "", waistCm: "", hipsCm: "", leftArmCm: "", rightArmCm: "", leftThighCm: "", neckCm: "" });

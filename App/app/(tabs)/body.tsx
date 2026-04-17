@@ -25,8 +25,6 @@ import {
   type BodyMeasurement,
 } from "@/lib/local-db";
 import {
-  calculateBMR,
-  calculateTDEE,
   calculateNutritionPlan,
   kgToLbs,
   lbsToKg,
@@ -34,6 +32,17 @@ import {
   type ActivityLevel,
   type NutritionPlan,
 } from "@/utils/nutritionCalculator";
+import {
+  calcBMI,
+  calcNavyBodyFat,
+  calcFFMI,
+  calcLeanMassKg,
+  bmiCategory,
+  bodyFatCategory,
+  ffmiCategory,
+  bmiMisleadingForAthlete,
+} from "@/utils/bodyComposition";
+import { syncFromHealth, getLastSyncTime, type SyncResult } from "@/lib/healthSync";
 
 interface WeightEntry { id: string; weightKg: number; loggedAt: string; }
 
@@ -49,6 +58,8 @@ export default function BodyScreen() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [unit, setUnit] = useState<"lbs" | "kg">("lbs");
+  const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
+  const [heightCm, setHeightCm] = useState<number | null>(null);
 
   // Nutrition
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null);
@@ -64,9 +75,17 @@ export default function BodyScreen() {
   // Measurements
   const [latestMeasurement, setLatestMeasurement] = useState<BodyMeasurement | null>(null);
 
+  // Health sync
+  const [syncing, setSyncing] = useState(false);
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => { loadAll(); }, []));
+  useFocusEffect(useCallback(() => {
+    loadAll();
+    getLastSyncTime().then(setLastSyncAt);
+  }, []));
 
   async function loadAll() {
     try {
@@ -83,6 +102,8 @@ export default function BodyScreen() {
 
       const u = (profile?.weightUnit ?? "lbs") as "lbs" | "kg";
       setUnit(u);
+      setGender((profile?.gender as "MALE" | "FEMALE") ?? "MALE");
+      setHeightCm(nutrition?.heightCm ?? null);
       setWeightHistory(weights);
       setLatestMeasurement(measurements[0] ?? null);
 
@@ -134,6 +155,28 @@ export default function BodyScreen() {
     }
   }
 
+  async function handleHealthSync() {
+    if (!userId || syncing) return;
+    setSyncing(true);
+    setSyncError(null);
+    try {
+      const result: SyncResult = await syncFromHealth(userId);
+      setLastSyncAt(result.syncedAt);
+      if (result.error) {
+        setSyncError(result.error);
+      } else if (!result.weightSynced && !result.bodyFatSynced) {
+        setSyncError("No new data found in Apple Health.");
+      } else {
+        if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        await loadAll();
+      }
+    } catch (e) {
+      setSyncError("Sync failed. Make sure you've granted permission.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   // ── Sparkline ────────────────────────────────────────────────────────────────
   function buildSparkline(entries: WeightEntry[], w: number, h: number) {
     if (entries.length < 2) return null;
@@ -181,6 +224,42 @@ export default function BodyScreen() {
     return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   }
 
+  // ── Body composition calculations ─────────────────────────────────────────────
+  const latestWeightKg = latestEntry?.weightKg ?? null;
+  const bmi = latestWeightKg && heightCm ? calcBMI(latestWeightKg, heightCm) : null;
+  const bmiMeta = bmi ? bmiCategory(bmi) : null;
+
+  // Prefer stored body fat % from hardware; fall back to Navy formula
+  const storedBodyFatPct = latestMeasurement?.bodyFatPct ?? null;
+  const navyBodyFatPct =
+    latestMeasurement?.waistCm && latestMeasurement?.neckCm && heightCm
+      ? calcNavyBodyFat(
+          gender,
+          latestMeasurement.waistCm,
+          latestMeasurement.neckCm,
+          heightCm,
+          latestMeasurement.hipsCm,
+        )
+      : null;
+  const bodyFatPct = storedBodyFatPct ?? navyBodyFatPct;
+  const bodyFatSource = storedBodyFatPct ? latestMeasurement?.source ?? "device" : "navy_formula";
+  const bodyFatMeta = bodyFatPct ? bodyFatCategory(bodyFatPct, gender) : null;
+
+  const ffmi =
+    latestWeightKg && heightCm && bodyFatPct !== null
+      ? calcFFMI(latestWeightKg, heightCm, bodyFatPct)
+      : null;
+  const ffmiMeta = ffmi ? ffmiCategory(ffmi, gender) : null;
+
+  const leanMassKg =
+    latestWeightKg && bodyFatPct !== null
+      ? calcLeanMassKg(latestWeightKg, bodyFatPct)
+      : null;
+
+  const hasCompositionData = bmi !== null || bodyFatPct !== null;
+  const isBmiMisleading = bmi !== null && ffmi !== null && bmiMisleadingForAthlete(bmi, ffmi);
+  const needsMeasurements = !navyBodyFatPct && !storedBodyFatPct;
+
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset }}>
@@ -221,13 +300,7 @@ export default function BodyScreen() {
               justifyContent: "space-between",
               marginBottom: 12,
             }}>
-              <Text style={{
-                fontFamily: "Rubik_600SemiBold",
-                fontSize: 11,
-                color: Colors.textMuted,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                 Nutrition
               </Text>
               <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
@@ -251,23 +324,10 @@ export default function BodyScreen() {
                     { label: "Fat",     value: `${macros.fatG}g`,     color: "#FFA726" },
                   ].map(m => (
                     <View key={m.label} style={{
-                      flex: 1,
-                      borderWidth: 1,
-                      borderColor: Colors.border,
-                      padding: 8,
-                      alignItems: "center",
+                      flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 8, alignItems: "center",
                     }}>
-                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: m.color }}>
-                        {m.value}
-                      </Text>
-                      <Text style={{
-                        fontFamily: "Rubik_400Regular",
-                        fontSize: 10,
-                        color: Colors.textMuted,
-                        textTransform: "uppercase",
-                        letterSpacing: 0.5,
-                        marginTop: 2,
-                      }}>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: m.color }}>{m.value}</Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>
                         {m.label}
                       </Text>
                     </View>
@@ -278,12 +338,8 @@ export default function BodyScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Ionicons name="nutrition-outline" size={26} color={Colors.textMuted} />
                 <View>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>
-                    Set up nutrition targets
-                  </Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>
-                    Calories, macros & meal examples
-                  </Text>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>Set up nutrition targets</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>Calories, macros & meal examples</Text>
                 </View>
               </View>
             )}
@@ -291,29 +347,12 @@ export default function BodyScreen() {
 
           {/* ── Weigh-in ──────────────────────────────────────────────────────── */}
           <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
-            <View style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 12,
-            }}>
-              <Text style={{
-                fontFamily: "Rubik_600SemiBold",
-                fontSize: 11,
-                color: Colors.textMuted,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                 Weigh-in
               </Text>
               <Pressable onPress={() => router.push("/body-weight-log")} hitSlop={8}>
-                <Text style={{
-                  fontFamily: "Rubik_500Medium",
-                  fontSize: 11,
-                  color: Colors.primary,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}>
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 0.5 }}>
                   History →
                 </Text>
               </Pressable>
@@ -329,46 +368,24 @@ export default function BodyScreen() {
                     {unit}
                   </Text>
                   {changeVal !== null && changeVal !== 0 && (
-                    <Text style={{
-                      fontFamily: "Rubik_600SemiBold",
-                      fontSize: 13,
-                      color: changeVal > 0 ? "#FFA726" : "#66BB6A",
-                    }}>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: changeVal > 0 ? "#FFA726" : "#66BB6A" }}>
                       {changeVal > 0 ? `+${changeVal}` : changeVal} (14d)
                     </Text>
                   )}
                 </View>
-
                 {sparkData && (
                   <Svg width={240} height={44} style={{ marginBottom: 12 }}>
-                    <Polyline
-                      points={sparkData.pts}
-                      fill="none"
-                      stroke={Colors.primary}
-                      strokeWidth="1.5"
-                      strokeOpacity={0.65}
-                    />
-                    <Circle
-                      cx={sparkData.lastX}
-                      cy={sparkData.lastY}
-                      r={3.5}
-                      fill={Colors.primary}
-                    />
+                    <Polyline points={sparkData.pts} fill="none" stroke={Colors.primary} strokeWidth="1.5" strokeOpacity={0.65} />
+                    <Circle cx={sparkData.lastX} cy={sparkData.lastY} r={3.5} fill={Colors.primary} />
                   </Svg>
                 )}
               </>
             ) : (
-              <Text style={{
-                fontFamily: "Rubik_400Regular",
-                fontSize: 13,
-                color: Colors.textMuted,
-                marginBottom: 12,
-              }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, marginBottom: 12 }}>
                 No weigh-ins logged yet.
               </Text>
             )}
 
-            {/* Inline log row */}
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TextInput
                 value={weightInput}
@@ -377,15 +394,10 @@ export default function BodyScreen() {
                 placeholder={`Weight (${unit})`}
                 placeholderTextColor={Colors.textMuted}
                 style={{
-                  flex: 1,
-                  borderWidth: 1,
-                  borderColor: Colors.border,
-                  backgroundColor: Colors.bgAccent,
-                  color: Colors.text,
-                  fontFamily: "Rubik_400Regular",
-                  fontSize: 15,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
+                  flex: 1, borderWidth: 1, borderColor: Colors.border,
+                  backgroundColor: Colors.bgAccent, color: Colors.text,
+                  fontFamily: "Rubik_400Regular", fontSize: 15,
+                  paddingHorizontal: 12, paddingVertical: 10,
                 }}
               />
               <Pressable
@@ -393,52 +405,253 @@ export default function BodyScreen() {
                 disabled={loggingWeight || !weightInput}
                 style={({ pressed }) => ({
                   backgroundColor: weightLogged ? "#2E7D32" : Colors.primary,
-                  paddingHorizontal: 18,
-                  justifyContent: "center",
+                  paddingHorizontal: 18, justifyContent: "center",
                   opacity: (pressed || loggingWeight || !weightInput) ? 0.7 : 1,
                 })}
               >
                 {loggingWeight
                   ? <ActivityIndicator color={Colors.text} size="small" />
-                  : (
-                    <Text style={{
-                      fontFamily: "Rubik_700Bold",
-                      fontSize: 12,
-                      color: Colors.text,
-                      textTransform: "uppercase",
-                      letterSpacing: 1,
-                    }}>
+                  : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
                       {weightLogged ? "Logged ✓" : "Log"}
                     </Text>
-                  )
                 }
               </Pressable>
             </View>
+          </View>
+
+          {/* ── Body Composition ──────────────────────────────────────────────── */}
+          <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                Composition
+              </Text>
+              {bodyFatSource === "navy_formula" && bodyFatPct !== null && (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <Ionicons name="calculator-outline" size={11} color={Colors.textMuted} />
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
+                    Navy formula
+                  </Text>
+                </View>
+              )}
+              {storedBodyFatPct !== null && (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <Ionicons name="hardware-chip-outline" size={11} color={Colors.primary} />
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.primary }}>
+                    {latestMeasurement?.source === "apple_health" ? "Apple Health"
+                      : latestMeasurement?.source === "google_fit" ? "Google Fit"
+                      : latestMeasurement?.source === "smart_scale" ? "Smart Scale"
+                      : "Device"}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {hasCompositionData ? (
+              <>
+                {/* Metric grid */}
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+
+                  {/* BMI */}
+                  {bmi !== null && bmiMeta && (
+                    <View style={{
+                      borderWidth: 1,
+                      borderColor: isBmiMisleading ? Colors.border : bmiMeta.color + "55",
+                      borderLeftWidth: 3,
+                      borderLeftColor: isBmiMisleading ? Colors.textMuted : bmiMeta.color,
+                      paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
+                    }}>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                        BMI
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: isBmiMisleading ? Colors.textMuted : bmiMeta.color, lineHeight: 26 }}>
+                        {bmi.toFixed(1)}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: isBmiMisleading ? Colors.textMuted : bmiMeta.color, marginTop: 2 }}>
+                        {isBmiMisleading ? "See FFMI ↓" : bmiMeta.label}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Body Fat % */}
+                  {bodyFatPct !== null && bodyFatMeta && (
+                    <View style={{
+                      borderWidth: 1,
+                      borderColor: bodyFatMeta.color + "55",
+                      borderLeftWidth: 3,
+                      borderLeftColor: bodyFatMeta.color,
+                      paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
+                    }}>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                        Body Fat
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: bodyFatMeta.color, lineHeight: 26 }}>
+                        {bodyFatPct.toFixed(1)}%
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: bodyFatMeta.color, marginTop: 2 }}>
+                        {bodyFatMeta.label}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* FFMI */}
+                  {ffmi !== null && ffmiMeta && (
+                    <View style={{
+                      borderWidth: 1,
+                      borderColor: ffmiMeta.color + "55",
+                      borderLeftWidth: 3,
+                      borderLeftColor: ffmiMeta.color,
+                      paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
+                    }}>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                        FFMI
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: ffmiMeta.color, lineHeight: 26 }}>
+                        {ffmi.toFixed(1)}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: ffmiMeta.color, marginTop: 2 }}>
+                        {ffmiMeta.label}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Lean Mass */}
+                  {leanMassKg !== null && (
+                    <View style={{
+                      borderWidth: 1, borderColor: Colors.border,
+                      paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
+                    }}>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                        Lean Mass
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, lineHeight: 26 }}>
+                        {unit === "lbs" ? kgToLbs(leanMassKg).toFixed(1) : leanMassKg.toFixed(1)}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 2 }}>
+                        {unit}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Athlete caveat for BMI */}
+                {isBmiMisleading && (
+                  <View style={{
+                    borderWidth: 1, borderColor: Colors.border,
+                    borderLeftWidth: 3, borderLeftColor: Colors.primary,
+                    backgroundColor: Colors.primary + "0A",
+                    padding: 12, marginBottom: 10,
+                    flexDirection: "row", alignItems: "flex-start", gap: 8,
+                  }}>
+                    <Ionicons name="information-circle-outline" size={15} color={Colors.primary} style={{ marginTop: 1 }} />
+                    <Text style={{ flex: 1, fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 17 }}>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>BMI is misleading for trained athletes.</Text>
+                      {" "}Your FFMI accounts for muscle mass and is the better metric for lifters. A higher BMI with a strong FFMI just means you carry more muscle.
+                    </Text>
+                  </View>
+                )}
+
+                {/* Add measurements CTA if only BMI showing */}
+                {needsMeasurements && bmi !== null && (
+                  <Pressable
+                    onPress={() => router.push("/body-measurements")}
+                    style={({ pressed }) => ({
+                      borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed",
+                      padding: 12, flexDirection: "row", alignItems: "center", gap: 10,
+                      opacity: pressed ? 0.7 : 1,
+                    })}
+                  >
+                    <Ionicons name="add-circle-outline" size={18} color={Colors.textMuted} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }}>
+                        Add waist &amp; neck to unlock body fat % and FFMI
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                        Calculated using the U.S. Navy formula — no scale needed
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
+                  </Pressable>
+                )}
+              </>
+            ) : (
+              /* No data at all */
+              <Pressable
+                onPress={() => router.push("/body-measurements")}
+                style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, opacity: pressed ? 0.7 : 1, marginBottom: 10 })}
+              >
+                <View style={{
+                  width: 44, height: 44, backgroundColor: Colors.bgAccent,
+                  borderWidth: 1, borderColor: Colors.border,
+                  alignItems: "center", justifyContent: "center",
+                }}>
+                  <Ionicons name="analytics-outline" size={22} color={Colors.textMuted} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>
+                    Unlock body composition metrics
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>
+                    BMI · Body fat % · FFMI · Lean mass
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </Pressable>
+            )}
+
+            {/* ── Health sync button ── */}
+            {Platform.OS !== "web" && (
+              <View style={{ marginTop: hasCompositionData ? 4 : 0 }}>
+                {syncError && (
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.warning, marginBottom: 8, lineHeight: 15 }}>
+                    {syncError}
+                  </Text>
+                )}
+                <Pressable
+                  onPress={handleHealthSync}
+                  disabled={syncing}
+                  style={({ pressed }) => ({
+                    borderWidth: 1,
+                    borderColor: Colors.border,
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    opacity: (pressed || syncing) ? 0.6 : 1,
+                  })}
+                >
+                  {syncing ? (
+                    <ActivityIndicator size="small" color={Colors.primary} />
+                  ) : (
+                    <Ionicons
+                      name={Platform.OS === "ios" ? "heart-circle-outline" : "fitness-outline"}
+                      size={15}
+                      color={Colors.primary}
+                    />
+                  )}
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {Platform.OS === "ios" ? "Sync from Apple Health" : "Sync from Health Connect"}
+                  </Text>
+                </Pressable>
+                {lastSyncAt && !syncing && (
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 6 }}>
+                    Last synced {new Date(lastSyncAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
 
           {/* ── Measurements ──────────────────────────────────────────────────── */}
           <Pressable
             onPress={() => router.push("/body-measurements")}
             style={({ pressed }) => ({
-              borderWidth: 1,
-              borderColor: Colors.border,
-              padding: 16,
-              opacity: pressed ? 0.75 : 1,
+              borderWidth: 1, borderColor: Colors.border, padding: 16, opacity: pressed ? 0.75 : 1,
             })}
           >
-            <View style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: latestMeasurement ? 10 : 0,
-            }}>
-              <Text style={{
-                fontFamily: "Rubik_600SemiBold",
-                fontSize: 11,
-                color: Colors.textMuted,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: latestMeasurement ? 10 : 0 }}>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                 Measurements
               </Text>
               <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
@@ -446,12 +659,7 @@ export default function BodyScreen() {
 
             {latestMeasurement ? (
               <>
-                <Text style={{
-                  fontFamily: "Rubik_400Regular",
-                  fontSize: 11,
-                  color: Colors.textMuted,
-                  marginBottom: 10,
-                }}>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 10 }}>
                   Last logged · {fmtDate(latestMeasurement.loggedAt)}
                 </Text>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -466,23 +674,13 @@ export default function BodyScreen() {
                     .filter(m => m.val !== null)
                     .map(m => (
                       <View key={m.label} style={{
-                        borderWidth: 1,
-                        borderColor: Colors.border,
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
-                        minWidth: 70,
+                        borderWidth: 1, borderColor: Colors.border,
+                        paddingHorizontal: 10, paddingVertical: 6, minWidth: 70,
                       }}>
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
                           {fmtMeasurement(m.val)}
                         </Text>
-                        <Text style={{
-                          fontFamily: "Rubik_400Regular",
-                          fontSize: 10,
-                          color: Colors.textMuted,
-                          textTransform: "uppercase",
-                          letterSpacing: 0.5,
-                          marginTop: 2,
-                        }}>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>
                           {m.label}
                         </Text>
                       </View>
@@ -494,12 +692,8 @@ export default function BodyScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
                 <Ionicons name="body-outline" size={26} color={Colors.textMuted} />
                 <View>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>
-                    Log measurements
-                  </Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>
-                    Chest, waist, arms & more
-                  </Text>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>Log measurements</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>Chest, waist, arms &amp; more</Text>
                 </View>
               </View>
             )}
@@ -509,24 +703,16 @@ export default function BodyScreen() {
           <Pressable
             onPress={() => router.push("/one-rep-max")}
             style={({ pressed }) => ({
-              borderWidth: 1,
-              borderColor: Colors.border,
-              padding: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
+              borderWidth: 1, borderColor: Colors.border, padding: 16,
+              flexDirection: "row", alignItems: "center", justifyContent: "space-between",
               opacity: pressed ? 0.75 : 1,
             })}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={{
-                width: 40,
-                height: 40,
-                backgroundColor: Colors.bgAccent,
-                borderWidth: 1,
-                borderColor: Colors.border,
-                alignItems: "center",
-                justifyContent: "center",
+                width: 40, height: 40, backgroundColor: Colors.bgAccent,
+                borderWidth: 1, borderColor: Colors.border,
+                alignItems: "center", justifyContent: "center",
               }}>
                 <Ionicons name="barbell-outline" size={22} color={Colors.primary} />
               </View>
