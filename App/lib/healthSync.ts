@@ -41,8 +41,10 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
   }
 
   try {
-    // Dynamic import so the module is never evaluated on Android
-    const HealthKit = require("@kingstinct/react-native-healthkit");
+    // Dynamic import so the module is never evaluated on Android.
+    // Handles both ESM-interop (module.default) and CJS (module directly).
+    const _hkModule = require("@kingstinct/react-native-healthkit");
+    const HealthKit = _hkModule.default ?? _hkModule;
 
     // Request read permissions for body mass and body fat %
     await HealthKit.requestAuthorization({
@@ -105,11 +107,10 @@ export async function syncFromHealthConnect(userId: string): Promise<SyncResult>
   }
 
   try {
-    const {
-      initialize,
-      requestPermission,
-      readRecords,
-    } = require("react-native-health-connect");
+    // Handles both ESM-interop (module.default) and CJS (module directly).
+    const _hcModule = require("react-native-health-connect");
+    const _hc = _hcModule.default ?? _hcModule;
+    const { initialize, requestPermission, readRecords } = _hc;
 
     const available = await initialize();
     if (!available) {
