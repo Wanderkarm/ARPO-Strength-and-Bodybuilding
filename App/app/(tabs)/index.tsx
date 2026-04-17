@@ -272,9 +272,16 @@ export default function DashboardScreen() {
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
                 Hypertrophy Hub
               </Text>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, textTransform: "uppercase", letterSpacing: 1 }}>
-                {plan.template.name}
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 }}>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                  {plan.template.name}
+                </Text>
+                <Pressable onPress={() => router.push("/my-plans")} hitSlop={8}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    MY PLANS →
+                  </Text>
+                </Pressable>
+              </View>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               {/* Streak badge */}
@@ -804,6 +811,7 @@ export default function DashboardScreen() {
         >
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingVertical: 8 }}>
             {[
+              { icon: "albums-outline" as const, label: "My Plans", sub: "Switch between your active plans", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/my-plans"); } },
               { icon: "swap-horizontal" as const, label: "Change Routine", sub: "Pick a different template or build your own", color: Colors.primary, onPress: handleChangeRoutine },
               { icon: "nutrition-outline" as const, label: "Nutrition Targets", sub: "View or edit your calorie & macro goals", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/nutrition"); } },
               { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log bodyweight and track trends", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/body-weight-log"); } },

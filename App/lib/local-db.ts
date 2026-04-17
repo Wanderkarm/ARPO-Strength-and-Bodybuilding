@@ -696,12 +696,6 @@ export async function createWorkoutPlan(
     baselineMap[b.category] = b.weight;
   }
 
-  // Deactivate any previously active plans for this user
-  await db.runAsync(
-    "UPDATE workout_plans SET is_active = 0 WHERE user_id = ? AND is_active = 1",
-    [userId]
-  );
-
   const planId = generateId();
   await db.runAsync(
     "INSERT INTO workout_plans (id, user_id, template_id, current_week, current_day, goal_type, gym_type) VALUES (?, ?, ?, 1, 1, ?, ?)",
@@ -765,6 +759,57 @@ export async function getActivePlanForUser(userId: string): Promise<string | nul
     [userId]
   );
   return row?.id ?? null;
+}
+
+export interface PlanSummary {
+  id: string;
+  templateId: string;
+  templateName: string;
+  goalType: string;
+  gymType: string;
+  currentWeek: number;
+  currentDay: number;
+  totalDays: number;
+  lastSessionAt: string | null;
+  createdAt: string;
+}
+
+export async function getUserPlanSummaries(userId: string): Promise<PlanSummary[]> {
+  const db = getDb();
+  const rows = await db.getAllAsync<{
+    id: string; template_id: string; template_name: string;
+    goal_type: string; gym_type: string;
+    current_week: number; current_day: number;
+    total_days: number; last_session_at: string | null; created_at: string;
+  }>(
+    `SELECT wp.id, wp.template_id, t.name as template_name,
+            wp.goal_type, wp.gym_type, wp.current_week, wp.current_day,
+            (SELECT COUNT(*) FROM template_days WHERE template_id = wp.template_id) as total_days,
+            (SELECT MAX(completed_at) FROM workout_logs WHERE workout_plan_id = wp.id AND completed_at IS NOT NULL AND is_skipped = 0) as last_session_at,
+            wp.created_at
+     FROM workout_plans wp
+     JOIN templates t ON wp.template_id = t.id
+     WHERE wp.user_id = ? AND wp.is_active = 1
+     ORDER BY wp.created_at DESC`,
+    [userId]
+  );
+  return rows.map(r => ({
+    id: r.id,
+    templateId: r.template_id,
+    templateName: r.template_name,
+    goalType: r.goal_type,
+    gymType: r.gym_type,
+    currentWeek: r.current_week,
+    currentDay: r.current_day,
+    totalDays: r.total_days,
+    lastSessionAt: r.last_session_at,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function abandonPlan(planId: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE workout_plans SET is_active = 0 WHERE id = ?", [planId]);
 }
 
 export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null> {
