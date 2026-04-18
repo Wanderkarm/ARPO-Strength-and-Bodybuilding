@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — ARPO Strength & Bodybuilding</title>
+    <meta name="description" content="Privacy Policy for ARPO – Strength & Bodybuilding. ARPO is an offline-first app. No personal data ever leaves your device." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/privacy.html" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --black: #000000;
+        --red: #DC2626;
+        --white: #ffffff;
+        --grey: #a0a0a0;
+        --dark-grey: #111111;
+        --border: #222222;
+      }
+      html { scroll-behavior: smooth; }
+      body {
+        font-family: 'Rubik', sans-serif;
+        background: var(--black);
+        color: var(--white);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 40px;
+        background: rgba(0,0,0,0.88);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-logo {
+        font-size: 20px; font-weight: 900; letter-spacing: 0.08em;
+        color: var(--white); text-decoration: none;
+      }
+      .nav-logo span { color: var(--red); }
+      .nav-back {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
+        text-transform: uppercase; color: var(--grey); text-decoration: none;
+        transition: color 0.15s;
+      }
+      .nav-back:hover { color: var(--white); }
+
+      .page-header {
+        padding: 140px 24px 60px;
+        max-width: 760px;
+        margin: 0 auto;
+        border-bottom: 1px solid var(--border);
+      }
+      .page-label {
+        font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+        text-transform: uppercase; color: var(--red); margin-bottom: 16px;
+      }
+      .page-header h1 {
+        font-size: clamp(32px, 5vw, 52px); font-weight: 800;
+        letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 16px;
+      }
+      .page-header p {
+        font-size: 15px; color: var(--grey); line-height: 1.7;
+      }
+      .last-updated {
+        display: inline-block; margin-top: 16px;
+        font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--grey);
+        border: 1px solid var(--border); padding: 4px 12px;
+      }
+
+      .content {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 60px 24px 100px;
+      }
+
+      .section { margin-bottom: 56px; }
+
+      .section h2 {
+        font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+        margin-bottom: 16px; padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--white);
+      }
+
+      .section p {
+        font-size: 15px; color: var(--grey); line-height: 1.8;
+        margin-bottom: 14px;
+      }
+      .section p:last-child { margin-bottom: 0; }
+
+      .section p strong { color: var(--white); font-weight: 600; }
+
+      .section ul {
+        list-style: none; margin: 14px 0;
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .section ul li {
+        font-size: 15px; color: var(--grey); line-height: 1.7;
+        padding-left: 20px; position: relative;
+      }
+      .section ul li::before {
+        content: '';
+        position: absolute; left: 0; top: 10px;
+        width: 5px; height: 5px; background: var(--red);
+      }
+      .section ul li strong { color: var(--white); font-weight: 600; }
+
+      .highlight-box {
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--red);
+        background: #0a0a0a;
+        padding: 20px 24px;
+        margin: 20px 0;
+      }
+      .highlight-box p {
+        font-size: 14px; color: var(--grey); line-height: 1.7;
+        margin: 0;
+      }
+      .highlight-box p strong { color: var(--white); }
+
+      .contact-box {
+        border: 1px solid var(--border);
+        background: var(--dark-grey);
+        padding: 28px 32px;
+        margin-top: 24px;
+      }
+      .contact-box p { font-size: 15px; color: var(--grey); margin-bottom: 8px; }
+      .contact-box a { color: var(--red); text-decoration: none; }
+      .contact-box a:hover { text-decoration: underline; }
+
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .footer-logo { font-size: 16px; font-weight: 900; letter-spacing: 0.08em; color: var(--white); text-decoration: none; }
+      .footer-logo span { color: var(--red); }
+      .footer-links { display: flex; gap: 24px; }
+      .footer-links a { font-size: 13px; color: var(--grey); text-decoration: none; transition: color 0.15s; }
+      .footer-links a:hover { color: var(--white); }
+      .footer-copy { font-size: 13px; color: var(--grey); }
+
+      @media (max-width: 768px) {
+        nav { padding: 16px 20px; }
+        .page-header { padding: 110px 20px 40px; }
+        .content { padding: 40px 20px 80px; }
+        footer { padding: 32px 20px; flex-direction: column; text-align: center; }
+        .footer-links { justify-content: center; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <nav>
+      <a href="index.html" class="nav-logo">ARPO<span>.</span></a>
+      <a href="index.html" class="nav-back">← Back to Home</a>
+    </nav>
+
+    <div class="page-header">
+      <div class="page-label">Legal</div>
+      <h1>Privacy Policy</h1>
+      <p>ARPO is built around a simple principle: your data belongs to you. This policy explains what information the app accesses, how it is used, and — most importantly — what never leaves your device.</p>
+      <span class="last-updated">Last updated: April 2026</span>
+    </div>
+
+    <div class="content">
+
+      <div class="section">
+        <h2>The Short Version</h2>
+        <div class="highlight-box">
+          <p><strong>ARPO does not collect, transmit, or store any personal data on external servers.</strong> There are no user accounts, no cloud sync, no analytics SDKs, and no advertising. Every piece of data you enter — workouts, body measurements, health metrics — lives exclusively on your device. Deleting the app deletes everything.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>1. Who We Are</h2>
+        <p>ARPO – Strength & Bodybuilding ("ARPO", "we", "our") is an iOS fitness application developed and published by ARPO Strength and Bodybuilding. Questions about this policy can be directed to the contact address at the bottom of this page.</p>
+      </div>
+
+      <div class="section">
+        <h2>2. Information Stored Locally on Your Device</h2>
+        <p>ARPO stores the following data <strong>on-device only</strong> using Apple's on-device SQLite database and AsyncStorage. This data never leaves your device unless you explicitly use the in-app backup export feature.</p>
+        <ul>
+          <li><strong>Profile information</strong> — gender, bodyweight, height, age, training experience, and activity level. Used to estimate starting weights and calculate nutrition targets.</li>
+          <li><strong>Workout data</strong> — training plans, exercise logs, set logs, target weights, and RIR ratings. Used to calculate progressive overload week-to-week.</li>
+          <li><strong>Body measurements</strong> — weight logs, waist, neck, hip, chest, and arm measurements. Used to calculate body fat percentage and FFMI using the US Navy formula.</li>
+          <li><strong>App preferences</strong> — weight unit (kg/lbs), notification settings, step goal, and exercise swap preferences.</li>
+          <li><strong>Health data from Apple Health</strong> — see Section 3 below.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>3. Apple HealthKit Data</h2>
+        <p>ARPO integrates with Apple Health to display a Recovery readiness score and daily step count. The following data types may be accessed <strong>with your explicit permission</strong>:</p>
+        <ul>
+          <li><strong>Read:</strong> Resting Heart Rate — used to assess cardiovascular recovery status.</li>
+          <li><strong>Read:</strong> Heart Rate Variability (HRV) — used to assess nervous system recovery status.</li>
+          <li><strong>Read:</strong> Sleep Analysis — sleep duration used to assess rest quality.</li>
+          <li><strong>Read:</strong> Step Count — daily step count displayed against your personal step goal.</li>
+          <li><strong>Write:</strong> Workout sessions may optionally be logged to Apple Health.</li>
+        </ul>
+        <div class="highlight-box">
+          <p><strong>HealthKit data is never used for advertising, marketing, or any purpose other than displaying your recovery readiness within the app.</strong> HealthKit data is never shared with third parties, never transmitted off your device, and never combined with data from other apps. This is a requirement of Apple's HealthKit guidelines and a core principle of how ARPO is built.</p>
+        </div>
+        <p>You can revoke HealthKit permissions at any time in your iPhone's Settings → Privacy & Security → Health → ARPO.</p>
+      </div>
+
+      <div class="section">
+        <h2>4. Data You Export</h2>
+        <p>ARPO includes a Backup &amp; Restore feature that lets you export your data as a JSON file. This file is generated on-device and shared using your device's native share sheet — you choose where it goes (Files, iCloud, email, etc.). We never receive, store, or have access to your backup files.</p>
+      </div>
+
+      <div class="section">
+        <h2>5. Notifications</h2>
+        <p>ARPO may request permission to send local push notifications — for example, workout reminders or weigh-in prompts. These notifications are scheduled entirely on-device. No notification data is transmitted to external servers. You can disable notifications at any time in Settings → Notifications → ARPO.</p>
+      </div>
+
+      <div class="section">
+        <h2>6. Third-Party Services</h2>
+        <p>ARPO does not integrate with any third-party analytics, advertising, or crash-reporting services. The app contains no tracking SDKs.</p>
+        <p>The app is distributed through the Apple App Store. Apple may collect certain usage and diagnostic data as described in <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener" style="color:var(--red);">Apple's Privacy Policy</a>. This is separate from ARPO and outside our control.</p>
+      </div>
+
+      <div class="section">
+        <h2>7. Children's Privacy</h2>
+        <p>ARPO is not directed at children under 13 years of age. We do not knowingly collect personal information from children. If you believe a child has provided personal information through the app, please contact us and we will take appropriate steps.</p>
+      </div>
+
+      <div class="section">
+        <h2>8. Data Retention &amp; Deletion</h2>
+        <p>All data is stored locally on your device. You can delete all data at any time via <strong>Settings → Danger Zone → Delete All Data</strong> within the app. Deleting the app from your device also removes all associated data. We have no copy of your data and cannot recover it after deletion.</p>
+      </div>
+
+      <div class="section">
+        <h2>9. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. When we do, we will revise the "Last updated" date at the top of this page. Material changes will be communicated via an in-app notice or App Store update notes. Continued use of ARPO after changes constitutes acceptance of the revised policy.</p>
+      </div>
+
+      <div class="section">
+        <h2>10. Contact</h2>
+        <p>If you have any questions or concerns about this Privacy Policy or how ARPO handles your data, please contact us:</p>
+        <div class="contact-box">
+          <p><strong style="color:var(--white);">ARPO Strength and Bodybuilding</strong></p>
+          <p>Website: <a href="https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/">wanderkarm.github.io/ARPO-Strength-and-Bodybuilding</a></p>
+          <p>App Store: <a href="https://apps.apple.com/app/id6762238342">apps.apple.com/app/id6762238342</a></p>
+        </div>
+      </div>
+
+    </div>
+
+    <footer>
+      <a href="index.html" class="footer-logo">ARPO<span>.</span></a>
+      <div class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Use</a>
+        <a href="index.html">Home</a>
+      </div>
+      <p class="footer-copy">© 2026 ARPO Strength & Bodybuilding.</p>
+    </footer>
+
+  </body>
+</html>

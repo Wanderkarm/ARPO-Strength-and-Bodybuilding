@@ -718,6 +718,9 @@
       .footer-logo { font-size: 16px; font-weight: 900; letter-spacing: 0.08em; color: var(--white); text-decoration: none; }
       .footer-logo span { color: var(--red); }
       .footer-copy { font-size: 13px; color: var(--grey); }
+      .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+      .footer-links a { font-size: 13px; color: var(--grey); text-decoration: none; transition: color 0.15s; }
+      .footer-links a:hover { color: var(--white); }
 
       /* ── RESPONSIVE ── */
       @media (max-width: 768px) {
@@ -1330,6 +1333,10 @@
     <!-- FOOTER -->
     <footer>
       <a href="#" class="footer-logo">ARPO<span>.</span></a>
+      <div class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Use</a>
+      </div>
       <p class="footer-copy">© 2026 ARPO Strength & Bodybuilding. All rights reserved.</p>
     </footer>
 
