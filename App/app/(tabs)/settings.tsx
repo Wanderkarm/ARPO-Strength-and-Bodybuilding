@@ -11,6 +11,7 @@ import {
   Switch,
   Modal,
   KeyboardAvoidingView,
+  Linking,
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -1260,6 +1261,32 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        {/* ── Legal ── */}
+        <SectionHeader title="Legal" />
+        <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
+          {[
+            { label: "Privacy Policy", url: "https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/privacy.html" },
+            { label: "Terms of Use", url: "https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/terms.html" },
+          ].map((item, i) => (
+            <Pressable
+              key={item.label}
+              onPress={() => Linking.openURL(item.url)}
+              style={({ pressed }) => ({
+                flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+                paddingHorizontal: 16, paddingVertical: 14,
+                borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Colors.border,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>{item.label}</Text>
+              <Ionicons name="open-outline" size={15} color={Colors.textMuted} />
+            </Pressable>
+          ))}
+        </View>
+        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 24, paddingHorizontal: 4 }}>
+          ARPO is not a medical app. Always consult a physician before beginning any exercise program.
+        </Text>
 
         {/* ── Danger Zone ── */}
         <SectionHeader title="Danger Zone" />
