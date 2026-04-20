@@ -295,6 +295,8 @@ export default function DashboardScreen() {
   const totalDays = plan.template.days.length;
   const nextDayIndex = (plan.currentDay || 1) - 1;
   const progressPercent = totalDays > 0 ? Math.min((completedDays / totalDays) * 100, 100) : 0;
+  const todayComplete = isDayCompleted(plan.currentDay || 1);
+  const todayExerciseCount = plan.template.days.find(d => d.dayNumber === (plan.currentDay || 1))?.exercises.length ?? 0;
 
   // ── Get all logs for a given day + week ──────────────────────────────────────
   function getLogsForDayWeek(dayNumber: number, weekNum: number): WorkoutLog[] {
@@ -619,6 +621,75 @@ export default function DashboardScreen() {
           </View>
         )}
 
+        {/* ── Contextual CTA ── */}
+        <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
+
+          {/* Context line: day info + recovery warning */}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
+              {todayComplete
+                ? `Day ${plan.currentDay} of ${totalDays} · This week`
+                : `Day ${plan.currentDay} · ${mesoPhase} · ${todayExerciseCount} exercises`}
+            </Text>
+            {hasRecovery && overallStatus === "poor" && !todayComplete && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STATUS_COLOR.poor }} />
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: STATUS_COLOR.poor, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Recovery Low
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Primary action */}
+          {todayComplete ? (
+            <View style={{
+              borderWidth: 1, borderColor: Colors.primary + "55",
+              backgroundColor: Colors.primary + "0D",
+              paddingVertical: 20, alignItems: "center",
+            }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2 }}>
+                  Session Complete
+                </Text>
+              </View>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 6 }}>
+                Next session: Day {((plan.currentDay || 1) % totalDays) + 1}
+              </Text>
+            </View>
+          ) : (
+            <Pressable
+              onPress={handleStartWorkout}
+              style={({ pressed }) => ({
+                backgroundColor: isDeload ? Colors.warning : Colors.primary,
+                paddingVertical: 22,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 12 }}>
+                <Ionicons name="flash" size={24} color={Colors.text} />
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 3 }}>
+                  {isDeload ? "Start Deload" : "Start Workout"}
+                </Text>
+              </View>
+            </Pressable>
+          )}
+
+          {/* Skip — demoted to subtle text link */}
+          {!todayComplete && (
+            <Pressable
+              onPress={handleSkipSession}
+              disabled={skipping}
+              style={({ pressed }) => ({ alignItems: "center", paddingVertical: 11, opacity: pressed || skipping ? 0.4 : 1 })}
+            >
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                {skipping ? "Skipping..." : "Skip Session"}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
         {/* ── Weekly Progress bar ── */}
         <View style={{ paddingHorizontal: 24, marginTop: 16 }}>
           <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
@@ -869,40 +940,6 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* ── CTA ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
-          <Pressable
-            onPress={handleStartWorkout}
-            style={({ pressed }) => ({
-              backgroundColor: isDeload ? Colors.warning : Colors.primary,
-              paddingVertical: 22,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 12 }}>
-              <Ionicons name="flash" size={24} color={Colors.text} />
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 3 }}>
-                {isDeload ? "Start Deload" : "Start Workout"}
-              </Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            onPress={handleSkipSession}
-            disabled={skipping}
-            style={({ pressed }) => ({
-              borderWidth: 1, borderColor: Colors.border, paddingVertical: 14, marginTop: 10,
-              opacity: pressed || skipping ? 0.5 : 1,
-            })}
-          >
-            <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8 }}>
-              <Ionicons name="play-skip-forward" size={16} color={Colors.textMuted} />
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                {skipping ? "Skipping..." : "Skip Session"}
-              </Text>
-            </View>
-          </Pressable>
-        </View>
       </ScrollView>
 
       {/* ── Steps Log Modal ── */}
