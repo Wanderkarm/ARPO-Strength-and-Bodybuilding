@@ -56,7 +56,7 @@ const BODY_GOALS: { key: BodyGoal; label: string; tagline: string; icon: string;
   },
 ];
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 export default function NutritionSetupScreen() {
   const insets = useSafeAreaInsets();
@@ -208,10 +208,10 @@ export default function NutritionSetupScreen() {
     }
   }
 
-  const totalSteps = bodyGoal === "recomp" ? 3 : 4;
+  const totalSteps = bodyGoal === "recomp" ? 3 : 5;
   const stepLabels = bodyGoal === "recomp"
     ? ["Goal", "Details", "Activity"]
-    : ["Goal", "Details", "Activity", "Target"];
+    : ["Goal", "Details", "Activity", "Weights", "Timeline"];
 
   const canProceedStep2 = age.trim() !== "" && parseInt(age) > 0 && parseInt(age) < 100 &&
     (unit === "lbs"
@@ -474,7 +474,7 @@ export default function NutritionSetupScreen() {
           </>
         )}
 
-        {/* ── Step 4: Target Weight + Timeline (cut/bulk only) ── */}
+        {/* ── Step 4: Current Weight + Target Weight (cut/bulk only) ── */}
         {step === 4 && bodyGoal !== "recomp" && (
           <>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 }}>
@@ -482,7 +482,7 @@ export default function NutritionSetupScreen() {
                 Your Target
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
-                We'll tell you if your timeline is realistic and suggest an aggressive-but-safe alternative if it isn't.
+                We'll check if your timeline is realistic and suggest an alternative if it isn't.
               </Text>
 
               {/* Current weight */}
@@ -495,7 +495,7 @@ export default function NutritionSetupScreen() {
                 keyboardType="decimal-pad"
                 placeholder={unit === "lbs" ? "e.g. 185" : "e.g. 84"}
                 placeholderTextColor={Colors.textMuted}
-                style={{ borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 18, color: Colors.text, marginBottom: 20 }}
+                style={{ borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 18, color: Colors.text, marginBottom: 24 }}
               />
 
               {/* Target weight */}
@@ -508,8 +508,34 @@ export default function NutritionSetupScreen() {
                 keyboardType="decimal-pad"
                 placeholder={bodyGoal === "cut" ? (unit === "lbs" ? "e.g. 165" : "e.g. 75") : (unit === "lbs" ? "e.g. 200" : "e.g. 91")}
                 placeholderTextColor={Colors.textMuted}
-                style={{ borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 18, color: Colors.text, marginBottom: 20 }}
+                style={{ borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 18, color: Colors.text, marginBottom: 8 }}
               />
+            </ScrollView>
+
+            <View style={{ paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingBottom: 12 + bottomInset }}>
+              <Pressable
+                onPress={nextStep}
+                disabled={!currentWeight.trim() || !targetWeight.trim()}
+                style={({ pressed }) => ({ backgroundColor: (currentWeight.trim() && targetWeight.trim()) ? Colors.primary : Colors.bgAccent, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1 })}
+              >
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: (currentWeight.trim() && targetWeight.trim()) ? Colors.text : Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                  Continue →
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
+
+        {/* ── Step 5: Timeline (cut/bulk only) ── */}
+        {step === 5 && bodyGoal !== "recomp" && (
+          <>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
+                Timeline
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
+                How many weeks to reach your target? Hit "Check" to see if it's realistic.
+              </Text>
 
               {/* Timeline */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>

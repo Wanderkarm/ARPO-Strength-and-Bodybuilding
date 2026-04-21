@@ -33,12 +33,23 @@ const LIFTS: Array<{ key: keyof BaselineWeights; label: string; icon: string; ca
   { key: "barbellCurl",   label: "Barbell Curl",    icon: "body-outline",      category: "Arms" },
 ];
 
+const LIFT_SUBSTEPS: Array<{
+  title: string;
+  subtitle: string;
+  keys: (keyof BaselineWeights)[];
+}> = [
+  { title: "What do you currently lift?", subtitle: "Enter your typical working-set weight for each", keys: ["squat", "deadlift"] },
+  { title: "Push",        subtitle: "Horizontal and vertical pressing strength", keys: ["benchPress", "overheadPress"] },
+  { title: "Pull & Arms", subtitle: "Rowing and curl strength",                  keys: ["barbellRow", "barbellCurl"] },
+];
+
 export default function PostOnboardingScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
 
   const [step, setStep] = useState<Step>("weights");
+  const [weightSubstep, setWeightSubstep] = useState<1 | 2 | 3>(1);
   const [userId, setUserId] = useState<string | null>(null);
   const [unit, setUnit] = useState<"lbs" | "kg">("lbs");
   const [loading, setLoading] = useState(true);
@@ -145,9 +156,21 @@ export default function PostOnboardingScreen() {
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
-  // STEP 10: STARTING WEIGHTS
+  // STEP: STARTING WEIGHTS (3 substeps of 2 lifts each)
   // ──────────────────────────────────────────────────────────────────────────────
   if (step === "weights") {
+    const substep = LIFT_SUBSTEPS[weightSubstep - 1];
+    const isLastSubstep = weightSubstep === 3;
+
+    function handleSubstepNext() {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (isLastSubstep) {
+        handleSaveWeights();
+      } else {
+        setWeightSubstep((weightSubstep + 1) as 1 | 2 | 3);
+      }
+    }
+
     return (
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: Colors.bg }}
@@ -161,77 +184,90 @@ export default function PostOnboardingScreen() {
           <View style={{ paddingHorizontal: 24, paddingTop: topInset + 16 }}>
             {progressBar}
 
-            {/* Header */}
+            {/* Step label + substep dots */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
                 Step {currentStep} of {TOTAL_FLOW_STEPS}
               </Text>
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {[1, 2, 3].map(n => (
+                  <View key={n} style={{
+                    width: 6, height: 6,
+                    backgroundColor: n <= weightSubstep ? Colors.primary : Colors.border,
+                  }} />
+                ))}
+              </View>
             </View>
 
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 26, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-              Starting Weights
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 26, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+              {substep.title}
             </Text>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 14, color: Colors.textSecondary, lineHeight: 21, marginBottom: 20 }}>
-              ARPO estimated these from your bodyweight. Fine-tune them to match your last working sets — the closer to reality, the better your Week 1 targets.
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 20, marginBottom: 20 }}>
+              {substep.subtitle}
             </Text>
 
-            {/* Info box */}
-            <View style={{
-              borderWidth: 1, borderColor: Colors.border,
-              borderLeftWidth: 3, borderLeftColor: Colors.primary,
-              backgroundColor: Colors.primary + "0A",
-              padding: 14, marginBottom: 24,
-              flexDirection: "row", alignItems: "flex-start", gap: 10,
-            }}>
-              <Ionicons name="information-circle-outline" size={16} color={Colors.primary} style={{ marginTop: 2 }} />
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
-                These are your <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>working set weights</Text> — what you currently lift for a typical work set. ARPO uses them to estimate starting loads for each exercise and auto-adjusts every session as you log your sets.
-              </Text>
-            </View>
+            {/* Info box — only on first substep */}
+            {weightSubstep === 1 && (
+              <View style={{
+                borderWidth: 1, borderColor: Colors.border,
+                borderLeftWidth: 3, borderLeftColor: Colors.primary,
+                backgroundColor: Colors.primary + "0A",
+                padding: 14, marginBottom: 24,
+                flexDirection: "row", alignItems: "flex-start", gap: 10,
+              }}>
+                <Ionicons name="information-circle-outline" size={16} color={Colors.primary} style={{ marginTop: 2 }} />
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
+                  Enter your <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>working set weights</Text> — what you currently lift for a typical work set. ARPO uses them to estimate starting loads and auto-adjusts every session.
+                </Text>
+              </View>
+            )}
 
-            {/* Lift inputs */}
+            {/* Lift inputs for this substep */}
             <View style={{ gap: 10, marginBottom: 28 }}>
-              {LIFTS.map((lift) => (
-                <View key={lift.key} style={{
-                  borderWidth: 1, borderColor: Colors.border,
-                  flexDirection: "row", alignItems: "center",
-                  paddingHorizontal: 14, paddingVertical: 12,
-                }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                      {lift.label}
-                    </Text>
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                      {lift.category}
-                    </Text>
+              {substep.keys.map((key) => {
+                const lift = LIFTS.find(l => l.key === key)!;
+                return (
+                  <View key={key} style={{
+                    borderWidth: 1, borderColor: Colors.border,
+                    flexDirection: "row", alignItems: "center",
+                    paddingHorizontal: 14, paddingVertical: 18,
+                  }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 15, color: Colors.text }}>
+                        {lift.label}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                        {lift.category}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <TextInput
+                        value={weightInputs[key]}
+                        onChangeText={(v) => updateInput(key, v)}
+                        keyboardType="numeric"
+                        style={{
+                          fontFamily: "Rubik_700Bold",
+                          fontSize: 24,
+                          color: Colors.primary,
+                          textAlign: "right",
+                          minWidth: 72,
+                          borderBottomWidth: 1,
+                          borderBottomColor: Colors.primary,
+                          paddingBottom: 2,
+                        }}
+                      />
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
+                        {unit}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <TextInput
-                      value={weightInputs[lift.key]}
-                      onChangeText={(v) => updateInput(lift.key, v)}
-                      keyboardType="numeric"
-                      style={{
-                        fontFamily: "Rubik_700Bold",
-                        fontSize: 20,
-                        color: Colors.primary,
-                        textAlign: "right",
-                        minWidth: 64,
-                        borderBottomWidth: 1,
-                        borderBottomColor: Colors.primary,
-                        paddingBottom: 2,
-                      }}
-                    />
-                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.textMuted }}>
-                      {unit}
-                    </Text>
-                  </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
-            {/* Save & Continue */}
+            {/* Continue / Save button */}
             <Pressable
-              onPress={handleSaveWeights}
+              onPress={handleSubstepNext}
               disabled={saving}
               style={({ pressed }) => ({
                 backgroundColor: Colors.primary,
@@ -245,7 +281,7 @@ export default function PostOnboardingScreen() {
                 <ActivityIndicator color={Colors.text} />
               ) : (
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Save & Continue →
+                  {isLastSubstep ? "Save & Continue →" : "Next →"}
                 </Text>
               )}
             </Pressable>

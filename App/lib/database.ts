@@ -55,6 +55,13 @@ export async function initializeSchema() {
   // ── v4: right thigh measurement ───────────────────────────────────────────────
   await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN right_thigh_cm REAL`).catch(() => {});
 
+  // ── v5: fix body_fat_pct values stored as decimal fraction instead of percentage ──
+  // Apple Health syncs before the * 100 conversion was added stored 0.135 instead of 13.5.
+  // Any value < 1.0 is a fraction (real body fat is always >= 3%) — multiply by 100.
+  await database.execAsync(
+    `UPDATE body_measurements SET body_fat_pct = ROUND(body_fat_pct * 100, 1) WHERE body_fat_pct > 0 AND body_fat_pct < 1.0`
+  );
+
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS workout_sessions (
       id TEXT PRIMARY KEY,

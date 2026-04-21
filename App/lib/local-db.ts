@@ -755,7 +755,7 @@ export async function createWorkoutPlan(
 export async function getActivePlanForUser(userId: string): Promise<string | null> {
   const db = getDb();
   const row = await db.getFirstAsync<{ id: string }>(
-    "SELECT id FROM workout_plans WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1",
+    "SELECT id FROM workout_plans WHERE user_id = ? AND is_active = 1 ORDER BY rowid DESC LIMIT 1",
     [userId]
   );
   return row?.id ?? null;
@@ -771,7 +771,6 @@ export interface PlanSummary {
   currentDay: number;
   totalDays: number;
   lastSessionAt: string | null;
-  createdAt: string;
 }
 
 export async function getUserPlanSummaries(userId: string): Promise<PlanSummary[]> {
@@ -780,17 +779,16 @@ export async function getUserPlanSummaries(userId: string): Promise<PlanSummary[
     id: string; template_id: string; template_name: string;
     goal_type: string; gym_type: string;
     current_week: number; current_day: number;
-    total_days: number; last_session_at: string | null; created_at: string;
+    total_days: number; last_session_at: string | null;
   }>(
     `SELECT wp.id, wp.template_id, t.name as template_name,
             wp.goal_type, wp.gym_type, wp.current_week, wp.current_day,
             (SELECT COUNT(*) FROM template_days WHERE template_id = wp.template_id) as total_days,
-            (SELECT MAX(completed_at) FROM workout_logs WHERE workout_plan_id = wp.id AND completed_at IS NOT NULL AND is_skipped = 0) as last_session_at,
-            wp.created_at
+            (SELECT MAX(completed_at) FROM workout_logs WHERE workout_plan_id = wp.id AND completed_at IS NOT NULL AND is_skipped = 0) as last_session_at
      FROM workout_plans wp
      JOIN templates t ON wp.template_id = t.id
      WHERE wp.user_id = ? AND wp.is_active = 1
-     ORDER BY wp.created_at DESC`,
+     ORDER BY wp.rowid DESC`,
     [userId]
   );
   return rows.map(r => ({
@@ -803,7 +801,6 @@ export async function getUserPlanSummaries(userId: string): Promise<PlanSummary[
     currentDay: r.current_day,
     totalDays: r.total_days,
     lastSessionAt: r.last_session_at,
-    createdAt: r.created_at,
   }));
 }
 

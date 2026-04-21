@@ -31,8 +31,10 @@ export default function TemplatesScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
-  const { from } = useLocalSearchParams<{ from?: string }>();
+  const { from, totalSteps: totalStepsParam, step: stepParam } = useLocalSearchParams<{ from?: string; totalSteps?: string; step?: string }>();
   const isOnboarding = from === "onboarding";
+  const onboardingTotalSteps = parseInt(totalStepsParam ?? "7");
+  const onboardingCurrentStep = parseInt(stepParam ?? "6");
 
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [showGymModal, setShowGymModal] = useState(false);
@@ -329,13 +331,13 @@ export default function TemplatesScreen() {
         {/* Progress bar — only shown during onboarding flow */}
         {isOnboarding && (
           <View style={{ flexDirection: "row", gap: 3, marginBottom: 16 }}>
-            {Array.from({ length: 11 }).map((_, i) => (
+            {Array.from({ length: onboardingTotalSteps }).map((_, i) => (
               <View
                 key={i}
                 style={{
                   flex: 1,
                   height: 3,
-                  backgroundColor: i < 9 ? Colors.primary : Colors.border,
+                  backgroundColor: i < onboardingCurrentStep ? Colors.primary : Colors.border,
                 }}
               />
             ))}
@@ -354,7 +356,7 @@ export default function TemplatesScreen() {
 
         {isOnboarding && (
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-            Step 9 of 11
+            Step {onboardingCurrentStep} of {onboardingTotalSteps}
           </Text>
         )}
 

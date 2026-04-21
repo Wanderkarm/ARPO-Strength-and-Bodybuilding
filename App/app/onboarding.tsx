@@ -23,6 +23,7 @@ import {
 import {
   ACTIVITY_LABELS,
   ftInToCm,
+  lbsToKg,
   type ActivityLevel,
   type BodyGoal,
 } from "@/utils/nutritionCalculator";
@@ -34,11 +35,7 @@ import { useUnit, type WeightUnit } from "@/contexts/UnitContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step = "welcome" | "unit" | "identity" | "goals";
-
-// Steps that get a number in the progress bar (welcome is the intro, not counted)
-const NUMBERED_STEPS: Step[] = ["unit", "identity", "goals"];
-const TOTAL_FLOW_STEPS = 5; // unit=1, identity=2, goals=3, templates=4, starting-weights=5
+type Step = "welcome" | "unit" | "identity" | "physical" | "goals" | "target" | "summary";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -104,6 +101,37 @@ export default function OnboardingScreen() {
   // Step: goals — activity
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
 
+  // Step: target — current + target weight (cut/bulk only, optional)
+  const [currentWeight, setCurrentWeight] = useState("");
+  const [targetWeight, setTargetWeight] = useState("");
+
+  // Dynamic step config — summary always last, target only for cut/bulk
+  const NUMBERED_STEPS: Step[] = bodyGoal === "recomp"
+    ? ["unit", "identity", "physical", "goals", "summary"]
+    : ["unit", "identity", "physical", "goals", "target", "summary"];
+  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 7 : 8;
+  // recomp: 5 onboarding + templates + weights = 7
+  // cut/bulk: 6 onboarding + templates + weights = 8
+
+  // Estimated TDEE for summary screen
+  const tdeeEstimate = useMemo(() => {
+    if (!gender) return null;
+    const multipliers: Record<ActivityLevel, number> = {
+      sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9,
+    };
+    const bwKg = currentWeight && parseFloat(currentWeight) > 0
+      ? (weightUnit === "lbs" ? lbsToKg(parseFloat(currentWeight)) : parseFloat(currentWeight))
+      : gender === "MALE" ? 75 : 60;
+    const h = weightUnit === "lbs"
+      ? ftInToCm(parseInt(heightFt) || 5, parseInt(heightIn) || 10)
+      : parseFloat(heightCm) || 178;
+    const a = parseInt(age) || 25;
+    const bmr = gender === "MALE"
+      ? 10 * bwKg + 6.25 * h - 5 * a + 5
+      : 10 * bwKg + 6.25 * h - 5 * a - 161;
+    return Math.round(bmr * (multipliers[activityLevel] ?? 1.55));
+  }, [gender, currentWeight, weightUnit, heightFt, heightIn, heightCm, age, activityLevel]);
+
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
   function haptic() {
@@ -151,20 +179,23 @@ export default function OnboardingScreen() {
       await AsyncStorage.setItem("userGender", gender);
       await refreshUnit();
 
-      // 3. Save nutrition profile (goal + height + age + activity)
+      // 3. Save nutrition profile (goal + height + age + activity + optional target)
       const cm = weightUnit === "lbs"
         ? ftInToCm(parseInt(heightFt) || 5, parseInt(heightIn) || 10)
         : parseFloat(heightCm) || 178;
+      const targetKg = targetWeight && parseFloat(targetWeight) > 0
+        ? weightUnit === "lbs" ? lbsToKg(parseFloat(targetWeight)) : parseFloat(targetWeight)
+        : null;
       await updateNutritionProfile(user.id, {
         heightCm: cm,
         age: parseInt(age) || 25,
         activityLevel,
         bodyGoal,
-        targetWeightKg: null,
+        targetWeightKg: targetKg,
         weeksToGoal: null,
       });
 
-      router.replace("/templates?from=onboarding");
+      router.replace(`/templates?from=onboarding&totalSteps=${TOTAL_FLOW_STEPS}&step=${NUMBERED_STEPS.length + 1}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -179,8 +210,14 @@ export default function OnboardingScreen() {
       setStep("welcome");
     } else if (step === "identity") {
       setStep("unit");
-    } else if (step === "goals") {
+    } else if (step === "physical") {
       setStep("identity");
+    } else if (step === "goals") {
+      setStep("physical");
+    } else if (step === "target") {
+      setStep("goals");
+    } else if (step === "summary") {
+      setStep(bodyGoal === "recomp" ? "goals" : "target");
     }
   }
 
@@ -285,40 +322,69 @@ export default function OnboardingScreen() {
       {step === "welcome" && (
         <View style={{ flex: 1, paddingHorizontal: 24, justifyContent: "space-between", paddingBottom: bottomInset + 24 }}>
           <View style={{ flex: 1, justifyContent: "center" }}>
-            <View style={{ width: 40, height: 3, backgroundColor: Colors.primary, marginBottom: 24 }} />
+            <View style={{ width: 40, height: 3, backgroundColor: Colors.primary, marginBottom: 20 }} />
             <Text style={{
               fontFamily: "Rubik_700Bold",
-              fontSize: 32,
+              fontSize: 34,
               color: Colors.text,
               textTransform: "uppercase",
               letterSpacing: 2,
-              marginBottom: 16,
-              lineHeight: 38,
+              marginBottom: 10,
+              lineHeight: 40,
             }}>
-              Build Your{"\n"}Program
+              Training that{"\n"}learns you.
             </Text>
             <Text style={{
               fontFamily: "Rubik_400Regular",
-              fontSize: 15,
+              fontSize: 14,
               color: Colors.textSecondary,
-              lineHeight: 23,
+              lineHeight: 22,
               marginBottom: 32,
             }}>
-              ARPO personalises your training volume, weight targets, and calorie goals to your body and experience.
+              Answer a few questions and ARPO builds a complete program around your body, experience, and goals — then adjusts it every single session.
             </Text>
 
             {[
-              { icon: "checkmark-circle-outline" as const, text: "2 required fields — under 30 seconds" },
-              { icon: "options-outline" as const,          text: "Optional details personalise your nutrition targets" },
-              { icon: "settings-outline" as const,         text: "Everything is editable later in Settings" },
+              {
+                icon: "trending-up" as const,
+                title: "Auto-progressing weights",
+                detail: "Targets update every session based on your actual performance.",
+              },
+              {
+                icon: "restaurant-outline" as const,
+                title: "Precision nutrition",
+                detail: "Personalised calories and macros calculated from your physiology.",
+              },
+              {
+                icon: "body-outline" as const,
+                title: "Body progress tracking",
+                detail: "Weight, measurements, and body fat charted over time.",
+              },
             ].map(item => (
-              <View key={item.text} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <Ionicons name={item.icon} size={16} color={Colors.primary} />
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary }}>
-                  {item.text}
-                </Text>
+              <View key={item.title} style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                gap: 14,
+                marginBottom: 16,
+                borderLeftWidth: 2,
+                borderLeftColor: Colors.primary + "44",
+                paddingLeft: 14,
+              }}>
+                <Ionicons name={item.icon} size={18} color={Colors.primary} style={{ marginTop: 1 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2 }}>
+                    {item.title}
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 17 }}>
+                    {item.detail}
+                  </Text>
+                </View>
               </View>
             ))}
+
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 8 }}>
+              Takes about 2 minutes · Everything is editable in Settings later
+            </Text>
           </View>
 
           <Pressable
@@ -337,7 +403,7 @@ export default function OnboardingScreen() {
               textTransform: "uppercase",
               letterSpacing: 2,
             }}>
-              Get Started →
+              Build My Program →
             </Text>
           </Pressable>
         </View>
@@ -392,7 +458,7 @@ export default function OnboardingScreen() {
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
             <Text style={titleStyle}>About You</Text>
             <Text style={subtitleStyle}>
-              These two inputs are required. Bodyweight is optional.
+              These two selections are required to personalise your training targets.
             </Text>
 
             {/* ── Biological Sex ── */}
@@ -426,53 +492,6 @@ export default function OnboardingScreen() {
 
             <View style={{ height: 24 }} />
 
-            {/* ── Current Weight (optional) ── */}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                Current Weight
-              </Text>
-              <View style={{
-                borderWidth: 1,
-                borderColor: Colors.primary + "44",
-                backgroundColor: Colors.primary + "11",
-                paddingHorizontal: 8,
-                paddingVertical: 2,
-              }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Optional
-                </Text>
-              </View>
-            </View>
-
-            <View style={{
-              borderWidth: 1,
-              borderColor: Colors.border,
-              backgroundColor: Colors.bgAccent,
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 28,
-            }}>
-              <TextInput
-                value={bodyweight}
-                onChangeText={setBodyweight}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={Colors.textMuted}
-                style={{
-                  flex: 1,
-                  fontFamily: "Rubik_700Bold",
-                  fontSize: 52,
-                  color: Colors.text,
-                  paddingVertical: 24,
-                  paddingHorizontal: 20,
-                  textAlign: "center",
-                }}
-              />
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 18, color: Colors.textMuted, paddingRight: 20, textTransform: "uppercase" }}>
-                {weightUnit}
-              </Text>
-            </View>
-
             {/* ── Training Experience ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
               Training Experience
@@ -505,9 +524,119 @@ export default function OnboardingScreen() {
             ))}
           </ScrollView>
           {continueBtn(
-            () => { haptic(); setStep("goals"); },
+            () => { haptic(); setStep("physical"); },
             !(gender !== null && experience !== null)
           )}
+        </>
+      )}
+
+      {/* ── PHYSICAL ────────────────────────────────────────────────────────── */}
+      {step === "physical" && (
+        <>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+            <Text style={titleStyle}>Body Stats</Text>
+            <Text style={subtitleStyle}>
+              Optional — used to calculate your calorie and macro targets. Defaults are applied if skipped.
+            </Text>
+
+            {/* ── Height ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
+              Height
+            </Text>
+
+            {weightUnit === "lbs" ? (
+              <View style={{ flexDirection: "row", gap: 10, marginBottom: 32 }}>
+                {[
+                  { value: heightFt, onChange: handleHeightFtChange, label: "Feet" },
+                  { value: heightIn, onChange: handleHeightInChange, label: "Inches" },
+                ].map(f => (
+                  <View key={f.label} style={{ flex: 1 }}>
+                    <TextInput
+                      value={f.value}
+                      onChangeText={f.onChange}
+                      keyboardType="number-pad"
+                      style={{ borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
+                    />
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>
+                      {f.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 32 }}>
+                <TextInput
+                  value={heightCm}
+                  onChangeText={setHeightCm}
+                  keyboardType="decimal-pad"
+                  style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
+                />
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>cm</Text>
+              </View>
+            )}
+
+            {/* ── Age ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
+              Age
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <TextInput
+                value={age}
+                onChangeText={setAge}
+                keyboardType="number-pad"
+                placeholder="e.g. 28"
+                placeholderTextColor={Colors.textMuted}
+                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
+              />
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>yrs</Text>
+            </View>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 32 }}>
+              Metabolism slows ~1–2% per decade after 25 — age adjusts your TDEE accordingly.
+            </Text>
+
+            {/* ── Current Weight (optional) ── */}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                Current Weight
+              </Text>
+              <View style={{ borderWidth: 1, borderColor: Colors.primary + "44", backgroundColor: Colors.primary + "11", paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Optional</Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <TextInput
+                value={bodyweight}
+                onChangeText={setBodyweight}
+                keyboardType="decimal-pad"
+                placeholder={weightUnit === "lbs" ? "e.g. 185" : "e.g. 84"}
+                placeholderTextColor={Colors.textMuted}
+                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
+              />
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>{weightUnit}</Text>
+            </View>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
+              Used to estimate your starting lift targets and daily calorie needs.
+            </Text>
+          </ScrollView>
+
+          <View style={{ paddingHorizontal: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingBottom: 12 + bottomInset }}>
+            <Pressable
+              onPress={() => { haptic(); setStep("goals"); }}
+              style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1, marginBottom: 4 })}
+            >
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                Continue →
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => { haptic(); setStep("goals"); }}
+              style={({ pressed }) => ({ alignItems: "center", paddingVertical: 12, opacity: pressed ? 0.6 : 1 })}
+            >
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                Skip this step
+              </Text>
+            </Pressable>
+          </View>
         </>
       )}
 
@@ -570,61 +699,6 @@ export default function OnboardingScreen() {
 
             <View style={{ height: bodyGoal === "recomp" ? 8 : 24 }} />
 
-            {/* ── Height ── */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Height
-            </Text>
-
-            {weightUnit === "lbs" ? (
-              <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
-                {[
-                  { value: heightFt, onChange: handleHeightFtChange, label: "Feet" },
-                  { value: heightIn, onChange: handleHeightInChange, label: "Inches" },
-                ].map(f => (
-                  <View key={f.label} style={{ flex: 1 }}>
-                    <TextInput
-                      value={f.value}
-                      onChangeText={f.onChange}
-                      keyboardType="number-pad"
-                      style={{ borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
-                    />
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>
-                      {f.label}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 24 }}>
-                <TextInput
-                  value={heightCm}
-                  onChangeText={setHeightCm}
-                  keyboardType="decimal-pad"
-                  style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
-                />
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>cm</Text>
-              </View>
-            )}
-
-            {/* ── Age ── */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Age
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <TextInput
-                value={age}
-                onChangeText={setAge}
-                keyboardType="number-pad"
-                placeholder="e.g. 28"
-                placeholderTextColor={Colors.textMuted}
-                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
-              />
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>yrs</Text>
-            </View>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 28 }}>
-              Metabolism slows ~1–2% per decade after 25 — age adjusts your TDEE accordingly.
-            </Text>
-
             {/* ── Activity Level ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
               Activity Level
@@ -661,9 +735,173 @@ export default function OnboardingScreen() {
               </Pressable>
             ))}
           </ScrollView>
-          {continueBtn(() => { haptic(); handleComplete(); })}
+          {continueBtn(
+            () => {
+              haptic();
+              setStep(bodyGoal === "recomp" ? "summary" : "target");
+            },
+          )}
         </>
       )}
+
+      {/* ── TARGET ──────────────────────────────────────────────────────────── */}
+      {step === "target" && (
+        <>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+            <Text style={titleStyle}>Your Target</Text>
+            <Text style={subtitleStyle}>
+              {bodyGoal === "cut" ? "Where do you want to end up?" : "How much do you want to build up to?"}
+              {" "}Both fields are optional — skip to set this later in{" "}
+              <Text style={{ color: Colors.primary }}>Settings → Nutrition</Text>.
+            </Text>
+
+            {/* Current weight */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
+              Current Weight ({weightUnit})
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 24 }}>
+              <TextInput
+                value={currentWeight}
+                onChangeText={setCurrentWeight}
+                keyboardType="decimal-pad"
+                placeholder={weightUnit === "lbs" ? "e.g. 185" : "e.g. 84"}
+                placeholderTextColor={Colors.textMuted}
+                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
+              />
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>{weightUnit}</Text>
+            </View>
+
+            {/* Target weight */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
+              Target Weight ({weightUnit})
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <TextInput
+                value={targetWeight}
+                onChangeText={setTargetWeight}
+                keyboardType="decimal-pad"
+                placeholder={bodyGoal === "cut"
+                  ? (weightUnit === "lbs" ? "e.g. 165" : "e.g. 75")
+                  : (weightUnit === "lbs" ? "e.g. 200" : "e.g. 91")}
+                placeholderTextColor={Colors.textMuted}
+                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
+              />
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>{weightUnit}</Text>
+            </View>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 8 }}>
+              ARPO uses this to calculate your calorie deficit/surplus and tracks your progress over time.
+            </Text>
+          </ScrollView>
+
+          <View style={{ paddingHorizontal: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingBottom: 12 + bottomInset }}>
+            <Pressable
+              onPress={() => { haptic(); setStep("summary"); }}
+              style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1, marginBottom: 4 })}
+            >
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                Continue →
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => { haptic(); setStep("summary"); }}
+              style={({ pressed }) => ({ alignItems: "center", paddingVertical: 14, opacity: pressed ? 0.6 : 1 })}
+            >
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                Skip — set in Settings → Nutrition later
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      )}
+
+      {/* ── SUMMARY ─────────────────────────────────────────────────────────── */}
+      {step === "summary" && (() => {
+        const goalMeta = BODY_GOALS.find(g => g.key === bodyGoal)!;
+        const heightDisplay = weightUnit === "lbs"
+          ? `${heightFt}'${heightIn}"`
+          : `${heightCm} cm`;
+        const targetCalories = tdeeEstimate
+          ? bodyGoal === "cut" ? tdeeEstimate - 500 : bodyGoal === "bulk" ? tdeeEstimate + 300 : tdeeEstimate
+          : null;
+
+        const rows: Array<{ label: string; value: string; sub?: string }> = [
+          { label: "Goal", value: goalMeta.label, sub: goalMeta.tagline },
+          { label: "Training", value: `${experience ?? "—"} · ${gender === "MALE" ? "Male" : "Female"}` },
+          { label: "Physique", value: [heightDisplay, age ? `${age} yrs` : null, bodyweight ? `${bodyweight} ${weightUnit}` : null].filter(Boolean).join(" · ") || "—" },
+          { label: "Activity", value: ACTIVITY_LABELS[activityLevel]?.label ?? activityLevel },
+          ...(bodyGoal !== "recomp" && (currentWeight || targetWeight)
+            ? [{ label: "Target", value: [currentWeight ? `${currentWeight} ${weightUnit} now` : null, targetWeight ? `→ ${targetWeight} ${weightUnit}` : null].filter(Boolean).join("  ") }]
+            : []),
+        ];
+
+        return (
+          <>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+              <Text style={titleStyle}>All Set.</Text>
+              <Text style={subtitleStyle}>
+                Here's your profile — choose a program next.
+              </Text>
+
+              {/* Profile rows */}
+              {rows.map(row => (
+                <View key={row.label} style={{
+                  flexDirection: "row", alignItems: "flex-start",
+                  borderBottomWidth: 1, borderBottomColor: Colors.border,
+                  paddingVertical: 14, gap: 12,
+                }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, width: 64, marginTop: 2 }}>
+                    {row.label}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text }}>{row.value}</Text>
+                    {row.sub ? <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>{row.sub}</Text> : null}
+                  </View>
+                </View>
+              ))}
+
+              {/* TDEE card */}
+              {tdeeEstimate !== null && (
+                <View style={{
+                  borderWidth: 1, borderColor: Colors.border,
+                  borderLeftWidth: 3, borderLeftColor: goalMeta.color,
+                  backgroundColor: goalMeta.color + "0A",
+                  padding: 16, marginTop: 20,
+                }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>
+                    Estimated Daily Calories
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 28, color: goalMeta.color, letterSpacing: -1 }}>
+                    ~{targetCalories?.toLocaleString()} kcal
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 4 }}>
+                    {bodyGoal === "cut" && `Maintenance ~${tdeeEstimate.toLocaleString()} kcal · 500 kcal deficit`}
+                    {bodyGoal === "bulk" && `Maintenance ~${tdeeEstimate.toLocaleString()} kcal · 300 kcal surplus`}
+                    {bodyGoal === "recomp" && `Maintenance calories · body recomposition`}
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 8, lineHeight: 16 }}>
+                    Full macro breakdown will appear in the Nutrition tab after setup.
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={{ paddingHorizontal: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingBottom: 12 + bottomInset }}>
+              <Pressable
+                onPress={() => { haptic(); handleComplete(); }}
+                disabled={saving}
+                style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1 })}
+              >
+                {saving
+                  ? <ActivityIndicator color={Colors.text} />
+                  : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                      Choose My Program →
+                    </Text>
+                }
+              </Pressable>
+            </View>
+          </>
+        );
+      })()}
     </View>
     </KeyboardAvoidingView>
   );

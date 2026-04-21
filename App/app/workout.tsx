@@ -21,6 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import ExerciseGuide from "@/components/ExerciseGuide";
+import SupersetIcon from "@/components/SupersetIcon";
 import ExerciseVideoPlayer from "@/components/ExerciseVideoPlayer";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
@@ -206,6 +207,10 @@ export default function WorkoutScreen() {
   const [supersetPickMode, setSupersetPickMode] = useState(false);
   const [supersetPickSource, setSupersetPickSource] = useState<number | null>(null);
   const supersetGroupCounterRef = useRef(1);
+  // ── Superset onboarding (shown once) ─────────────────────────────────────
+  const [supersetIntroVisible, setSupersetIntroVisible] = useState(false);
+  // ── Superset jump banner ──────────────────────────────────────────────────
+  const [supersetJumpBanner, setSupersetJumpBanner] = useState<string | null>(null);
 
   useEffect(() => {
     loadPlan();
@@ -580,15 +585,17 @@ export default function WorkoutScreen() {
     const states = exerciseStatesRef.current;
     const groupId = states[exIndex].supersetGroup;
     if (groupId === null) return;
-    // Find partner in same group with at least one unlogged set
+    // Find partner with at least one unlogged set — no data pre-fill required
     const partnerIndex = states.findIndex((ex, i) => {
       if (i === exIndex || ex.supersetGroup !== groupId) return false;
-      const isBodyweight = ex.exercise.equipment === "BODYWEIGHT";
-      return ex.sets.some((s) => !s.feedback && (isBodyweight ? true : s.weightUsed !== "" || s.repsCompleted !== ""));
+      return ex.sets.some((s) => !s.feedback);
     });
     if (partnerIndex >= 0) {
+      const partnerName = states[partnerIndex].exercise.name;
       setCurrentExerciseIndex(partnerIndex);
       setRestTimerVisible(false);
+      setSupersetJumpBanner(partnerName);
+      setTimeout(() => setSupersetJumpBanner(null), 2000);
     }
   }
 
@@ -1033,9 +1040,7 @@ export default function WorkoutScreen() {
               {currentEx.exercise.name}
             </Text>
             {currentEx.supersetGroup !== null && (
-              <View style={{ backgroundColor: Colors.primary + "33", borderWidth: 1, borderColor: Colors.primary, paddingHorizontal: 6, paddingVertical: 2 }}>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>SS</Text>
-              </View>
+              <SupersetIcon state="active" size={22} />
             )}
           </View>
           <View style={{ flexDirection: "row", gap: 4, marginLeft: 6, flexShrink: 0 }}>
@@ -1582,100 +1587,200 @@ export default function WorkoutScreen() {
                   const isPickSource = supersetPickSource === i;
                   const isPickable = supersetPickMode && !isPickSource;
 
-                  return (
-                    <Pressable
-                      key={ex.logId}
-                      onPress={() => {
-                        if (supersetPickMode && supersetPickSource !== null && i !== supersetPickSource) {
-                          createSuperset(supersetPickSource, i);
-                          setSupersetPickMode(false);
-                          setSupersetPickSource(null);
-                          setExercisePanelVisible(false);
-                          return;
-                        }
-                        if (!supersetPickMode) {
-                          setCurrentExerciseIndex(i);
-                          setExercisePanelVisible(false);
-                        }
-                      }}
-                      style={({ pressed }) => ({
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 20,
-                        paddingVertical: 12,
-                        borderBottomWidth: 1,
-                        borderBottomColor: Colors.border,
-                        backgroundColor: isPickSource
-                          ? Colors.primary + "22"
-                          : isCurrent && !supersetPickMode
-                            ? Colors.bgAccent
-                            : "transparent",
-                        opacity: pressed ? 0.7 : 1,
-                      })}
-                    >
-                      {/* Status dot */}
-                      <View style={{
-                        width: 8, height: 8, borderRadius: 4, marginRight: 12,
-                        backgroundColor: isDone ? Colors.success : isCurrent ? Colors.primary : Colors.border,
-                      }} />
+                  const iconState = isPickSource ? "picking"
+                    : ex.supersetGroup !== null ? "active"
+                    : "inactive";
 
-                      {/* Name + superset badge */}
-                      <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  return (
+                    <View key={ex.logId} style={{ position: "relative" }}>
+                      {/* Left stripe — only shown when paired */}
+                      {ex.supersetGroup !== null && (
+                        <View style={{
+                          position: "absolute", left: 0, top: 0, bottom: 0,
+                          width: 3, backgroundColor: Colors.primary, zIndex: 1,
+                        }} />
+                      )}
+
+                      <Pressable
+                        onPress={() => {
+                          if (supersetPickMode && supersetPickSource !== null && i !== supersetPickSource) {
+                            createSuperset(supersetPickSource, i);
+                            setSupersetPickMode(false);
+                            setSupersetPickSource(null);
+                            setExercisePanelVisible(false);
+                            return;
+                          }
+                          if (!supersetPickMode) {
+                            setCurrentExerciseIndex(i);
+                            setExercisePanelVisible(false);
+                          }
+                        }}
+                        style={({ pressed }) => ({
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingLeft: ex.supersetGroup !== null ? 23 : 20,
+                          paddingRight: 20,
+                          paddingVertical: 12,
+                          borderBottomWidth: 1,
+                          borderBottomColor: Colors.border,
+                          backgroundColor: isPickSource
+                            ? Colors.primary + "22"
+                            : isCurrent && !supersetPickMode
+                              ? Colors.bgAccent
+                              : "transparent",
+                          opacity: pressed ? 0.7 : 1,
+                        })}
+                      >
+                        {/* Status dot */}
+                        <View style={{
+                          width: 8, height: 8, borderRadius: 4, marginRight: 12,
+                          backgroundColor: isDone ? Colors.success : isCurrent ? Colors.primary : Colors.border,
+                        }} />
+
+                        {/* Name + sets */}
+                        <View style={{ flex: 1 }}>
                           <Text style={{ fontFamily: isCurrent ? "Rubik_600SemiBold" : "Rubik_400Regular", fontSize: 13, color: isCurrent ? Colors.text : Colors.textSecondary }}>
                             {i + 1}. {ex.exercise.name}
                           </Text>
-                          {ex.supersetGroup !== null && (
-                            <View style={{ backgroundColor: Colors.primary + "33", borderWidth: 1, borderColor: Colors.primary, paddingHorizontal: 4, paddingVertical: 1 }}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 8, color: Colors.primary, textTransform: "uppercase" }}>SS</Text>
-                            </View>
-                          )}
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 1 }}>
+                            {setsLogged}/{totalSets} sets · {ex.exercise.category}
+                          </Text>
                         </View>
-                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 1 }}>
-                          {setsLogged}/{totalSets} sets · {ex.exercise.category}
-                        </Text>
-                      </View>
 
-                      {/* Action buttons (hidden in pick mode) */}
-                      {!supersetPickMode && (
-                        <View style={{ flexDirection: "row", gap: 8 }}>
-                          {/* Superset toggle */}
-                          {ex.supersetGroup !== null ? (
-                            <Pressable
-                              onPress={(e) => { e.stopPropagation(); removeFromSuperset(i); }}
-                              hitSlop={8}
-                              style={{ paddingHorizontal: 6, paddingVertical: 3, borderWidth: 1, borderColor: Colors.primary }}
-                            >
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary }}>SS ×</Text>
-                            </Pressable>
-                          ) : (
-                            <Pressable
-                              onPress={(e) => { e.stopPropagation(); setSupersetPickSource(i); setSupersetPickMode(true); }}
-                              hitSlop={8}
-                              style={{ paddingHorizontal: 6, paddingVertical: 3, borderWidth: 1, borderColor: Colors.border }}
-                            >
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>SS</Text>
-                            </Pressable>
-                          )}
-                        </View>
-                      )}
+                        {/* Superset icon — always shown, tap to pair/unpair */}
+                        {!supersetPickMode && (
+                          <Pressable
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              if (ex.supersetGroup !== null) {
+                                removeFromSuperset(i);
+                              } else {
+                                AsyncStorage.getItem("superset_intro_seen").then((seen) => {
+                                  if (!seen) {
+                                    setSupersetIntroVisible(true);
+                                  }
+                                });
+                                setSupersetPickSource(i);
+                                setSupersetPickMode(true);
+                              }
+                            }}
+                            hitSlop={8}
+                          >
+                            <SupersetIcon state={iconState} size={28} />
+                          </Pressable>
+                        )}
 
-                      {isPickable && (
-                        <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
-                      )}
-                    </Pressable>
+                        {/* Pick target indicator */}
+                        {isPickable && (
+                          <Pressable
+                            onPress={() => {
+                              createSuperset(supersetPickSource!, i);
+                              setSupersetPickMode(false);
+                              setSupersetPickSource(null);
+                              setExercisePanelVisible(false);
+                            }}
+                            hitSlop={8}
+                          >
+                            <SupersetIcon state="picking" size={28} />
+                          </Pressable>
+                        )}
+                      </Pressable>
+                    </View>
                   );
                 })}
               </ScrollView>
 
               <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textAlign: "center" }}>
-                  Tap an exercise to jump to it · SS = superset (alternating sets)
+                  Tap an exercise to jump to it · tap the icon to pair a superset
                 </Text>
               </View>
             </View>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* ── Superset jump banner ─────────────────────────────────────────── */}
+      {supersetJumpBanner !== null && (
+        <View style={{
+          position: "absolute", top: 0, left: 0, right: 0, zIndex: 100,
+          backgroundColor: Colors.primary, paddingVertical: 8, paddingHorizontal: 20,
+          flexDirection: "row", alignItems: "center", gap: 8,
+        }}>
+          <SupersetIcon state="active" size={18} />
+          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: "white", flex: 1 }}>
+            SUPERSET → {supersetJumpBanner}
+          </Text>
+        </View>
+      )}
+
+      {/* ── Superset onboarding modal ─────────────────────────────────────── */}
+      <Modal
+        visible={supersetIntroVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSupersetIntroVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, width: "100%", padding: 24, gap: 16 }}>
+            {/* Header */}
+            <View style={{ alignItems: "center", gap: 12 }}>
+              <SupersetIcon state="active" size={52} />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textAlign: "center" }}>
+                Supercharge your workout?
+              </Text>
+            </View>
+
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 }}>
+              Supersets pair two exercises back-to-back with no rest between them.
+            </Text>
+
+            {/* Pros / Cons */}
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flex: 1, backgroundColor: "#0d1f0d", borderWidth: 1, borderColor: "#1a3a1a", borderRadius: 8, padding: 12 }}>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#4caf50", letterSpacing: 1, marginBottom: 6 }}>PROS</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 18 }}>
+                  {"✓ Saves ~30% time\n✓ Higher intensity\n✓ More metabolic stress"}
+                </Text>
+              </View>
+              <View style={{ flex: 1, backgroundColor: "#1f0d0d", borderWidth: 1, borderColor: "#3a1a1a", borderRadius: 8, padding: 12 }}>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.primary, letterSpacing: 1, marginBottom: 6 }}>CONS</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 18 }}>
+                  {"✗ More demanding\n✗ May reduce peak\n   strength output"}
+                </Text>
+              </View>
+            </View>
+
+            {/* How to use */}
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center", lineHeight: 18 }}>
+              Tap the icon on any exercise, then tap a second exercise to pair them. Sets alternate automatically.
+            </Text>
+
+            <Pressable
+              onPress={() => {
+                AsyncStorage.setItem("superset_intro_seen", "1");
+                setSupersetIntroVisible(false);
+              }}
+              style={{ backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: "center" }}
+            >
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "white" }}>Got it — pair exercises →</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                AsyncStorage.setItem("superset_intro_seen", "1");
+                setSupersetPickMode(false);
+                setSupersetPickSource(null);
+                setSupersetIntroVisible(false);
+              }}
+              hitSlop={8}
+            >
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center" }}>
+                Skip — standard sets
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </Modal>
 
       <Modal

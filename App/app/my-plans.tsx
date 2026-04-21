@@ -124,12 +124,18 @@ export default function MyPlansScreen() {
           <ActivityIndicator color={Colors.primary} size="large" />
         </View>
       ) : plans.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
+        <Pressable
+          onPress={() => router.push("/templates")}
+          style={({ pressed }) => ({ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 32, opacity: pressed ? 0.7 : 1 })}
+        >
           <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, textAlign: "center", marginTop: 16 }}>
-            No active plans. Tap + to start one.
+            No active plans.
           </Text>
-        </View>
+          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textAlign: "center", marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+            Tap to start one →
+          </Text>
+        </Pressable>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginBottom: 4 }}>
