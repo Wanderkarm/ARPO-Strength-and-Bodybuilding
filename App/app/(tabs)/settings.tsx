@@ -35,12 +35,10 @@ import {
 import type { GoalType } from "@/utils/volumeLandmarks";
 import {
   loadNotificationPrefs,
-  scheduleWorkoutReminder,
+  scheduleReminder,
   scheduleWeighInReminder,
-  cancelWorkoutReminder,
+  cancelReminder,
   cancelWeighInReminder,
-  scheduleStreakReminder,
-  cancelStreakReminder,
   requestNotificationPermission,
   formatTime,
   type NotificationPrefs,
@@ -49,8 +47,6 @@ import {
   getStreakInfo,
   getTodaySteps,
   updateStepGoal,
-  getStreakNotifSettings,
-  updateStreakNotifSettings,
   type StreakInfo,
   type DailyStepsEntry,
 } from "@/lib/local-db";
@@ -154,15 +150,15 @@ export default function SettingsScreen() {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [hasPlan, setHasPlan] = useState(false);
   const [switchingGym, setSwitchingGym] = useState(false);
+  const [planDaysPerWeek, setPlanDaysPerWeek] = useState(3);
 
   // Notification prefs
   const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>({
-    workoutEnabled: false, workoutHour: 8,  workoutMinute: 0,
-    weighinEnabled: false, weighinHour: 7,  weighinMinute: 0,
-    streakEnabled:  false, streakHour:  20, streakMinute:  0, streakDays: "daily",
+    reminderEnabled: false, reminderHour: 8, reminderMinute: 0,
+    weighinEnabled:  false, weighinHour:  7, weighinMinute:  0,
   });
-  const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
-  const [showWeighinPicker, setShowWeighinPicker] = useState(false);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
+  const [showWeighinPicker,  setShowWeighinPicker]  = useState(false);
 
   // Backup / restore
   const [exportingBackup, setExportingBackup] = useState(false);
@@ -175,9 +171,6 @@ export default function SettingsScreen() {
   const [stepGoalInput, setStepGoalInput] = useState("8000");
   const [savingStepGoal, setSavingStepGoal] = useState(false);
   const [stepGoalSaved, setStepGoalSaved] = useState(false);
-  const [showStreakPicker, setShowStreakPicker] = useState(false);
-  // Which days of week selected for streak reminder (0=Sun…6=Sat). null = daily
-  const [streakReminderDays, setStreakReminderDays] = useState<"daily" | number[]>("daily");
   // Watch / device reminder
   const [watchReminderEnabled, setWatchReminderEnabled] = useState(false);
 
@@ -213,6 +206,7 @@ export default function SettingsScreen() {
           setGymType(plan.gymType);
           setTemplateName(plan.template.name);
           setCurrentWeek(plan.currentWeek);
+          setPlanDaysPerWeek(plan.template.days.length);
         }
       } else {
         setHasPlan(false);
@@ -220,7 +214,6 @@ export default function SettingsScreen() {
 
       const prefs = await loadNotificationPrefs();
       setNotifPrefs(prefs);
-      setStreakReminderDays(prefs.streakDays);
 
       const watchPref = await AsyncStorage.getItem("watchReminderEnabled");
       setWatchReminderEnabled(watchPref === "true");
@@ -689,96 +682,93 @@ export default function SettingsScreen() {
         {/* ── Notifications ── */}
         <SectionHeader title="Notifications" />
 
-        {/* Workout reminder row */}
-        {[
-          /* ── Workout Reminder ── */
-          (() => {
-            const enabled = notifPrefs.workoutEnabled;
-            const timeStr = formatTime(notifPrefs.workoutHour, notifPrefs.workoutMinute);
-            const pickerDate = new Date();
-            pickerDate.setHours(notifPrefs.workoutHour, notifPrefs.workoutMinute, 0, 0);
+        {/* Training reminder (unified — replaces old workout + streak) */}
+        {(() => {
+          const enabled  = notifPrefs.reminderEnabled;
+          const timeStr  = formatTime(notifPrefs.reminderHour, notifPrefs.reminderMinute);
+          const pickerDate = new Date();
+          pickerDate.setHours(notifPrefs.reminderHour, notifPrefs.reminderMinute, 0, 0);
 
-            const onToggle = async (val: boolean) => {
-              const updated = { ...notifPrefs, workoutEnabled: val };
-              setNotifPrefs(updated);
-              if (val) {
-                const granted = await requestNotificationPermission();
-                if (granted) await scheduleWorkoutReminder(notifPrefs.workoutHour, notifPrefs.workoutMinute);
-                else setNotifPrefs({ ...updated, workoutEnabled: false });
-              } else {
-                await cancelWorkoutReminder();
-              }
-            };
+          const onToggle = async (val: boolean) => {
+            const updated = { ...notifPrefs, reminderEnabled: val };
+            setNotifPrefs(updated);
+            if (val) {
+              const granted = await requestNotificationPermission();
+              if (granted) await scheduleReminder(notifPrefs.reminderHour, notifPrefs.reminderMinute);
+              else setNotifPrefs({ ...updated, reminderEnabled: false });
+            } else {
+              await cancelReminder();
+            }
+          };
 
-            const onTimeChange = async (event: DateTimePickerEvent, date?: Date) => {
-              if (Platform.OS === "android") setShowWorkoutPicker(false);
-              if (event.type === "dismissed" || !date) return;
-              const h = date.getHours();
-              const m = date.getMinutes();
-              const updated = { ...notifPrefs, workoutHour: h, workoutMinute: m };
-              setNotifPrefs(updated);
-              if (notifPrefs.workoutEnabled) await scheduleWorkoutReminder(h, m);
-            };
+          const onTimeChange = async (event: DateTimePickerEvent, date?: Date) => {
+            if (Platform.OS === "android") setShowReminderPicker(false);
+            if (event.type === "dismissed" || !date) return;
+            const h = date.getHours();
+            const m = date.getMinutes();
+            const updated = { ...notifPrefs, reminderHour: h, reminderMinute: m };
+            setNotifPrefs(updated);
+            if (notifPrefs.reminderEnabled) await scheduleReminder(h, m);
+          };
 
-            return (
-              <View key="workout" style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                    <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="barbell-outline" size={17} color={Colors.primary} />
-                    </View>
-                    <View>
-                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Workout Reminder</Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                        {enabled ? `Daily at ${timeStr}` : "Off"}
-                      </Text>
-                    </View>
+          return (
+            <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons name="barbell-outline" size={17} color={Colors.primary} />
                   </View>
-                  <Switch value={enabled} onValueChange={onToggle} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.text} />
-                </View>
-                {enabled && (
-                  <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
-                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                      Reminder Time
+                  <View>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Training Reminder</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                      {enabled ? `Daily at ${timeStr} · rotates messages` : "Off"}
                     </Text>
-                    <Pressable
-                      onPress={() => setShowWorkoutPicker(true)}
-                      style={({ pressed }) => ({
-                        flexDirection: "row", alignItems: "center", gap: 10,
-                        borderWidth: 1, borderColor: Colors.primary,
-                        backgroundColor: Colors.primary + "11",
-                        paddingHorizontal: 14, paddingVertical: 10,
-                        opacity: pressed ? 0.75 : 1,
-                      })}
-                    >
-                      <Ionicons name="time-outline" size={16} color={Colors.primary} />
-                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{timeStr}</Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
-                    </Pressable>
-                    {/* Android: inline picker dialog */}
-                    {showWorkoutPicker && Platform.OS === "android" && (
-                      <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
-                    )}
-                    {/* iOS: modal with spinner */}
-                    {Platform.OS === "ios" && (
-                      <Modal visible={showWorkoutPicker} transparent animationType="slide">
-                        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
-                          <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
-                            <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
-                              <Pressable onPress={() => setShowWorkoutPicker(false)} hitSlop={12}>
-                                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
-                              </Pressable>
-                            </View>
-                            <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
-                          </View>
-                        </View>
-                      </Modal>
-                    )}
                   </View>
-                )}
+                </View>
+                <Switch value={enabled} onValueChange={onToggle} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.text} />
               </View>
-            );
-          })(),
+              {enabled && (
+                <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                    Reminder Time
+                  </Text>
+                  <Pressable
+                    onPress={() => setShowReminderPicker(true)}
+                    style={({ pressed }) => ({
+                      flexDirection: "row", alignItems: "center", gap: 10,
+                      borderWidth: 1, borderColor: Colors.primary,
+                      backgroundColor: Colors.primary + "11",
+                      paddingHorizontal: 14, paddingVertical: 10,
+                      opacity: pressed ? 0.75 : 1,
+                    })}
+                  >
+                    <Ionicons name="time-outline" size={16} color={Colors.primary} />
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{timeStr}</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                  </Pressable>
+                  {showReminderPicker && Platform.OS === "android" && (
+                    <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
+                  )}
+                  {Platform.OS === "ios" && (
+                    <Modal visible={showReminderPicker} transparent animationType="slide">
+                      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+                        <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+                          <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                            <Pressable onPress={() => setShowReminderPicker(false)} hitSlop={12}>
+                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                            </Pressable>
+                          </View>
+                          <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
+                        </View>
+                      </View>
+                    </Modal>
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        })()}
+        {[
           /* ── Weigh-in Reminder ── */
           (() => {
             const enabled = notifPrefs.weighinEnabled;
@@ -893,151 +883,6 @@ export default function SettingsScreen() {
           )}
         </View>
 
-        {/* Streak Reminder */}
-        {(() => {
-          const enabled = notifPrefs.streakEnabled;
-          const timeStr = formatTime(notifPrefs.streakHour, notifPrefs.streakMinute);
-          const pickerDate = new Date();
-          pickerDate.setHours(notifPrefs.streakHour, notifPrefs.streakMinute, 0, 0);
-          const DAY_LABELS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-
-          const onToggle = async (val: boolean) => {
-            const updated = { ...notifPrefs, streakEnabled: val };
-            setNotifPrefs(updated);
-            if (val) {
-              const granted = await requestNotificationPermission();
-              if (granted) await scheduleStreakReminder(notifPrefs.streakHour, notifPrefs.streakMinute, streakReminderDays, streak.current);
-              else setNotifPrefs({ ...updated, streakEnabled: false });
-            } else {
-              await cancelStreakReminder();
-            }
-            if (userId) await updateStreakNotifSettings(userId, { enabled: val, time: `${notifPrefs.streakHour}:${notifPrefs.streakMinute}`, days: streakReminderDays });
-          };
-
-          const onTimeChange = async (event: DateTimePickerEvent, date?: Date) => {
-            if (Platform.OS === "android") setShowStreakPicker(false);
-            if (event.type === "dismissed" || !date) return;
-            const h = date.getHours();
-            const m = date.getMinutes();
-            const updated = { ...notifPrefs, streakHour: h, streakMinute: m };
-            setNotifPrefs(updated);
-            if (notifPrefs.streakEnabled) await scheduleStreakReminder(h, m, streakReminderDays, streak.current);
-            if (userId) await updateStreakNotifSettings(userId, { enabled: notifPrefs.streakEnabled, time: `${h}:${m}`, days: streakReminderDays });
-          };
-
-          return (
-            <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <View style={{ width: 34, height: 34, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="flame-outline" size={17} color="#F59E0B" />
-                  </View>
-                  <View>
-                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Streak Reminder</Text>
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                      {enabled
-                        ? `${streakReminderDays === "daily" ? "Daily" : `${(streakReminderDays as number[]).length} day(s)/week`} at ${timeStr}`
-                        : "Off"}
-                    </Text>
-                  </View>
-                </View>
-                <Switch value={enabled} onValueChange={onToggle} trackColor={{ false: Colors.border, true: "#F59E0B" }} thumbColor={Colors.text} />
-              </View>
-              {enabled && (
-                <View style={{ paddingHorizontal: 14, paddingBottom: 14, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12 }}>
-                  {/* Time picker */}
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                    Time
-                  </Text>
-                  <Pressable
-                    onPress={() => setShowStreakPicker(true)}
-                    style={({ pressed }) => ({
-                      flexDirection: "row", alignItems: "center", gap: 10,
-                      borderWidth: 1, borderColor: "#F59E0B",
-                      backgroundColor: "#F59E0B11",
-                      paddingHorizontal: 14, paddingVertical: 10, marginBottom: 14,
-                      opacity: pressed ? 0.75 : 1,
-                    })}
-                  >
-                    <Ionicons name="time-outline" size={16} color="#F59E0B" />
-                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: "#F59E0B", flex: 1 }}>{timeStr}</Text>
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
-                  </Pressable>
-                  {showStreakPicker && Platform.OS === "android" && (
-                    <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
-                  )}
-                  {Platform.OS === "ios" && (
-                    <Modal visible={showStreakPicker} transparent animationType="slide">
-                      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
-                        <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
-                          <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
-                            <Pressable onPress={() => setShowStreakPicker(false)} hitSlop={12}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
-                            </Pressable>
-                          </View>
-                          <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
-                        </View>
-                      </View>
-                    </Modal>
-                  )}
-                  {/* Day selector */}
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                    Remind me on
-                  </Text>
-                  <View style={{ flexDirection: "row", gap: 0 }}>
-                    {/* "Every day" option */}
-                    <Pressable
-                      onPress={async () => {
-                        setStreakReminderDays("daily");
-                        if (notifPrefs.streakEnabled) await scheduleStreakReminder(notifPrefs.streakHour, notifPrefs.streakMinute, "daily", streak.current);
-                        if (userId) await updateStreakNotifSettings(userId, { enabled: notifPrefs.streakEnabled, time: `${notifPrefs.streakHour}:${notifPrefs.streakMinute}`, days: "daily" });
-                      }}
-                      style={({ pressed }) => ({
-                        flex: 1.5, borderWidth: 1, borderRightWidth: 0,
-                        borderColor: streakReminderDays === "daily" ? "#F59E0B" : Colors.border,
-                        backgroundColor: streakReminderDays === "daily" ? "#F59E0B22" : Colors.bg,
-                        paddingVertical: 9, alignItems: "center", opacity: pressed ? 0.7 : 1,
-                      })}
-                    >
-                      <Text style={{ fontFamily: streakReminderDays === "daily" ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 10, color: streakReminderDays === "daily" ? "#F59E0B" : Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        Every Day
-                      </Text>
-                    </Pressable>
-                    {/* Individual day toggles */}
-                    {DAY_LABELS.map((day, i) => {
-                      const isCustom = Array.isArray(streakReminderDays);
-                      const isActive = isCustom && (streakReminderDays as number[]).includes(i);
-                      return (
-                        <Pressable
-                          key={day}
-                          onPress={async () => {
-                            const current = Array.isArray(streakReminderDays) ? [...streakReminderDays] : [];
-                            const next = isActive ? current.filter(d => d !== i) : [...current, i].sort();
-                            const newDays = next.length === 0 ? "daily" : next;
-                            setStreakReminderDays(newDays);
-                            if (notifPrefs.streakEnabled) await scheduleStreakReminder(notifPrefs.streakHour, notifPrefs.streakMinute, newDays, streak.current);
-                            if (userId) await updateStreakNotifSettings(userId, { enabled: notifPrefs.streakEnabled, time: `${notifPrefs.streakHour}:${notifPrefs.streakMinute}`, days: newDays });
-                          }}
-                          style={({ pressed }) => ({
-                            flex: 1,
-                            borderWidth: 1, borderRightWidth: i < 6 ? 0 : 1,
-                            borderColor: isActive ? "#F59E0B" : Colors.border,
-                            backgroundColor: isActive ? "#F59E0B22" : Colors.bg,
-                            paddingVertical: 9, alignItems: "center", opacity: pressed ? 0.7 : 1,
-                          })}
-                        >
-                          <Text style={{ fontFamily: isActive ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 9, color: isActive ? "#F59E0B" : Colors.textMuted, textTransform: "uppercase" }}>
-                            {day}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
-            </View>
-          );
-        })()}
 
         {/* ── Steps ── */}
         <SectionHeader title="Daily Steps" />
@@ -1261,6 +1106,35 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        {/* ── Training Schedule ── */}
+        {hasPlan && planId && (
+          <>
+            <SectionHeader title="Training Schedule" />
+            <Pressable
+              onPress={() => router.push({
+                pathname: "/schedule-picker",
+                params: { planId, daysPerWeek: String(planDaysPerWeek), destination: "back" },
+              })}
+              style={({ pressed }) => ({
+                flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+                borderWidth: 1, borderColor: Colors.border,
+                paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <View>
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>
+                  Edit Training Days
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                  Set which days of the week you train
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </Pressable>
+          </>
+        )}
 
         {/* ── Legal ── */}
         <SectionHeader title="Legal" />

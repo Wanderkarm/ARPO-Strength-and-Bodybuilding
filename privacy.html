@@ -206,19 +206,20 @@
       </div>
 
       <div class="section">
-        <h2>3. Apple HealthKit Data</h2>
-        <p>ARPO integrates with Apple Health to display a Recovery readiness score and daily step count. The following data types may be accessed <strong>with your explicit permission</strong>:</p>
+        <h2>3. Health Platform Data</h2>
+        <p>On iOS, ARPO integrates with Apple HealthKit. On Android, ARPO integrates with Health Connect. These integrations display a Recovery readiness score, daily step count, and body composition data. The following data types may be accessed <strong>with your explicit permission</strong>:</p>
         <ul>
           <li><strong>Read:</strong> Resting Heart Rate — used to assess cardiovascular recovery status.</li>
           <li><strong>Read:</strong> Heart Rate Variability (HRV) — used to assess nervous system recovery status.</li>
           <li><strong>Read:</strong> Sleep Analysis — sleep duration used to assess rest quality.</li>
           <li><strong>Read:</strong> Step Count — daily step count displayed against your personal step goal.</li>
-          <li><strong>Write:</strong> Workout sessions may optionally be logged to Apple Health.</li>
+          <li><strong>Read:</strong> Body Weight &amp; Body Fat Percentage — synced automatically on app open if no entry exists for today.</li>
+          <li><strong>Write:</strong> Workout sessions may optionally be logged to Apple Health (iOS) or Health Connect (Android).</li>
         </ul>
         <div class="highlight-box">
-          <p><strong>HealthKit data is never used for advertising, marketing, or any purpose other than displaying your recovery readiness within the app.</strong> HealthKit data is never shared with third parties, never transmitted off your device, and never combined with data from other apps. This is a requirement of Apple's HealthKit guidelines and a core principle of how ARPO is built.</p>
+          <p><strong>Health platform data is never used for advertising, marketing, or any purpose other than displaying your recovery readiness and body metrics within the app.</strong> This data is never shared with third parties, never transmitted off your device, and never combined with data from other apps. This is a requirement of Apple's HealthKit guidelines and Google's Health Connect policies, and a core principle of how ARPO is built.</p>
         </div>
-        <p>You can revoke HealthKit permissions at any time in your iPhone's Settings → Privacy & Security → Health → ARPO.</p>
+        <p>You can revoke health permissions at any time in your device settings. On iOS: Settings → Privacy &amp; Security → Health → ARPO. On Android: Health Connect → App permissions → ARPO.</p>
       </div>
 
       <div class="section">

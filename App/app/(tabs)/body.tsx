@@ -23,6 +23,7 @@ import {
   getNutritionProfile,
   getBodyWeightHistory,
   getBodyMeasurementHistory,
+  getBodyFatHistory,
   logBodyWeight,
   type BodyMeasurement,
 } from "@/lib/local-db";
@@ -77,6 +78,7 @@ export default function BodyScreen() {
 
   // Measurements
   const [latestMeasurement, setLatestMeasurement] = useState<BodyMeasurement | null>(null);
+  const [bodyFatHistory, setBodyFatHistory] = useState<{ loggedAt: string; bodyFatPct: number }[]>([]);
 
   // Health sync
   const [syncing, setSyncing] = useState(false);
@@ -96,11 +98,12 @@ export default function BodyScreen() {
       if (!uid) return;
       setUserId(uid);
 
-      const [profile, nutrition, weights, measurements] = await Promise.all([
+      const [profile, nutrition, weights, measurements, bfHistory] = await Promise.all([
         getUserProfile(uid),
         getNutritionProfile(uid),
         getBodyWeightHistory(uid, 14),
         getBodyMeasurementHistory(uid, 1),
+        getBodyFatHistory(uid, 30),
       ]);
 
       const u = (profile?.weightUnit ?? "lbs") as "lbs" | "kg";
@@ -109,6 +112,7 @@ export default function BodyScreen() {
       setHeightCm(nutrition?.heightCm ?? null);
       setWeightHistory(weights);
       setLatestMeasurement(measurements[0] ?? null);
+      setBodyFatHistory(bfHistory);
 
       if (nutrition?.heightCm && nutrition?.age && profile?.bodyweight) {
         setNutritionConfigured(true);
@@ -198,6 +202,23 @@ export default function BodyScreen() {
     return { pts, lastX, lastY };
   }
 
+  function buildBfSparkline(entries: { bodyFatPct: number }[], w: number, h: number) {
+    if (entries.length < 2) return null;
+    const vals = entries.map(e => e.bodyFatPct);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const range = max - min || 0.5;
+    const pad = 4;
+    const pts = vals.map((v, i) => {
+      const x = pad + (i / (vals.length - 1)) * (w - pad * 2);
+      const y = pad + (1 - (v - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    const lastX = pad + (w - pad * 2);
+    const lastY = pad + (1 - (vals[vals.length - 1] - min) / range) * (h - pad * 2);
+    return { pts, lastX, lastY };
+  }
+
   // ── Derived display values ────────────────────────────────────────────────────
   const latestEntry = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1] : null;
   const oldestEntry = weightHistory.length > 1 ? weightHistory[0] : null;
@@ -213,6 +234,13 @@ export default function BodyScreen() {
     : null;
 
   const sparkData = buildSparkline(weightHistory, 240, 44);
+  const bfSparkData = buildBfSparkline(bodyFatHistory, 240, 44);
+  const bfChangeVal = bodyFatHistory.length >= 2
+    ? Math.round((bodyFatHistory[bodyFatHistory.length - 1].bodyFatPct - bodyFatHistory[0].bodyFatPct) * 10) / 10
+    : null;
+  const bfDaySpan = bodyFatHistory.length >= 2
+    ? Math.round((new Date(bodyFatHistory[bodyFatHistory.length - 1].loggedAt).getTime() - new Date(bodyFatHistory[0].loggedAt).getTime()) / 86_400_000)
+    : null;
   const goalMeta = GOAL_META[bodyGoal] ?? GOAL_META.recomp;
   const macros = nutritionPlan?.moderate;
 
@@ -447,25 +475,32 @@ export default function BodyScreen() {
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                 Composition
               </Text>
-              {bodyFatSource === "navy_formula" && bodyFatPct !== null && (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <Ionicons name="calculator-outline" size={11} color={Colors.textMuted} />
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
-                    Navy formula
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                {bodyFatSource === "navy_formula" && bodyFatPct !== null && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                    <Ionicons name="calculator-outline" size={11} color={Colors.textMuted} />
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
+                      Navy formula
+                    </Text>
+                  </View>
+                )}
+                {storedBodyFatPct !== null && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                    <Ionicons name="hardware-chip-outline" size={11} color={Colors.primary} />
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.primary }}>
+                      {latestMeasurement?.source === "apple_health" ? "Apple Health"
+                        : latestMeasurement?.source === "google_fit" ? "Health Connect"
+                        : latestMeasurement?.source === "smart_scale" ? "Smart Scale"
+                        : "Device"}
+                    </Text>
+                  </View>
+                )}
+                <Pressable onPress={() => router.push("/body-measurements")} hitSlop={8}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Measurements →
                   </Text>
-                </View>
-              )}
-              {storedBodyFatPct !== null && (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <Ionicons name="hardware-chip-outline" size={11} color={Colors.primary} />
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.primary }}>
-                    {latestMeasurement?.source === "apple_health" ? "Apple Health"
-                      : latestMeasurement?.source === "google_fit" ? "Google Fit"
-                      : latestMeasurement?.source === "smart_scale" ? "Smart Scale"
-                      : "Device"}
-                  </Text>
-                </View>
-              )}
+                </Pressable>
+              </View>
             </View>
 
             {hasCompositionData ? (
@@ -560,6 +595,29 @@ export default function BodyScreen() {
                     </View>
                   )}
                 </View>
+
+                {/* Body fat trend sparkline */}
+                {bfSparkData && bodyFatHistory.length >= 2 && (
+                  <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12, marginBottom: 14 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                        Body Fat Trend
+                      </Text>
+                      {bfChangeVal !== null && bfChangeVal !== 0 && bfDaySpan !== null && (
+                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: bfChangeVal > 0 ? Colors.warning : Colors.success }}>
+                          {bfChangeVal > 0 ? `+${bfChangeVal}` : bfChangeVal}% ({bfDaySpan}d)
+                        </Text>
+                      )}
+                    </View>
+                    <Svg width={240} height={44} style={{ marginBottom: 4 }}>
+                      <Polyline points={bfSparkData.pts} fill="none" stroke={Colors.primary} strokeWidth="1.5" strokeOpacity={0.65} />
+                      <Circle cx={bfSparkData.lastX} cy={bfSparkData.lastY} r={3.5} fill={Colors.primary} />
+                    </Svg>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
+                      {bodyFatHistory.length} readings · tap "Measurements →" to add
+                    </Text>
+                  </View>
+                )}
 
                 {/* Athlete caveat for BMI */}
                 {isBmiMisleading && (

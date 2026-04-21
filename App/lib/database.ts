@@ -45,10 +45,15 @@ export async function initializeSchema() {
   await database.execAsync(`ALTER TABLE users ADD COLUMN target_weight_kg REAL`).catch(() => {});
   await database.execAsync(`ALTER TABLE users ADD COLUMN weeks_to_goal INTEGER`).catch(() => {});
   await database.execAsync(`ALTER TABLE exercises ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+  // ── v3: training schedule ────────────────────────────────────────────────────
+  await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN training_days TEXT`).catch(() => {});
 
   // Body composition columns — source tracks data origin for future smart scale / Health sync
   await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN body_fat_pct REAL`).catch(() => {});
   await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'`).catch(() => {});
+
+  // ── v4: right thigh measurement ───────────────────────────────────────────────
+  await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN right_thigh_cm REAL`).catch(() => {});
 
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS workout_sessions (

@@ -14,7 +14,7 @@
 
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { logBodyWeight, logBodyMeasurements, updateDailySteps } from "@/lib/local-db";
+import { logBodyWeight, logBodyMeasurements, updateDailySteps, hasTodayWeightLog } from "@/lib/local-db";
 
 export interface SyncResult {
   weightSynced: boolean;
@@ -399,4 +399,109 @@ export async function syncFromHealth(userId: string): Promise<SyncResult> {
     syncedAt: new Date().toISOString(),
     error: "Not supported on this platform",
   };
+}
+
+/**
+ * Silent background sync called on every app open / foreground.
+ * Steps are always upserted (safe). Weight is only logged if no entry exists
+ * for today yet — prevents duplicate rows from repeated app opens.
+ * Never throws; all errors are swallowed so UI is unaffected.
+ */
+export async function silentDailySync(userId: string): Promise<{ stepsSynced: boolean; weightSynced: boolean }> {
+  if (Platform.OS !== "ios" && Platform.OS !== "android") {
+    return { stepsSynced: false, weightSynced: false };
+  }
+
+  try {
+    const alreadyHasWeight = await hasTodayWeightLog(userId);
+
+    if (Platform.OS === "ios") {
+      const _hkModule = require("@kingstinct/react-native-healthkit");
+      const HealthKit = _hkModule.default ?? _hkModule;
+
+      await HealthKit.requestAuthorization({
+        toRead: [
+          "HKQuantityTypeIdentifierStepCount",
+          "HKQuantityTypeIdentifierBodyMass",
+        ],
+        toShare: [],
+      });
+
+      let stepsSynced = false;
+      let weightSynced = false;
+
+      // Steps — cumulative sum for today
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      const stepsStats = await HealthKit.queryStatisticsForQuantity(
+        "HKQuantityTypeIdentifierStepCount",
+        ["cumulativeSum"],
+        { startDate: startOfToday.toISOString(), endDate: now.toISOString() }
+      );
+      const steps = stepsStats?.sumQuantity?.quantity;
+      if (steps != null && steps > 0) {
+        await updateDailySteps(userId, Math.round(steps), "apple_health");
+        stepsSynced = true;
+      }
+
+      // Weight — only if nothing logged today
+      if (!alreadyHasWeight) {
+        const weightSample = await HealthKit.getMostRecentQuantitySample(
+          "HKQuantityTypeIdentifierBodyMass",
+          "kg"
+        );
+        if (weightSample?.quantity != null && weightSample.quantity > 0) {
+          await logBodyWeight(userId, weightSample.quantity);
+          weightSynced = true;
+        }
+      }
+
+      return { stepsSynced, weightSynced };
+    }
+
+    if (Platform.OS === "android") {
+      const { initialize, readRecords } = require("react-native-health-connect");
+      const available = await initialize();
+      if (!available) return { stepsSynced: false, weightSynced: false };
+
+      await require("react-native-health-connect").requestPermission([
+        { accessType: "read", recordType: "Steps" },
+        { accessType: "read", recordType: "Weight" },
+      ]);
+
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+      let stepsSynced = false;
+      let weightSynced = false;
+
+      const stepsResult = await readRecords("Steps", {
+        timeRangeFilter: { operator: "between", startTime: startOfToday.toISOString(), endTime: now.toISOString() },
+      });
+      const totalSteps = (stepsResult?.records ?? []).reduce((sum: number, r: any) => sum + (r.count ?? 0), 0);
+      if (totalSteps > 0) {
+        await updateDailySteps(userId, totalSteps, "google_fit");
+        stepsSynced = true;
+      }
+
+      if (!alreadyHasWeight) {
+        const weightResult = await readRecords("Weight", {
+          timeRangeFilter: { operator: "before", endTime: now.toISOString() },
+          ascendingOrder: false,
+          pageSize: 1,
+        });
+        const latestWeight = weightResult?.records?.[0];
+        if (latestWeight?.weight?.inKilograms > 0) {
+          await logBodyWeight(userId, latestWeight.weight.inKilograms);
+          weightSynced = true;
+        }
+      }
+
+      return { stepsSynced, weightSynced };
+    }
+  } catch {
+    // Silent — never surface errors to the user
+  }
+
+  return { stepsSynced: false, weightSynced: false };
 }

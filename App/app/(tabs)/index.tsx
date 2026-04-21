@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Linking,
+  AppState,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,9 +26,15 @@ import { useUnit } from "@/contexts/UnitContext";
 import {
   getWorkoutPlan, skipSession,
   getStreakInfo, getTodaySteps, updateDailySteps,
+  getCalendarData, getTrainingSchedule, hasEverSyncedFromHealthApp,
   type WorkoutPlan, type WorkoutLog, type StreakInfo, type DailyStepsEntry,
+  type CalendarData, type CalendarDayData,
 } from "@/lib/local-db";
-import { syncFromHealth, syncRecoveryMetrics, getCachedRecoveryMetrics, type RecoveryMetrics } from "@/lib/healthSync";
+import { syncFromHealth, silentDailySync, syncRecoveryMetrics, getCachedRecoveryMetrics, type RecoveryMetrics } from "@/lib/healthSync";
+import { refreshReminderIfNeeded } from "@/lib/notifications";
+import CalendarStrip from "@/components/CalendarStrip";
+import DayDetailSheet from "@/components/DayDetailSheet";
+import { weekStartDate, weekEndDate } from "@/utils/weekStart";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -82,6 +89,12 @@ export default function DashboardScreen() {
   // Body comp nudge
   const [bodyCompPromptDismissed, setBodyCompPromptDismissed] = useState(true); // start hidden, load below
 
+  // Calendar strip
+  const [weekCalData, setWeekCalData] = useState<CalendarData>({});
+  const [trainingDays, setTrainingDays] = useState<number[] | null>(null);
+  const [stripSheetDate, setStripSheetDate] = useState<string | null>(null);
+  const [stripSheetData, setStripSheetData] = useState<CalendarDayData | null>(null);
+
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
     if (planId) {
@@ -114,10 +127,47 @@ export default function DashboardScreen() {
       setBodyCompPromptDismissed(val === "1");
     });
 
+    // Calendar strip — load current week data + training schedule
+    if (uid) {
+      const now = new Date();
+      const start = weekStartDate(now);
+      const end = weekEndDate(now);
+      getCalendarData(uid, start, end).then(setWeekCalData);
+    }
+    const pid = await AsyncStorage.getItem("activePlanId");
+    if (pid) {
+      getTrainingSchedule(pid).then(setTrainingDays);
+    }
+
     setIsLoading(false);
   }, []);
 
   useFocusEffect(useCallback(() => { loadPlan(); }, [loadPlan]));
+
+  // Silent background sync: refresh steps (and weight if not yet logged today)
+  // whenever the app comes to the foreground.
+  useEffect(() => {
+    async function runSilentSync() {
+      const uid = await AsyncStorage.getItem("userId");
+      if (!uid) return;
+      const result = await silentDailySync(uid);
+      if (result.stepsSynced) {
+        const [updated, s] = await Promise.all([getTodaySteps(uid), getStreakInfo(uid)]);
+        setTodaySteps(updated);
+        setStreak(s);
+      }
+    }
+
+    // Run once on mount
+    runSilentSync();
+    refreshReminderIfNeeded(); // replenish rotating notifications if running low
+
+    // Re-run whenever the app returns to the foreground
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") runSilentSync();
+    });
+    return () => sub.remove();
+  }, []);
 
   async function onRefresh() {
     setRefreshing(true);
@@ -690,6 +740,27 @@ export default function DashboardScreen() {
           )}
         </View>
 
+        {/* ── Calendar Strip ── */}
+        <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, marginTop: 20 }}>
+          <CalendarStrip
+            calendarData={weekCalData}
+            trainingDays={trainingDays}
+            onSchedulePromptPress={() => {
+              const planId = plan?.id;
+              if (!planId) { router.push("/templates"); return; }
+              router.push({
+                pathname: "/schedule-picker",
+                params: { planId, daysPerWeek: String(plan.template.days.length), destination: "tabs" },
+              });
+            }}
+            onDayPress={(dateStr) => {
+              const data = weekCalData[dateStr];
+              setStripSheetDate(dateStr);
+              setStripSheetData(data ?? null);
+            }}
+          />
+        </View>
+
         {/* ── Weekly Progress bar ── */}
         <View style={{ paddingHorizontal: 24, marginTop: 16 }}>
           <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
@@ -791,7 +862,17 @@ export default function DashboardScreen() {
                           : Haptics.NotificationFeedbackType.Warning
                       );
                     }
-                    if (!gotData) Alert.alert("No data found", "No sleep, RHR, or HRV data was found in " + (Platform.OS === "ios" ? "Apple Health" : "Google Fit") + " for today. Make sure your device has recorded this data.");
+                    if (!gotData) {
+                      const uid = await AsyncStorage.getItem("userId");
+                      const hasTracker = uid ? await hasEverSyncedFromHealthApp(uid) : false;
+                      if (hasTracker) {
+                        const platform = Platform.OS === "ios" ? "Apple Health" : "Health Connect";
+                        Alert.alert(
+                          "No recovery data found",
+                          `No sleep, RHR, or HRV data was found in ${platform} for today. Make sure your wearable or fitness tracker has recently synced.`
+                        );
+                      }
+                    }
                   }}
                   disabled={syncingRecovery}
                   hitSlop={10}
@@ -855,13 +936,13 @@ export default function DashboardScreen() {
               {!hasRecovery && (
                 <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, flex: 1 }}>
-                    Tap Sync to pull sleep, RHR & HRV from {Platform.OS === "ios" ? "Apple Health" : "Google Fit"}.
+                    Tap Sync to pull sleep, RHR & HRV from {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}.
                   </Text>
                   <Pressable
                     onPress={() => {
                       const url = Platform.OS === "ios"
                         ? "x-apple-health://"
-                        : "com.google.android.apps.fitness://";
+                        : "content://com.google.android.apps.healthdata/";
                       Linking.openURL(url).catch(() => {});
                     }}
                     hitSlop={10}
@@ -880,14 +961,14 @@ export default function DashboardScreen() {
                   onPress={() => {
                     const url = Platform.OS === "ios"
                       ? "x-apple-health://"
-                      : "com.google.android.apps.fitness://";
+                      : "content://com.google.android.apps.healthdata/";
                     Linking.openURL(url).catch(() => {});
                   }}
                   style={({ pressed }) => ({ marginTop: 10, alignSelf: "flex-end", opacity: pressed ? 0.5 : 1 })}
                   hitSlop={8}
                 >
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {Platform.OS === "ios" ? "Open Apple Health →" : "Open Google Fit →"}
+                    {Platform.OS === "ios" ? "Open Apple Health →" : "Open Health Connect →"}
                   </Text>
                 </Pressable>
               )}
@@ -942,6 +1023,15 @@ export default function DashboardScreen() {
 
       </ScrollView>
 
+      {/* ── Calendar Strip Day Detail Sheet ── */}
+      <DayDetailSheet
+        visible={stripSheetDate !== null}
+        dateStr={stripSheetDate}
+        data={stripSheetData}
+        weightUnit={unit}
+        onClose={() => { setStripSheetDate(null); setStripSheetData(null); }}
+      />
+
       {/* ── Steps Log Modal ── */}
       <Modal visible={stepsModalVisible} transparent animationType="slide" onRequestClose={() => setStepsModalVisible(false)}>
         <KeyboardAvoidingView
@@ -962,7 +1052,7 @@ export default function DashboardScreen() {
               Daily goal: {todaySteps?.goal.toLocaleString() ?? 8000} steps.
             </Text>
 
-            {/* Apple Health / Google Fit sync button */}
+            {/* Apple Health (iOS) / Health Connect (Android) sync button */}
             {(Platform.OS === "ios" || Platform.OS === "android") && (
               <Pressable
                 onPress={async () => {
@@ -1004,7 +1094,7 @@ export default function DashboardScreen() {
                         color={Colors.primary}
                       />
                       <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                        {Platform.OS === "ios" ? "Sync from Apple Health" : "Sync from Google Fit"}
+                        {Platform.OS === "ios" ? "Sync from Apple Health" : "Sync from Health Connect"}
                       </Text>
                     </>
                 }

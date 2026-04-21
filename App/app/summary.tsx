@@ -311,16 +311,21 @@ export default function SummaryScreen() {
         {/* ── Next Week Preview ── */}
         {nextWeekTargets.length > 0 && (
           <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <Ionicons name="trending-up" size={16} color={Colors.primary} />
-              <Text style={{
-                fontFamily: "Rubik_600SemiBold",
-                fontSize: 12,
-                color: "#FFFFFF",
-                textTransform: "uppercase",
-                letterSpacing: 2,
-              }}>
-                Next Week Preview
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="trending-up" size={16} color={Colors.primary} />
+                <Text style={{
+                  fontFamily: "Rubik_600SemiBold",
+                  fontSize: 12,
+                  color: "#FFFFFF",
+                  textTransform: "uppercase",
+                  letterSpacing: 2,
+                }}>
+                  Next Week Preview
+                </Text>
+              </View>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textSecondary, letterSpacing: 0.5 }}>
+                sets × reps @ weight
               </Text>
             </View>
 

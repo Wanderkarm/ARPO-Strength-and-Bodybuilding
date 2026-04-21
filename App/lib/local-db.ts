@@ -1808,6 +1808,174 @@ export async function deleteBodyWeightEntry(id: string): Promise<void> {
   await db.runAsync("DELETE FROM body_weight_logs WHERE id = ?", [id]);
 }
 
+/** Returns true if a body-weight entry already exists for today (local date). */
+export async function hasTodayWeightLog(userId: string): Promise<boolean> {
+  const db = getDb();
+  const today = new Date().toISOString().slice(0, 10);
+  const row = await db.getFirstAsync<{ id: string }>(
+    "SELECT id FROM body_weight_logs WHERE user_id = ? AND DATE(logged_at) = ? LIMIT 1",
+    [userId, today]
+  );
+  return row != null;
+}
+
+/**
+ * Returns true if there's any evidence the user has ever synced data from a
+ * health platform (Apple Health or Health Connect). Used to gate "no data"
+ * alerts — we only warn if we know they have a tracker connected.
+ */
+export async function hasEverSyncedFromHealthApp(userId: string): Promise<boolean> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ id: string }>(
+    "SELECT id FROM daily_steps WHERE user_id = ? AND source IN ('apple_health', 'google_fit') LIMIT 1",
+    [userId]
+  );
+  return row != null;
+}
+
+// ─── Calendar Data ────────────────────────────────────────────────────────────
+
+export interface CalendarDayData {
+  workoutDone: boolean;
+  weighInDone: boolean;
+  stepsGoalHit: boolean;
+  /** True for future dates that fall on a user-scheduled training day. */
+  isScheduled: boolean;
+  workoutLabel?: string;   // e.g. "W2 · D3"
+  exerciseCount?: number;
+  weightKg?: number;       // body weight logged that day
+  planId?: string;
+  weekNumber?: number;
+  dayNumber?: number;
+}
+
+export type CalendarData = Record<string, CalendarDayData>; // key = "YYYY-MM-DD"
+
+/**
+ * Returns calendar activity data for every date in [startDate, endDate].
+ * startDate / endDate are "YYYY-MM-DD" strings.
+ */
+export async function getCalendarData(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<CalendarData> {
+  const db = getDb();
+  const result: CalendarData = {};
+
+  // ── Completed workouts ──────────────────────────────────────────────────────
+  const workouts = await db.getAllAsync<{
+    date: string;
+    plan_id: string;
+    week_number: number;
+    day_number: number;
+    exercise_count: number;
+  }>(
+    `SELECT DATE(MIN(wl.completed_at)) AS date,
+            wp.id AS plan_id,
+            wl.week_number,
+            wl.day_number,
+            COUNT(DISTINCT wl.id) AS exercise_count
+     FROM workout_logs wl
+     JOIN workout_plans wp ON wl.workout_plan_id = wp.id
+     WHERE wp.user_id = ?
+       AND wl.completed_at IS NOT NULL
+       AND wl.is_skipped = 0
+       AND DATE(wl.completed_at) BETWEEN ? AND ?
+     GROUP BY wl.workout_plan_id, wl.week_number, wl.day_number`,
+    [userId, startDate, endDate]
+  );
+
+  for (const w of workouts) {
+    if (!result[w.date]) result[w.date] = { workoutDone: false, weighInDone: false, stepsGoalHit: false, isScheduled: false };
+    result[w.date].workoutDone = true;
+    result[w.date].workoutLabel = `W${w.week_number} · D${w.day_number}`;
+    result[w.date].exerciseCount = w.exercise_count;
+    result[w.date].planId = w.plan_id;
+    result[w.date].weekNumber = w.week_number;
+    result[w.date].dayNumber = w.day_number;
+  }
+
+  // ── Weigh-ins (latest per day) ──────────────────────────────────────────────
+  const weighIns = await db.getAllAsync<{ date: string; weight_kg: number }>(
+    `SELECT DATE(logged_at) AS date, weight_kg
+     FROM body_weight_logs
+     WHERE user_id = ? AND DATE(logged_at) BETWEEN ? AND ?
+     ORDER BY logged_at DESC`,
+    [userId, startDate, endDate]
+  );
+  const seenWeighIn = new Set<string>();
+  for (const w of weighIns) {
+    if (seenWeighIn.has(w.date)) continue;
+    seenWeighIn.add(w.date);
+    if (!result[w.date]) result[w.date] = { workoutDone: false, weighInDone: false, stepsGoalHit: false, isScheduled: false };
+    result[w.date].weighInDone = true;
+    result[w.date].weightKg = w.weight_kg;
+  }
+
+  // ── Steps goal hit ──────────────────────────────────────────────────────────
+  const stepsRows = await db.getAllAsync<{ date: string; steps: number; goal: number }>(
+    `SELECT date, steps, goal FROM daily_steps
+     WHERE user_id = ? AND date BETWEEN ? AND ?`,
+    [userId, startDate, endDate]
+  );
+  for (const s of stepsRows) {
+    if (s.steps >= s.goal) {
+      if (!result[s.date]) result[s.date] = { workoutDone: false, weighInDone: false, stepsGoalHit: false, isScheduled: false };
+      result[s.date].stepsGoalHit = true;
+    }
+  }
+
+  // ── Scheduled future days ───────────────────────────────────────────────────
+  const today = new Date().toISOString().slice(0, 10);
+  const planRow = await db.getFirstAsync<{ training_days: string | null }>(
+    `SELECT training_days FROM workout_plans
+     WHERE user_id = ? AND is_active = 1
+     ORDER BY rowid DESC LIMIT 1`,
+    [userId]
+  );
+  if (planRow?.training_days) {
+    try {
+      const trainingDays: number[] = JSON.parse(planRow.training_days);
+      // Walk every date in range and mark future scheduled days
+      const cur = new Date(startDate + "T12:00:00");
+      const end = new Date(endDate + "T12:00:00");
+      while (cur <= end) {
+        const dateStr = cur.toISOString().slice(0, 10);
+        if (dateStr > today && trainingDays.includes(cur.getDay())) {
+          if (!result[dateStr]) result[dateStr] = { workoutDone: false, weighInDone: false, stepsGoalHit: false, isScheduled: false };
+          result[dateStr].isScheduled = true;
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+    } catch { /* ignore malformed JSON */ }
+  }
+
+  return result;
+}
+
+// ─── Training Schedule ────────────────────────────────────────────────────────
+
+/** Returns the training-day schedule for a plan, or null if none is set. */
+export async function getTrainingSchedule(planId: string): Promise<number[] | null> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ training_days: string | null }>(
+    "SELECT training_days FROM workout_plans WHERE id = ?",
+    [planId]
+  );
+  if (!row?.training_days) return null;
+  try { return JSON.parse(row.training_days); } catch { return null; }
+}
+
+/** Saves (overwrites) the training-day schedule for a plan. */
+export async function saveTrainingSchedule(planId: string, days: number[]): Promise<void> {
+  const db = getDb();
+  await db.runAsync(
+    "UPDATE workout_plans SET training_days = ? WHERE id = ?",
+    [JSON.stringify(days), planId]
+  );
+}
+
 // ─── Body Measurements ────────────────────────────────────────────────────────
 
 export interface BodyMeasurement {
@@ -1818,10 +1986,11 @@ export interface BodyMeasurement {
   leftArmCm: number | null;
   rightArmCm: number | null;
   leftThighCm: number | null;
+  rightThighCm: number | null;
   neckCm: number | null;
   notes: string | null;
   loggedAt: string;
-  /** Stored body fat % — populated by smart scale / Health sync; null = use Navy formula */
+  /** Stored body fat % — from smart scale, calipers, DEXA, or Health sync; null = use Navy formula */
   bodyFatPct: number | null;
   /** Where this entry came from: 'manual' | 'apple_health' | 'google_fit' | 'smart_scale' */
   source: string;
@@ -1835,12 +2004,12 @@ export async function logBodyMeasurements(
   await db.runAsync(
     `INSERT INTO body_measurements
        (id, user_id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm,
-        left_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        left_thigh_cm, right_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       generateId(), userId,
       m.chestCm, m.waistCm, m.hipsCm,
-      m.leftArmCm, m.rightArmCm, m.leftThighCm,
+      m.leftArmCm, m.rightArmCm, m.leftThighCm, m.rightThighCm ?? null,
       m.neckCm, m.notes,
       m.bodyFatPct ?? null,
       m.source ?? "manual",
@@ -1857,11 +2026,11 @@ export async function getBodyMeasurementHistory(
   const rows = await db.getAllAsync<{
     id: string; chest_cm: number | null; waist_cm: number | null; hips_cm: number | null;
     left_arm_cm: number | null; right_arm_cm: number | null; left_thigh_cm: number | null;
-    neck_cm: number | null; notes: string | null; logged_at: string;
+    right_thigh_cm: number | null; neck_cm: number | null; notes: string | null; logged_at: string;
     body_fat_pct: number | null; source: string | null;
   }>(
     `SELECT id, chest_cm, waist_cm, hips_cm, left_arm_cm, right_arm_cm,
-            left_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at
+            left_thigh_cm, right_thigh_cm, neck_cm, notes, body_fat_pct, source, logged_at
      FROM body_measurements WHERE user_id = ?
      ORDER BY logged_at DESC LIMIT ?`,
     [userId, limit]
@@ -1874,12 +2043,28 @@ export async function getBodyMeasurementHistory(
     leftArmCm: r.left_arm_cm,
     rightArmCm: r.right_arm_cm,
     leftThighCm: r.left_thigh_cm,
+    rightThighCm: r.right_thigh_cm ?? null,
     neckCm: r.neck_cm,
     notes: r.notes,
     loggedAt: r.logged_at,
     bodyFatPct: r.body_fat_pct ?? null,
     source: r.source ?? "manual",
   }));
+}
+
+/** Returns entries that have a stored body fat % (directly logged, not calculated). */
+export async function getBodyFatHistory(
+  userId: string,
+  limit = 30
+): Promise<{ loggedAt: string; bodyFatPct: number }[]> {
+  const db = getDb();
+  const rows = await db.getAllAsync<{ logged_at: string; body_fat_pct: number }>(
+    `SELECT logged_at, body_fat_pct FROM body_measurements
+     WHERE user_id = ? AND body_fat_pct IS NOT NULL
+     ORDER BY logged_at ASC LIMIT ?`,
+    [userId, limit]
+  );
+  return rows.map(r => ({ loggedAt: r.logged_at, bodyFatPct: r.body_fat_pct }));
 }
 
 // ─── Custom Exercises ─────────────────────────────────────────────────────────

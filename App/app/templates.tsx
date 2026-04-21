@@ -144,7 +144,15 @@ export default function TemplatesScreen() {
       const plan = await createWorkoutPlan(uid, selectedTemplate.id, exerciseSwaps, selectedGoal ?? "hypertrophy", gymType);
       await AsyncStorage.setItem("activePlanId", plan.id);
       setShowGymModal(false);
-      router.replace(isOnboarding ? "/post-onboarding" : "/(tabs)");
+      // Route through the schedule picker so the user can set training days
+      router.replace({
+        pathname: "/schedule-picker",
+        params: {
+          planId: plan.id,
+          daysPerWeek: String(selectedTemplate.mesoType),
+          destination: isOnboarding ? "post-onboarding" : "tabs",
+        },
+      });
     } catch (err) {
       console.error(err);
     } finally {

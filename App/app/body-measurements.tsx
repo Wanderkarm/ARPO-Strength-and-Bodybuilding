@@ -24,16 +24,17 @@ import {
 
 // ─── Measurement fields config ────────────────────────────────────────────────
 
-type MeasurementKey = "chestCm" | "waistCm" | "hipsCm" | "leftArmCm" | "rightArmCm" | "leftThighCm" | "neckCm";
+type MeasurementKey = "chestCm" | "waistCm" | "hipsCm" | "leftArmCm" | "rightArmCm" | "leftThighCm" | "rightThighCm" | "neckCm";
 
 const FIELDS: { key: MeasurementKey; label: string; icon: string }[] = [
-  { key: "chestCm",      label: "Chest",       icon: "body-outline" },
-  { key: "waistCm",      label: "Waist",       icon: "body-outline" },
-  { key: "hipsCm",       label: "Hips",        icon: "body-outline" },
-  { key: "leftArmCm",    label: "Left Arm",    icon: "barbell-outline" },
-  { key: "rightArmCm",   label: "Right Arm",   icon: "barbell-outline" },
-  { key: "leftThighCm",  label: "Left Thigh",  icon: "body-outline" },
-  { key: "neckCm",       label: "Neck",        icon: "body-outline" },
+  { key: "chestCm",      label: "Chest",        icon: "body-outline" },
+  { key: "waistCm",      label: "Waist",        icon: "body-outline" },
+  { key: "hipsCm",       label: "Hips",         icon: "body-outline" },
+  { key: "neckCm",       label: "Neck",         icon: "body-outline" },
+  { key: "leftArmCm",   label: "Left Arm",     icon: "barbell-outline" },
+  { key: "rightArmCm",  label: "Right Arm",    icon: "barbell-outline" },
+  { key: "leftThighCm", label: "Left Thigh",   icon: "body-outline" },
+  { key: "rightThighCm",label: "Right Thigh",  icon: "body-outline" },
 ];
 
 // ─── Unit conversion helpers ──────────────────────────────────────────────────
@@ -69,9 +70,10 @@ export default function BodyMeasurementsScreen() {
 
   // Form state
   const [inputs, setInputs] = useState<Record<MeasurementKey, string>>({
-    chestCm: "", waistCm: "", hipsCm: "",
-    leftArmCm: "", rightArmCm: "", leftThighCm: "", neckCm: "",
+    chestCm: "", waistCm: "", hipsCm: "", neckCm: "",
+    leftArmCm: "", rightArmCm: "", leftThighCm: "", rightThighCm: "",
   });
+  const [bodyFatInput, setBodyFatInput] = useState("");
   const [notes, setNotes] = useState("");
 
   useFocusEffect(
@@ -104,25 +106,29 @@ export default function BodyMeasurementsScreen() {
 
   async function handleSave() {
     if (!userId) return;
-    const hasAnyValue = FIELDS.some(f => inputs[f.key].trim() !== "");
+    const bfVal = parseFloat(bodyFatInput.trim());
+    const parsedBodyFat = !isNaN(bfVal) && bfVal > 0 && bfVal < 100 ? bfVal : null;
+    const hasAnyValue = FIELDS.some(f => inputs[f.key].trim() !== "") || parsedBodyFat !== null;
     if (!hasAnyValue) return;
 
     setSaving(true);
     try {
       await logBodyMeasurements(userId, {
-        chestCm:     parseCm("chestCm"),
-        waistCm:     parseCm("waistCm"),
-        hipsCm:      parseCm("hipsCm"),
-        leftArmCm:   parseCm("leftArmCm"),
-        rightArmCm:  parseCm("rightArmCm"),
-        leftThighCm: parseCm("leftThighCm"),
-        neckCm:      parseCm("neckCm"),
-        notes:       notes.trim() || null,
-        bodyFatPct:  null,
-        source:      "manual",
+        chestCm:      parseCm("chestCm"),
+        waistCm:      parseCm("waistCm"),
+        hipsCm:       parseCm("hipsCm"),
+        leftArmCm:    parseCm("leftArmCm"),
+        rightArmCm:   parseCm("rightArmCm"),
+        leftThighCm:  parseCm("leftThighCm"),
+        rightThighCm: parseCm("rightThighCm"),
+        neckCm:       parseCm("neckCm"),
+        notes:        notes.trim() || null,
+        bodyFatPct:   parsedBodyFat,
+        source:       "manual",
       });
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setInputs({ chestCm: "", waistCm: "", hipsCm: "", leftArmCm: "", rightArmCm: "", leftThighCm: "", neckCm: "" });
+      setInputs({ chestCm: "", waistCm: "", hipsCm: "", neckCm: "", leftArmCm: "", rightArmCm: "", leftThighCm: "", rightThighCm: "" });
+      setBodyFatInput("");
       setNotes("");
       setShowForm(false);
       await load();
@@ -195,6 +201,42 @@ export default function BodyMeasurementsScreen() {
                 New Measurement ({measureUnit})
               </Text>
 
+              {/* Body fat — highlighted at top since it's the primary metric */}
+              <View style={{ borderWidth: 1, borderColor: Colors.primary + "55", borderLeftWidth: 3, borderLeftColor: Colors.primary, backgroundColor: Colors.primary + "08", padding: 12, marginBottom: 14 }}>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                  Body Fat %
+                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  <TextInput
+                    value={bodyFatInput}
+                    onChangeText={setBodyFatInput}
+                    keyboardType="decimal-pad"
+                    placeholder="e.g. 14.5"
+                    placeholderTextColor={Colors.textMuted}
+                    style={{
+                      flex: 1,
+                      borderWidth: 1,
+                      borderColor: Colors.border,
+                      backgroundColor: Colors.bgAccent,
+                      paddingHorizontal: 12,
+                      paddingVertical: 10,
+                      fontFamily: "Rubik_700Bold",
+                      fontSize: 20,
+                      color: Colors.text,
+                      textAlign: "center",
+                    }}
+                  />
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.textMuted }}>%</Text>
+                </View>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 6 }}>
+                  From smart scale, calipers, DEXA scan, or InBody
+                </Text>
+              </View>
+
+              {/* Circumference measurements */}
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+                Circumferences ({measureUnit})
+              </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                 {FIELDS.map(field => (
                   <View key={field.key} style={{ width: "47%" }}>
@@ -294,12 +336,12 @@ export default function BodyMeasurementsScreen() {
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
                           {dateStr}
                         </Text>
-                        {/* Quick summary: waist + chest + body fat */}
+                        {/* Quick summary: body fat + waist + chest */}
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 3 }}>
                           {[
-                            entry.chestCm ? `Chest ${displayMeasurement(entry.chestCm, unit)}` : null,
+                            entry.bodyFatPct != null ? `BF ${entry.bodyFatPct.toFixed(1)}%` : null,
                             entry.waistCm ? `Waist ${displayMeasurement(entry.waistCm, unit)}` : null,
-                            (!entry.chestCm && !entry.waistCm && entry.bodyFatPct != null) ? `Body Fat ${entry.bodyFatPct}%` : null,
+                            entry.chestCm ? `Chest ${displayMeasurement(entry.chestCm, unit)}` : null,
                           ].filter(Boolean).join(" · ") || "Tap to view"}
                         </Text>
                       </View>
@@ -333,7 +375,7 @@ export default function BodyMeasurementsScreen() {
                               </View>
                               {entry.source && entry.source !== "manual" && (
                                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, marginTop: 2 }}>
-                                  via {entry.source === "apple_health" ? "Apple Health" : "Google Fit"}
+                                  via {entry.source === "apple_health" ? "Apple Health" : "Health Connect"}
                                 </Text>
                               )}
                             </View>

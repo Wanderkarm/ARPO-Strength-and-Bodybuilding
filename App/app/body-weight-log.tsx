@@ -283,7 +283,7 @@ export default function BodyWeightLogScreen() {
                 textAlign: "center",
               }}
             />
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, alignSelf: "center", width: 30 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, alignSelf: "center", flexShrink: 0 }} numberOfLines={1}>
               {unit}
             </Text>
             <Pressable
