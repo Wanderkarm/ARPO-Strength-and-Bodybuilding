@@ -267,16 +267,16 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
     }
 
     // Read today's step count using a cumulative statistics query (correctly
-    // deduplicates overlapping samples from iPhone + Apple Watch)
+    // deduplicates overlapping samples from iPhone + Apple Watch).
+    // queryStatisticsForQuantity takes positional (from, to, unit) — NOT an options object.
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
     const stepsStats = await HealthKit.queryStatisticsForQuantity(
       "HKQuantityTypeIdentifierStepCount",
       ["cumulativeSum"],
-      {
-        unit: "count",
-        filter: { date: { startDate: startOfToday, endDate: now } },
-      },
+      startOfToday,
+      now,
+      "count",
     );
     const totalSteps = Math.round(stepsStats?.sumQuantity?.quantity ?? 0);
     if (totalSteps > 0) {
@@ -431,12 +431,15 @@ export async function silentDailySync(userId: string): Promise<{ stepsSynced: bo
       let weightSynced = false;
 
       // Steps — cumulative sum for today
+      // queryStatisticsForQuantity takes positional (from, to, unit) — NOT an options object.
       const now = new Date();
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
       const stepsStats = await HealthKit.queryStatisticsForQuantity(
         "HKQuantityTypeIdentifierStepCount",
         ["cumulativeSum"],
-        { startDate: startOfToday.toISOString(), endDate: now.toISOString() }
+        startOfToday,
+        now,
+        "count",
       );
       const steps = stepsStats?.sumQuantity?.quantity;
       if (steps != null && steps > 0) {

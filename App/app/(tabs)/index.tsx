@@ -95,6 +95,10 @@ export default function DashboardScreen() {
   const [stripSheetDate, setStripSheetDate] = useState<string | null>(null);
   const [stripSheetData, setStripSheetData] = useState<CalendarDayData | null>(null);
 
+  // Collapsible sections
+  const [mesoExpanded, setMesoExpanded] = useState(false);
+  const [workoutExpanded, setWorkoutExpanded] = useState(false);
+
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
     if (planId) {
@@ -376,7 +380,7 @@ export default function DashboardScreen() {
                 </Text>
                 <Pressable onPress={() => router.push("/my-plans")} hitSlop={8}>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    MY PLANS →
+                    MY PROGRAM →
                   </Text>
                 </Pressable>
               </View>
@@ -406,342 +410,8 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* ── Meso Progress ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
-          <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 20 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                Mesocycle Progress
-              </Text>
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: isDeload ? Colors.warning : Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                {mesoPhase}
-              </Text>
-            </View>
-
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20 }}>
-              {[1, 2, 3, 4].map((w) => (
-                <View key={w} style={{ alignItems: "center", flex: 1 }}>
-                  <View style={{
-                    width: 40, height: 40, borderWidth: 1,
-                    borderColor: w === mesoWeek ? Colors.primary : Colors.border,
-                    backgroundColor: w < mesoWeek ? Colors.primary : w === mesoWeek ? Colors.bgAccent : Colors.bg,
-                    justifyContent: "center", alignItems: "center",
-                  }}>
-                    {w < mesoWeek
-                      ? <Ionicons name="checkmark" size={18} color={Colors.text} />
-                      : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: w === mesoWeek ? Colors.primary : Colors.textMuted }}>{w}</Text>
-                    }
-                  </View>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    {w === 4 ? "DL" : `W${w}`}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={{ flexDirection: "row", gap: 16 }}>
-              <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 12 }}>
-                <View style={{ marginBottom: 4 }}>
-                  <GlossaryTerm
-                    text="Target RIR"
-                    termKey="RIR"
-                    style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}
-                  />
-                </View>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text }}>
-                  {isDeload ? "--" : rirTarget}
-                </Text>
-              </View>
-              <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 12 }}>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Week</Text>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text }}>{plan.currentWeek}</Text>
-              </View>
-              <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 12 }}>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Sessions</Text>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text }}>
-                  {completedDays}
-                  <Text style={{ fontSize: 14, color: Colors.textMuted }}>/{totalDays}</Text>
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* ── Day Browser ── */}
-        {plan.template.days.length > 0 && (
-          <View style={{ marginTop: 16 }}>
-
-            {/* Day tab pills */}
-            <View style={{ flexDirection: "row", paddingHorizontal: 24, gap: 6, marginBottom: 10 }}>
-              {plan.template.days.map((day, idx) => {
-                const done = isDayCompleted(day.dayNumber);
-                const isCurrent = idx === nextDayIndex;
-                const isSelected = idx === selectedDayIdx;
-                return (
-                  <Pressable
-                    key={day.id}
-                    onPress={() => {
-                      setSelectedDayIdx(idx);
-                      dayScrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: true });
-                    }}
-                    style={({ pressed }) => ({
-                      flex: 1, alignItems: "center", paddingVertical: 9,
-                      borderWidth: 1,
-                      borderColor: isSelected ? Colors.primary : done ? Colors.primary + "55" : Colors.border,
-                      backgroundColor: done ? Colors.primary + "15" : isSelected ? Colors.primary + "11" : Colors.bg,
-                      opacity: pressed ? 0.75 : 1,
-                    })}
-                  >
-                    {done
-                      ? <Ionicons name="checkmark" size={13} color={Colors.primary} />
-                      : <Text style={{ fontFamily: isSelected ? "Rubik_700Bold" : "Rubik_500Medium", fontSize: 11, color: isSelected ? Colors.primary : Colors.textMuted }}>
-                          D{day.dayNumber}
-                        </Text>
-                    }
-                    {isCurrent && !done && (
-                      <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.primary, marginTop: 3 }} />
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Week selector */}
-            <View style={{ flexDirection: "row", paddingHorizontal: 24, gap: 6, marginBottom: 10 }}>
-              {[1, 2, 3, 4].map((w) => {
-                const absWeek = plan.currentWeek - mesoWeek + w;
-                const mw = w;
-                const isCurrentW = mw === mesoWeek;
-                const isPast = mw < mesoWeek;
-                const isSelected = previewWeek === absWeek;
-                const phaseColor = mw === 4 ? Colors.warning : Colors.primary;
-                const hasLogs = plan.logs.some(l => l.weekNumber === absWeek);
-                return (
-                  <Pressable
-                    key={w}
-                    onPress={() => setPreviewWeek(absWeek)}
-                    style={({ pressed }) => ({
-                      flex: 1, alignItems: "center", paddingVertical: 7,
-                      borderWidth: 1,
-                      borderColor: isSelected ? phaseColor : Colors.border,
-                      backgroundColor: isSelected ? phaseColor + "15" : Colors.bg,
-                      opacity: pressed ? 0.75 : 1,
-                    })}
-                  >
-                    <Text style={{ fontFamily: isSelected ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 10, color: isSelected ? phaseColor : Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                      {w === 4 ? "DL" : `W${w}`}
-                    </Text>
-                    {!hasLogs && !isPast && !isCurrentW && (
-                      <Text style={{ fontSize: 7, color: Colors.textMuted, marginTop: 1 }}>est</Text>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Swipeable exercise list */}
-            <ScrollView
-              ref={dayScrollRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              scrollEventThrottle={16}
-              onMomentumScrollEnd={(e) => {
-                const page = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-                setSelectedDayIdx(page);
-              }}
-            >
-              {plan.template.days.map((day, dayIdx) => {
-                const done = isDayCompleted(day.dayNumber);
-                const isCurrent = dayIdx === nextDayIndex;
-                const previewMesoWeek = mesoWeekOf(previewWeek);
-                const previewRIR = PHASE_RIR[previewMesoWeek];
-                const previewIsDeload = previewMesoWeek === 4;
-                const weekDelta = previewWeek - plan.currentWeek;
-                const logsForPreview = getLogsForDayWeek(day.dayNumber, previewWeek);
-                const logsForCurrent = getLogsForDayWeek(day.dayNumber, plan.currentWeek);
-                const hasPreviewLogs = logsForPreview.length > 0;
-
-                return (
-                  <View key={day.id} style={{ width: SCREEN_WIDTH, paddingHorizontal: 24 }}>
-                    <View style={{
-                      borderWidth: 1,
-                      borderColor: done && previewWeek === plan.currentWeek ? Colors.primary + "55" : Colors.border,
-                      padding: 16,
-                    }}>
-                      {/* Card header */}
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                        <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                          Day {day.dayNumber}
-                          {previewWeek !== plan.currentWeek
-                            ? ` · Week ${previewWeek}`
-                            : ""}
-                        </Text>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                          {previewIsDeload && (
-                            <View style={{ backgroundColor: Colors.warning + "22", paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.warning + "44" }}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.warning, textTransform: "uppercase", letterSpacing: 1 }}>Deload</Text>
-                            </View>
-                          )}
-                          {!hasPreviewLogs && previewWeek > plan.currentWeek && (
-                            <View style={{ backgroundColor: Colors.bgAccent, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.border }}>
-                              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Estimated</Text>
-                            </View>
-                          )}
-                          {isCurrent && !done && previewWeek === plan.currentWeek && (
-                            <View style={{ backgroundColor: Colors.primary, paddingHorizontal: 8, paddingVertical: 3 }}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 1 }}>Up Next</Text>
-                            </View>
-                          )}
-                          {done && previewWeek === plan.currentWeek && (
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                              <Ionicons name="checkmark-circle" size={14} color={Colors.primary} />
-                              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-
-                      {/* Exercise rows */}
-                      {day.exercises.map((te, eIdx) => {
-                        // Prefer logs for the selected preview week, fall back to current week logs, then template
-                        const logEntry = logsForPreview.find(l => l.exerciseId === te.exercise.id)
-                          ?? logsForCurrent.find(l => l.exerciseId === te.exercise.id);
-                        const isBodyweight = te.exercise.equipment === "BODYWEIGHT";
-
-                        let targetSets = 3;
-                        let targetWeight = 0;
-                        let targetRIRStr = `${previewRIR} RIR`;
-
-                        if (logEntry) {
-                          targetSets = logEntry.targetSets;
-                          if (hasPreviewLogs || previewWeek === plan.currentWeek) {
-                            targetWeight = logEntry.targetWeight;
-                            targetRIRStr = logEntry.targetRIR;
-                          } else {
-                            // Estimated future week — project from current log
-                            targetWeight = projectWeight(logEntry.targetWeight, weekDelta);
-                            targetRIRStr = `${previewRIR} RIR`;
-                          }
-                        }
-
-                        const isLastEx = eIdx === day.exercises.length - 1;
-                        return (
-                          <View
-                            key={te.id}
-                            style={{
-                              flexDirection: "row", alignItems: "center",
-                              paddingVertical: 9,
-                              borderBottomWidth: isLastEx ? 0 : 1,
-                              borderBottomColor: Colors.border,
-                              gap: 10,
-                            }}
-                          >
-                            <View style={{ width: 24, height: 24, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}>
-                              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary }}>{eIdx + 1}</Text>
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.text }} numberOfLines={1}>
-                                {te.exercise.name}
-                              </Text>
-                              {logEntry && !previewIsDeload && (
-                                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                                  {targetSets} sets
-                                  {!isBodyweight && targetWeight > 0 ? ` · ${targetWeight} ${unit}` : ""}
-                                  {` · ${targetRIRStr}`}
-                                </Text>
-                              )}
-                              {previewIsDeload && (
-                                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.warning + "CC", marginTop: 2 }}>
-                                  Reduced volume & intensity
-                                </Text>
-                              )}
-                            </View>
-                            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase" }}>
-                              {te.exercise.equipment}
-                            </Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* ── Contextual CTA ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
-
-          {/* Context line: day info + recovery warning */}
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
-              {todayComplete
-                ? `Day ${plan.currentDay} of ${totalDays} · This week`
-                : `Day ${plan.currentDay} · ${mesoPhase} · ${todayExerciseCount} exercises`}
-            </Text>
-            {hasRecovery && overallStatus === "poor" && !todayComplete && (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STATUS_COLOR.poor }} />
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: STATUS_COLOR.poor, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Recovery Low
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Primary action */}
-          {todayComplete ? (
-            <View style={{
-              borderWidth: 1, borderColor: Colors.primary + "55",
-              backgroundColor: Colors.primary + "0D",
-              paddingVertical: 20, alignItems: "center",
-            }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Session Complete
-                </Text>
-              </View>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 6 }}>
-                Next session: Day {((plan.currentDay || 1) % totalDays) + 1}
-              </Text>
-            </View>
-          ) : (
-            <Pressable
-              onPress={handleStartWorkout}
-              style={({ pressed }) => ({
-                backgroundColor: isDeload ? Colors.warning : Colors.primary,
-                paddingVertical: 22,
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 12 }}>
-                <Ionicons name="flash" size={24} color={Colors.text} />
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 3 }}>
-                  {isDeload ? "Start Deload" : "Start Workout"}
-                </Text>
-              </View>
-            </Pressable>
-          )}
-
-          {/* Skip — demoted to subtle text link */}
-          {!todayComplete && (
-            <Pressable
-              onPress={handleSkipSession}
-              disabled={skipping}
-              style={({ pressed }) => ({ alignItems: "center", paddingVertical: 11, opacity: pressed || skipping ? 0.4 : 1 })}
-            >
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                {skipping ? "Skipping..." : "Skip Session"}
-              </Text>
-            </Pressable>
-          )}
-        </View>
-
         {/* ── Calendar Strip ── */}
-        <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, marginTop: 20 }}>
+        <View style={{ borderTopWidth: 1, borderTopColor: Colors.border, borderBottomWidth: 1, borderBottomColor: Colors.border, marginTop: 16 }}>
           <CalendarStrip
             calendarData={weekCalData}
             trainingDays={trainingDays}
@@ -761,92 +431,458 @@ export default function DashboardScreen() {
           />
         </View>
 
-        {/* ── Weekly Progress bar ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: 16 }}>
-          <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Weekly Progress
-              </Text>
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }}>
-                {Math.round(progressPercent)}%
-              </Text>
+        {/* ── Meso Context Bar ── */}
+        <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
+          <Pressable
+            onPress={() => setMesoExpanded(v => !v)}
+            style={({ pressed }) => ({
+              borderWidth: 1, borderColor: Colors.border, padding: 14,
+              flexDirection: "row", alignItems: "center",
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1.5 }}>
+              Week {plan.currentWeek}
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>{" · "}</Text>
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: isDeload ? Colors.warning : Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+              {mesoPhase}
+            </Text>
+            <View style={{ flex: 1 }} />
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, marginRight: 8 }}>
+              {completedDays}/{totalDays} sessions
+            </Text>
+            <Ionicons name={mesoExpanded ? "chevron-up" : "chevron-down"} size={14} color={Colors.textMuted} />
+          </Pressable>
+
+          {mesoExpanded && (
+            <View style={{ borderWidth: 1, borderTopWidth: 0, borderColor: Colors.border, padding: 16 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 16 }}>
+                {[1, 2, 3, 4].map((w) => (
+                  <View key={w} style={{ alignItems: "center", flex: 1 }}>
+                    <View style={{
+                      width: 40, height: 40, borderWidth: 1,
+                      borderColor: w === mesoWeek ? Colors.primary : Colors.border,
+                      backgroundColor: w < mesoWeek ? Colors.primary : w === mesoWeek ? Colors.bgAccent : Colors.bg,
+                      justifyContent: "center", alignItems: "center",
+                    }}>
+                      {w < mesoWeek
+                        ? <Ionicons name="checkmark" size={18} color={Colors.text} />
+                        : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: w === mesoWeek ? Colors.primary : Colors.textMuted }}>{w}</Text>
+                      }
+                    </View>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      {w === 4 ? "DL" : `W${w}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 10 }}>
+                  <View style={{ marginBottom: 3 }}>
+                    <GlossaryTerm
+                      text="Target RIR"
+                      termKey="RIR"
+                      style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}
+                    />
+                  </View>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text }}>
+                    {isDeload ? "--" : rirTarget}
+                  </Text>
+                </View>
+                <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 10 }}>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Week</Text>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text }}>{plan.currentWeek}</Text>
+                </View>
+                <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 10 }}>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>Sessions</Text>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text }}>
+                    {completedDays}
+                    <Text style={{ fontSize: 12, color: Colors.textMuted }}>/{totalDays}</Text>
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View style={{ height: 4, backgroundColor: Colors.bgAccent, width: "100%" }}>
-              <View style={{ height: 4, backgroundColor: Colors.primary, width: `${progressPercent}%` }} />
-            </View>
-          </View>
+          )}
         </View>
 
-        {/* ── Daily Steps ── */}
-        {todaySteps !== null && (
+        {/* ── Workout Card ── */}
+        {plan.template.days.length > 0 && (
           <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
+            {/* Toggle header */}
+            <Pressable
+              onPress={() => setWorkoutExpanded(v => !v)}
+              style={({ pressed }) => ({
+                borderWidth: 1, borderColor: Colors.border, padding: 14,
+                flexDirection: "row", alignItems: "center",
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 8 }}>
+                {todayComplete ? (
+                  <Ionicons name="checkmark-circle" size={15} color={Colors.primary} />
+                ) : (
+                  <View style={{ backgroundColor: Colors.primary, paddingHorizontal: 7, paddingVertical: 2 }}>
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 8, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>Up Next</Text>
+                  </View>
+                )}
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Day {plan.currentDay}
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
+                  · {todayExerciseCount} exercises
+                </Text>
+              </View>
+              <Ionicons name={workoutExpanded ? "chevron-up" : "chevron-down"} size={16} color={Colors.textMuted} />
+            </Pressable>
+
+            {/* Collapsed: 2-exercise preview */}
+            {!workoutExpanded && (
+              <View style={{ borderWidth: 1, borderTopWidth: 0, borderColor: Colors.border, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4 }}>
+                {plan.template.days[nextDayIndex]?.exercises.slice(0, 2).map((te, i) => {
+                  const isLast = i === 1 || plan.template.days[nextDayIndex].exercises.length === 1;
+                  return (
+                    <View key={te.id} style={{
+                      flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 7,
+                      borderBottomWidth: isLast ? 0 : 1, borderBottomColor: Colors.border,
+                    }}>
+                      <View style={{ width: 22, height: 22, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}>
+                        <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.primary }}>{i + 1}</Text>
+                      </View>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.text, flex: 1 }} numberOfLines={1}>
+                        {te.exercise.name}
+                      </Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase" }}>
+                        {te.exercise.equipment}
+                      </Text>
+                    </View>
+                  );
+                })}
+                {todayExerciseCount > 2 && (
+                  <Pressable onPress={() => setWorkoutExpanded(true)} style={({ pressed }) => ({ paddingVertical: 8, opacity: pressed ? 0.6 : 1 })}>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                      +{todayExerciseCount - 2} more →
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+
+            {/* Expanded: full day browser */}
+            {workoutExpanded && (
+              <View style={{ borderWidth: 1, borderTopWidth: 0, borderColor: Colors.border }}>
+                {/* Day tab pills */}
+                <View style={{ flexDirection: "row", paddingHorizontal: 14, paddingTop: 12, gap: 6, marginBottom: 10 }}>
+                  {plan.template.days.map((day, idx) => {
+                    const done = isDayCompleted(day.dayNumber);
+                    const isCurrent = idx === nextDayIndex;
+                    const isSelected = idx === selectedDayIdx;
+                    return (
+                      <Pressable
+                        key={day.id}
+                        onPress={() => {
+                          setSelectedDayIdx(idx);
+                          dayScrollRef.current?.scrollTo({ x: idx * (SCREEN_WIDTH - 48), animated: true });
+                        }}
+                        style={({ pressed }) => ({
+                          flex: 1, alignItems: "center", paddingVertical: 9,
+                          borderWidth: 1,
+                          borderColor: isSelected ? Colors.primary : done ? Colors.primary + "55" : Colors.border,
+                          backgroundColor: done ? Colors.primary + "15" : isSelected ? Colors.primary + "11" : Colors.bg,
+                          opacity: pressed ? 0.75 : 1,
+                        })}
+                      >
+                        {done
+                          ? <Ionicons name="checkmark" size={13} color={Colors.primary} />
+                          : <Text style={{ fontFamily: isSelected ? "Rubik_700Bold" : "Rubik_500Medium", fontSize: 11, color: isSelected ? Colors.primary : Colors.textMuted }}>
+                              D{day.dayNumber}
+                            </Text>
+                        }
+                        {isCurrent && !done && (
+                          <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.primary, marginTop: 3 }} />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {/* Week selector */}
+                <View style={{ flexDirection: "row", paddingHorizontal: 14, gap: 6, marginBottom: 10 }}>
+                  {[1, 2, 3, 4].map((w) => {
+                    const absWeek = plan.currentWeek - mesoWeek + w;
+                    const mw = w;
+                    const isCurrentW = mw === mesoWeek;
+                    const isPast = mw < mesoWeek;
+                    const isSelected = previewWeek === absWeek;
+                    const phaseColor = mw === 4 ? Colors.warning : Colors.primary;
+                    const hasLogs = plan.logs.some(l => l.weekNumber === absWeek);
+                    return (
+                      <Pressable
+                        key={w}
+                        onPress={() => setPreviewWeek(absWeek)}
+                        style={({ pressed }) => ({
+                          flex: 1, alignItems: "center", paddingVertical: 7,
+                          borderWidth: 1,
+                          borderColor: isSelected ? phaseColor : Colors.border,
+                          backgroundColor: isSelected ? phaseColor + "15" : Colors.bg,
+                          opacity: pressed ? 0.75 : 1,
+                        })}
+                      >
+                        <Text style={{ fontFamily: isSelected ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 10, color: isSelected ? phaseColor : Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                          {w === 4 ? "DL" : `W${w}`}
+                        </Text>
+                        {!hasLogs && !isPast && !isCurrentW && (
+                          <Text style={{ fontSize: 7, color: Colors.textMuted, marginTop: 1 }}>est</Text>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {/* Swipeable exercise list */}
+                <ScrollView
+                  ref={dayScrollRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  scrollEventThrottle={16}
+                  onMomentumScrollEnd={(e) => {
+                    const page = Math.round(e.nativeEvent.contentOffset.x / (SCREEN_WIDTH - 48));
+                    setSelectedDayIdx(page);
+                  }}
+                >
+                  {plan.template.days.map((day, dayIdx) => {
+                    const done = isDayCompleted(day.dayNumber);
+                    const isCurrent = dayIdx === nextDayIndex;
+                    const previewMesoWeek = mesoWeekOf(previewWeek);
+                    const previewRIR = PHASE_RIR[previewMesoWeek];
+                    const previewIsDeload = previewMesoWeek === 4;
+                    const weekDelta = previewWeek - plan.currentWeek;
+                    const logsForPreview = getLogsForDayWeek(day.dayNumber, previewWeek);
+                    const logsForCurrent = getLogsForDayWeek(day.dayNumber, plan.currentWeek);
+                    const hasPreviewLogs = logsForPreview.length > 0;
+
+                    return (
+                      <View key={day.id} style={{ width: SCREEN_WIDTH - 48, paddingHorizontal: 14, paddingBottom: 14 }}>
+                        <View style={{ borderWidth: 1, borderColor: done && previewWeek === plan.currentWeek ? Colors.primary + "55" : Colors.border, padding: 14 }}>
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                              Day {day.dayNumber}{previewWeek !== plan.currentWeek ? ` · Week ${previewWeek}` : ""}
+                            </Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                              {previewIsDeload && (
+                                <View style={{ backgroundColor: Colors.warning + "22", paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.warning + "44" }}>
+                                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.warning, textTransform: "uppercase", letterSpacing: 1 }}>Deload</Text>
+                                </View>
+                              )}
+                              {!hasPreviewLogs && previewWeek > plan.currentWeek && (
+                                <View style={{ backgroundColor: Colors.bgAccent, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.border }}>
+                                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Estimated</Text>
+                                </View>
+                              )}
+                              {isCurrent && !done && previewWeek === plan.currentWeek && (
+                                <View style={{ backgroundColor: Colors.primary, paddingHorizontal: 8, paddingVertical: 3 }}>
+                                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 1 }}>Up Next</Text>
+                                </View>
+                              )}
+                              {done && previewWeek === plan.currentWeek && (
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                  <Ionicons name="checkmark-circle" size={14} color={Colors.primary} />
+                                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                                </View>
+                              )}
+                            </View>
+                          </View>
+
+                          {day.exercises.map((te, eIdx) => {
+                            const logEntry = logsForPreview.find(l => l.exerciseId === te.exercise.id)
+                              ?? logsForCurrent.find(l => l.exerciseId === te.exercise.id);
+                            const isBodyweight = te.exercise.equipment === "BODYWEIGHT";
+                            let targetSets = 3;
+                            let targetWeight = 0;
+                            let targetRIRStr = `${previewRIR} RIR`;
+                            if (logEntry) {
+                              targetSets = logEntry.targetSets;
+                              if (hasPreviewLogs || previewWeek === plan.currentWeek) {
+                                targetWeight = logEntry.targetWeight;
+                                targetRIRStr = logEntry.targetRIR;
+                              } else {
+                                targetWeight = projectWeight(logEntry.targetWeight, weekDelta);
+                                targetRIRStr = `${previewRIR} RIR`;
+                              }
+                            }
+                            const isLastEx = eIdx === day.exercises.length - 1;
+                            return (
+                              <View
+                                key={te.id}
+                                style={{
+                                  flexDirection: "row", alignItems: "center",
+                                  paddingVertical: 9,
+                                  borderBottomWidth: isLastEx ? 0 : 1,
+                                  borderBottomColor: Colors.border,
+                                  gap: 10,
+                                }}
+                              >
+                                <View style={{ width: 24, height: 24, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}>
+                                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary }}>{eIdx + 1}</Text>
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.text }} numberOfLines={1}>
+                                    {te.exercise.name}
+                                  </Text>
+                                  {logEntry && !previewIsDeload && (
+                                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                                      {targetSets} sets{!isBodyweight && targetWeight > 0 ? ` · ${targetWeight} ${unit}` : ""}{` · ${targetRIRStr}`}
+                                    </Text>
+                                  )}
+                                  {previewIsDeload && (
+                                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.warning + "CC", marginTop: 2 }}>
+                                      Reduced volume & intensity
+                                    </Text>
+                                  )}
+                                </View>
+                                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase" }}>
+                                  {te.exercise.equipment}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* ── CTA — always visible below workout card ── */}
+            <View style={{ marginTop: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                  {todayComplete
+                    ? `Day ${plan.currentDay} of ${totalDays} · This week`
+                    : `Day ${plan.currentDay} · ${mesoPhase} · ${todayExerciseCount} exercises`}
+                </Text>
+                {hasRecovery && overallStatus === "poor" && !todayComplete && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                    <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STATUS_COLOR.poor }} />
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: STATUS_COLOR.poor, textTransform: "uppercase", letterSpacing: 1 }}>
+                      Recovery Low
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {todayComplete ? (
+                <View style={{
+                  borderWidth: 1, borderColor: Colors.primary + "55",
+                  backgroundColor: Colors.primary + "0D",
+                  paddingVertical: 18, alignItems: "center",
+                }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2 }}>
+                      Session Complete
+                    </Text>
+                  </View>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 4 }}>
+                    Next session: Day {((plan.currentDay || 1) % totalDays) + 1}
+                  </Text>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={handleStartWorkout}
+                  style={({ pressed }) => ({
+                    backgroundColor: isDeload ? Colors.warning : Colors.primary,
+                    paddingVertical: 20,
+                    opacity: pressed ? 0.85 : 1,
+                  })}
+                >
+                  <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 12 }}>
+                    <Ionicons name="flash" size={22} color={Colors.text} />
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 3 }}>
+                      {isDeload ? "Start Deload" : "Start Workout"}
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+              {!todayComplete && (
+                <Pressable
+                  onPress={handleSkipSession}
+                  disabled={skipping}
+                  style={({ pressed }) => ({ alignItems: "center", paddingVertical: 10, opacity: pressed || skipping ? 0.4 : 1 })}
+                >
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                    {skipping ? "Skipping..." : "Skip Session"}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* ── Steps + Recovery Row ── */}
+        <View style={{ paddingHorizontal: 24, marginTop: 16, flexDirection: "row", gap: 8 }}>
+
+          {/* Steps tile */}
+          {todaySteps !== null && (
             <Pressable
               onPress={() => {
                 setStepsInput(todaySteps.steps > 0 ? String(todaySteps.steps) : "");
                 setStepsModalVisible(true);
               }}
               style={({ pressed }) => ({
-                borderWidth: 1, borderColor: Colors.border, padding: 14,
-                flexDirection: "row", alignItems: "center", gap: 12,
+                flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 14,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <View style={{ width: 36, height: 36, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, justifyContent: "center", alignItems: "center" }}>
-                <Ionicons name="footsteps-outline" size={18} color={Colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 5 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                      Steps Today
-                    </Text>
-                    {(todaySteps.source === "apple_health" || todaySteps.source === "google_fit") && (
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 5, paddingVertical: 1 }}>
-                        <Ionicons
-                          name={todaySteps.source === "apple_health" ? "heart-circle-outline" : "fitness-outline"}
-                          size={9}
-                          color={Colors.primary}
-                        />
-                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 8, color: Colors.primary }}>
-                          {todaySteps.source === "apple_health" ? "Health" : "Fit"}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted }}>
-                    {todaySteps.steps.toLocaleString()} / {todaySteps.goal.toLocaleString()}
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                  <Ionicons name="footsteps-outline" size={13} color={Colors.textMuted} />
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    Steps
                   </Text>
                 </View>
-                <View style={{ height: 4, backgroundColor: Colors.bgAccent, borderRadius: 2, overflow: "hidden" }}>
-                  <View style={{
-                    height: 4,
-                    backgroundColor: todaySteps.steps >= todaySteps.goal ? Colors.success : Colors.primary,
-                    width: `${Math.min((todaySteps.steps / todaySteps.goal) * 100, 100)}%`,
-                  }} />
-                </View>
+                {(todaySteps.source === "apple_health" || todaySteps.source === "google_fit") && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 4, paddingVertical: 1 }}>
+                    <Ionicons
+                      name={todaySteps.source === "apple_health" ? "heart-circle-outline" : "fitness-outline"}
+                      size={9}
+                      color={Colors.primary}
+                    />
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 8, color: Colors.primary }}>
+                      {todaySteps.source === "apple_health" ? "Health" : "Fit"}
+                    </Text>
+                  </View>
+                )}
               </View>
-              <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 26, color: Colors.text, marginBottom: 2 }}>
+                {todaySteps.steps >= 1000
+                  ? `${(todaySteps.steps / 1000).toFixed(1)}k`
+                  : todaySteps.steps.toLocaleString()}
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginBottom: 8 }}>
+                / {(todaySteps.goal / 1000).toFixed(0)}k goal
+              </Text>
+              <View style={{ height: 3, backgroundColor: Colors.bgAccent }}>
+                <View style={{
+                  height: 3,
+                  backgroundColor: todaySteps.steps >= todaySteps.goal ? Colors.success : Colors.primary,
+                  width: `${Math.min((todaySteps.steps / todaySteps.goal) * 100, 100)}%`,
+                }} />
+              </View>
             </Pressable>
-          </View>
-        )}
+          )}
 
-        {/* ── Recovery Card ── */}
-        {(Platform.OS === "ios" || Platform.OS === "android") && (
-          <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
-            <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14 }}>
-              {/* Header row */}
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: hasRecovery ? 12 : 0 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          {/* Recovery tile */}
+          {(Platform.OS === "ios" || Platform.OS === "android") && (
+            <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 14 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasRecovery ? STATUS_COLOR[overallStatus] : Colors.textMuted }} />
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                     Recovery
                   </Text>
-                  {hasRecovery && (
-                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: STATUS_COLOR[overallStatus], textTransform: "uppercase", letterSpacing: 1 }}>
-                      · {STATUS_LABEL[overallStatus]}
-                    </Text>
-                  )}
                 </View>
                 <Pressable
                   onPress={async () => {
@@ -856,139 +892,94 @@ export default function DashboardScreen() {
                     setSyncingRecovery(false);
                     const gotData = result.rhr !== undefined || result.hrv !== undefined || result.sleepHours !== undefined;
                     if (Platform.OS !== "web") {
-                      Haptics.notificationAsync(
-                        gotData
-                          ? Haptics.NotificationFeedbackType.Success
-                          : Haptics.NotificationFeedbackType.Warning
-                      );
+                      Haptics.notificationAsync(gotData ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
                     }
                     if (!gotData) {
                       const uid = await AsyncStorage.getItem("userId");
                       const hasTracker = uid ? await hasEverSyncedFromHealthApp(uid) : false;
                       if (hasTracker) {
                         const platform = Platform.OS === "ios" ? "Apple Health" : "Health Connect";
-                        Alert.alert(
-                          "No recovery data found",
-                          `No sleep, RHR, or HRV data was found in ${platform} for today. Make sure your wearable or fitness tracker has recently synced.`
-                        );
+                        Alert.alert("No recovery data found", `No sleep, RHR, or HRV data was found in ${platform} for today. Make sure your wearable or fitness tracker has recently synced.`);
                       }
                     }
                   }}
                   disabled={syncingRecovery}
                   hitSlop={10}
-                  style={({ pressed }) => ({ opacity: pressed || syncingRecovery ? 0.5 : 1, flexDirection: "row", alignItems: "center", gap: 4 })}
+                  style={({ pressed }) => ({ opacity: pressed || syncingRecovery ? 0.5 : 1 })}
                 >
                   {syncingRecovery
                     ? <ActivityIndicator size="small" color={Colors.primary} />
-                    : <>
-                        <Ionicons name={Platform.OS === "ios" ? "heart-circle-outline" : "fitness-outline"} size={13} color={Colors.primary} />
-                        <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Sync</Text>
-                      </>
+                    : <Ionicons name={Platform.OS === "ios" ? "heart-circle-outline" : "fitness-outline"} size={13} color={Colors.primary} />
                   }
                 </Pressable>
               </View>
 
-              {/* Metric tiles — only shown once we have data */}
-              {hasRecovery && (
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  {/* Sleep */}
-                  {recovery?.sleepHours !== undefined && (
-                    <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
-                      <Ionicons name="moon-outline" size={14} color={STATUS_COLOR[sleepStatus]} />
-                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: STATUS_COLOR[sleepStatus] }}>
-                        {recovery.sleepHours}h
-                      </Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        Sleep
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* RHR */}
-                  {recovery?.rhr !== undefined && (
-                    <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
-                      <Ionicons name="heart-outline" size={14} color={STATUS_COLOR[rhrStatus]} />
-                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: STATUS_COLOR[rhrStatus] }}>
-                        {recovery.rhr}
-                      </Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        RHR bpm
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* HRV */}
-                  {recovery?.hrv !== undefined && (
-                    <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
-                      <Ionicons name="pulse-outline" size={14} color={STATUS_COLOR[hrvStatus]} />
-                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: STATUS_COLOR[hrvStatus] }}>
-                        {recovery.hrv}
-                      </Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        HRV ms
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-
-              {/* Empty state — no data synced yet */}
-              {!hasRecovery && (
-                <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, flex: 1 }}>
-                    Tap Sync to pull sleep, RHR & HRV from {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}.
+              {hasRecovery ? (
+                <>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[overallStatus], textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                    {STATUS_LABEL[overallStatus]}
+                  </Text>
+                  <View style={{ gap: 6 }}>
+                    {recovery?.sleepHours !== undefined && (
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                          <Ionicons name="moon-outline" size={11} color={STATUS_COLOR[sleepStatus]} />
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>Sleep</Text>
+                        </View>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[sleepStatus] }}>{recovery.sleepHours}h</Text>
+                      </View>
+                    )}
+                    {recovery?.rhr !== undefined && (
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                          <Ionicons name="heart-outline" size={11} color={STATUS_COLOR[rhrStatus]} />
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>RHR</Text>
+                        </View>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[rhrStatus] }}>{recovery.rhr} bpm</Text>
+                      </View>
+                    )}
+                    {recovery?.hrv !== undefined && (
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                          <Ionicons name="pulse-outline" size={11} color={STATUS_COLOR[hrvStatus]} />
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>HRV</Text>
+                        </View>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[hrvStatus] }}>{recovery.hrv} ms</Text>
+                      </View>
+                    )}
+                  </View>
+                </>
+              ) : (
+                <View>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 8 }}>
+                    Tap sync to pull sleep, RHR & HRV.
                   </Text>
                   <Pressable
                     onPress={() => {
-                      const url = Platform.OS === "ios"
-                        ? "x-apple-health://"
-                        : "content://com.google.android.apps.healthdata/";
+                      const url = Platform.OS === "ios" ? "x-apple-health://" : "content://com.google.android.apps.healthdata/";
                       Linking.openURL(url).catch(() => {});
                     }}
                     hitSlop={10}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, marginLeft: 12 })}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
                   >
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                      Open →
+                      Open {Platform.OS === "ios" ? "Health" : "Health Connect"} →
                     </Text>
                   </Pressable>
                 </View>
               )}
-
-              {/* "Open Health App" link when data is present */}
-              {hasRecovery && (
-                <Pressable
-                  onPress={() => {
-                    const url = Platform.OS === "ios"
-                      ? "x-apple-health://"
-                      : "content://com.google.android.apps.healthdata/";
-                    Linking.openURL(url).catch(() => {});
-                  }}
-                  style={({ pressed }) => ({ marginTop: 10, alignSelf: "flex-end", opacity: pressed ? 0.5 : 1 })}
-                  hitSlop={8}
-                >
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {Platform.OS === "ios" ? "Open Apple Health →" : "Open Health Connect →"}
-                  </Text>
-                </Pressable>
-              )}
             </View>
-          </View>
-        )}
+          )}
+        </View>
 
         {/* ── Body Composition Nudge ── */}
         {!bodyCompPromptDismissed && (
           <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
             <View style={{
-              borderWidth: 1,
-              borderColor: Colors.border,
-              borderLeftWidth: 3,
-              borderLeftColor: Colors.primary,
+              borderWidth: 1, borderColor: Colors.border,
+              borderLeftWidth: 3, borderLeftColor: Colors.primary,
               backgroundColor: Colors.primary + "08",
-              padding: 14,
-              flexDirection: "row",
-              alignItems: "flex-start",
-              gap: 10,
+              padding: 14, flexDirection: "row", alignItems: "flex-start", gap: 10,
             }}>
               <Ionicons name="body-outline" size={18} color={Colors.primary} style={{ marginTop: 1 }} />
               <View style={{ flex: 1 }}>
@@ -1164,7 +1155,7 @@ export default function DashboardScreen() {
         >
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingVertical: 8 }}>
             {[
-              { icon: "albums-outline" as const, label: "My Plans", sub: "Switch between your active plans", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/my-plans"); } },
+              { icon: "albums-outline" as const, label: "My Program", sub: "Mesocycle details, phase guide & plan switching", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/my-plans"); } },
               { icon: "swap-horizontal" as const, label: "Change Routine", sub: "Pick a different template or build your own", color: Colors.primary, onPress: handleChangeRoutine },
               { icon: "nutrition-outline" as const, label: "Nutrition Targets", sub: "View or edit your calorie & macro goals", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/nutrition"); } },
               { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log bodyweight and track trends", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/body-weight-log"); } },

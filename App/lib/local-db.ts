@@ -809,6 +809,39 @@ export async function abandonPlan(planId: string): Promise<void> {
   await db.runAsync("UPDATE workout_plans SET is_active = 0 WHERE id = ?", [planId]);
 }
 
+/**
+ * Returns completed session counts per absolute week number for a plan.
+ * Used by the Program screen to render the mesocycle timeline.
+ */
+export async function getPlanWeeklyProgress(planId: string): Promise<Record<number, { completed: number; total: number }>> {
+  const db = getDb();
+  // Count distinct completed days per week
+  const completedRows = await db.getAllAsync<{ week_number: number; completed: number }>(
+    `SELECT week_number, COUNT(DISTINCT day_number) as completed
+     FROM workout_logs
+     WHERE workout_plan_id = ? AND completed_at IS NOT NULL AND is_skipped = 0
+     GROUP BY week_number`,
+    [planId]
+  );
+  // Count distinct days per week (total possible)
+  const totalRows = await db.getAllAsync<{ week_number: number; total: number }>(
+    `SELECT week_number, COUNT(DISTINCT day_number) as total
+     FROM workout_logs
+     WHERE workout_plan_id = ?
+     GROUP BY week_number`,
+    [planId]
+  );
+  const result: Record<number, { completed: number; total: number }> = {};
+  for (const r of totalRows) {
+    result[r.week_number] = { completed: 0, total: r.total };
+  }
+  for (const r of completedRows) {
+    if (result[r.week_number]) result[r.week_number].completed = r.completed;
+    else result[r.week_number] = { completed: r.completed, total: r.completed };
+  }
+  return result;
+}
+
 export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null> {
   const db = getDb();
   const plan = await db.getFirstAsync<{
