@@ -20,6 +20,7 @@ import {
   getNutritionProfile,
   updateNutritionProfile,
   getUserProfile,
+  getMostRecentBodyWeightKg,
 } from "@/lib/local-db";
 import {
   ACTIVITY_LABELS,
@@ -100,8 +101,13 @@ export default function NutritionSetupScreen() {
     const profile = await getUserProfile(uid);
     if (profile) {
       setExperience(profile.experience as "BEGINNER" | "INTERMEDIATE" | "ADVANCED");
-      if (profile.bodyweight) {
-        // bodyweight is stored in the user's native unit — no conversion needed
+      // Prefer the most recent weigh-in log (stored in kg) over the stale profile value
+      const recentKg = await getMostRecentBodyWeightKg(uid);
+      if (recentKg != null) {
+        const display = unit === "lbs" ? Math.round(kgToLbs(recentKg)) : Math.round(recentKg * 10) / 10;
+        setCurrentWeight(String(display));
+      } else if (profile.bodyweight) {
+        // Fall back to onboarding value (stored in user's native unit)
         setCurrentWeight(String(Math.round(profile.bodyweight)));
       }
     }

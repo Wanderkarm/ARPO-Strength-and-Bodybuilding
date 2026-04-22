@@ -1,5 +1,5 @@
 import React from "react";
-import Svg, { Rect, Circle } from "react-native-svg";
+import { View } from "react-native";
 
 /** Visual state of the superset icon in the exercise list. */
 export type SupersetIconState =
@@ -18,41 +18,43 @@ export default function SupersetIcon({ state, size = 28 }: Props) {
     state === "picking"  ? "#e53935" :
     "#2e2e2e";
 
-  const bgColor     = state === "active" ? "#1f0808" : "#161616";
-  const dumbbellFill = state === "inactive" ? "#2e2e2e" : "white";
+  const bgColor      = state === "active" ? "#1f0808" : "#161616";
+  const dumbbellFill = state === "inactive" ? "#2e2e2e" : "#ffffff";
   const chainFill    = state === "inactive" ? "#252525" : "#c62828";
 
+  const s = size / 28;
+
+  const Dumbbell = () => (
+    <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 2 * s }}>
+      {/* Left plate */}
+      <View style={{ width: Math.max(4, 4 * s), height: Math.max(8, 9 * s), borderRadius: 2 * s, backgroundColor: dumbbellFill }} />
+      {/* Bar */}
+      <View style={{ flex: 1, height: Math.max(2, 3 * s), borderRadius: 1.5 * s, backgroundColor: dumbbellFill }} />
+      {/* Right plate */}
+      <View style={{ width: Math.max(4, 4 * s), height: Math.max(8, 9 * s), borderRadius: 2 * s, backgroundColor: dumbbellFill }} />
+    </View>
+  );
+
   return (
-    <Svg width={size} height={size} viewBox="0 0 56 56">
-      {/* Outer shadow ring */}
-      <Rect x="0" y="0" width="56" height="56" rx="12" fill="#000" />
-      {/* Background panel */}
-      <Rect
-        x="2" y="2" width="52" height="52" rx="10"
-        fill={bgColor}
-        stroke={borderColor}
-        strokeWidth={state === "inactive" ? "1.5" : "2.5"}
-      />
-
-      {/* ── Dumbbell 1 (top) ── */}
-      {/* Bar */}
-      <Rect x="15" y="14" width="26" height="4" rx="2" fill={dumbbellFill} />
-      {/* Left plate */}
-      <Rect x="9"  y="10" width="9" height="12" rx="3.5" fill={dumbbellFill} />
-      {/* Right plate */}
-      <Rect x="38" y="10" width="9" height="12" rx="3.5" fill={dumbbellFill} />
-
-      {/* ── Chain dots ── */}
-      <Circle cx="28" cy="26.5" r="2.5" fill={chainFill} />
-      <Circle cx="28" cy="32.5" r="2.5" fill={chainFill} />
-
-      {/* ── Dumbbell 2 (bottom) ── */}
-      {/* Bar */}
-      <Rect x="15" y="38" width="26" height="4" rx="2" fill={dumbbellFill} />
-      {/* Left plate */}
-      <Rect x="9"  y="34" width="9" height="12" rx="3.5" fill={dumbbellFill} />
-      {/* Right plate */}
-      <Rect x="38" y="34" width="9" height="12" rx="3.5" fill={dumbbellFill} />
-    </Svg>
+    <View style={{
+      width: size,
+      height: size,
+      borderRadius: Math.round(6 * s),
+      backgroundColor: bgColor,
+      borderWidth: state === "inactive" ? 1.5 : 2,
+      borderColor,
+      alignItems: "stretch",
+      justifyContent: "center",
+      gap: Math.max(2, 3 * s),
+      paddingVertical: 4 * s,
+    }}>
+      <Dumbbell />
+      {/* Chain dots */}
+      <View style={{ flexDirection: "row", gap: 3 * s, alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: Math.max(3, 3 * s), height: Math.max(3, 3 * s), borderRadius: 99, backgroundColor: chainFill }} />
+        <View style={{ width: Math.max(3, 3 * s), height: Math.max(3, 3 * s), borderRadius: 99, backgroundColor: chainFill }} />
+      </View>
+      <Dumbbell />
+    </View>
   );
 }

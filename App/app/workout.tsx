@@ -265,6 +265,8 @@ export default function WorkoutScreen() {
         const initial = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
         // Only trigger watch reminder on a fresh session start (not resume)
         if (initial < 10) {
+          // Show superset intro on every fresh workout start
+          setSupersetIntroVisible(true);
           const watchEnabled = await AsyncStorage.getItem("watchReminderEnabled");
           if (watchEnabled === "true") {
             setWatchBannerVisible(true);
@@ -445,27 +447,29 @@ export default function WorkoutScreen() {
     });
   }
 
-  async function handleSetRepsChange(exIndex: number, setIndex: number, value: string) {
+  function handleSetRepsChange(exIndex: number, setIndex: number, value: string) {
     updateSet(exIndex, setIndex, "repsCompleted", value);
     const num = parseInt(value);
     if (!isNaN(num)) {
       const ex = exerciseStates[exIndex];
       const setLogId = ex.sets[setIndex].setLogId;
-      await updateSetLog(setLogId, { repsCompleted: num });
+      // Fire-and-forget — don't await in onChangeText to avoid blocking iOS keyboard
+      updateSetLog(setLogId, { repsCompleted: num }).catch(() => {});
       // Bodyweight exercises don't require a weight entry — auto-commit 0
       if (ex.exercise.equipment === "BODYWEIGHT") {
         updateSet(exIndex, setIndex, "weightUsed", "0");
-        await updateSetLog(setLogId, { weightUsed: 0 });
+        updateSetLog(setLogId, { weightUsed: 0 }).catch(() => {});
       }
     }
   }
 
-  async function handleSetWeightChange(exIndex: number, setIndex: number, value: string) {
+  function handleSetWeightChange(exIndex: number, setIndex: number, value: string) {
     updateSet(exIndex, setIndex, "weightUsed", value);
     const num = parseFloat(value);
     if (!isNaN(num)) {
       const setLogId = exerciseStates[exIndex].sets[setIndex].setLogId;
-      await updateSetLog(setLogId, { weightUsed: num });
+      // Fire-and-forget — don't await in onChangeText to avoid blocking iOS keyboard
+      updateSetLog(setLogId, { weightUsed: num }).catch(() => {});
     }
   }
 
@@ -975,9 +979,6 @@ export default function WorkoutScreen() {
             </Text>
           </View>
           <Pressable onPress={() => setExercisePanelVisible(true)} hitSlop={12} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.primary }}>
-              {currentExerciseIndex + 1}/{exerciseStates.length}
-            </Text>
             <Ionicons name="list-outline" size={16} color={Colors.primary} />
           </Pressable>
           <Pressable onPress={startTour} hitSlop={12}>
@@ -1655,11 +1656,6 @@ export default function WorkoutScreen() {
                               if (ex.supersetGroup !== null) {
                                 removeFromSuperset(i);
                               } else {
-                                AsyncStorage.getItem("superset_intro_seen").then((seen) => {
-                                  if (!seen) {
-                                    setSupersetIntroVisible(true);
-                                  }
-                                });
                                 setSupersetPickSource(i);
                                 setSupersetPickMode(true);
                               }
@@ -1757,22 +1753,14 @@ export default function WorkoutScreen() {
             </Text>
 
             <Pressable
-              onPress={() => {
-                AsyncStorage.setItem("superset_intro_seen", "1");
-                setSupersetIntroVisible(false);
-              }}
+              onPress={() => setSupersetIntroVisible(false)}
               style={{ backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: "center" }}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "white" }}>Got it — pair exercises →</Text>
             </Pressable>
 
             <Pressable
-              onPress={() => {
-                AsyncStorage.setItem("superset_intro_seen", "1");
-                setSupersetPickMode(false);
-                setSupersetPickSource(null);
-                setSupersetIntroVisible(false);
-              }}
+              onPress={() => setSupersetIntroVisible(false)}
               hitSlop={8}
             >
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center" }}>

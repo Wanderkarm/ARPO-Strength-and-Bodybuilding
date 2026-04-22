@@ -236,12 +236,16 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
     let bodyFatPct: number | undefined;
     let stepsCount: number | undefined;
 
-    // Read latest body mass (kg)
+    // Read latest body mass (kg) — only log if the sample is from today
     const weightSample = await HealthKit.getMostRecentQuantitySample(
       "HKQuantityTypeIdentifierBodyMass",
       "kg"
     );
-    if (weightSample?.quantity != null && weightSample.quantity > 0) {
+    const weightSampleDate = weightSample?.endDate ?? weightSample?.startDate;
+    const weightIsToday = weightSampleDate
+      ? new Date(weightSampleDate).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10)
+      : false;
+    if (weightIsToday && weightSample?.quantity != null && weightSample.quantity > 0) {
       weightKg = weightSample.quantity;
       await logBodyWeight(userId, weightSample.quantity);
       weightSynced = true;
@@ -268,15 +272,13 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
 
     // Read today's step count using a cumulative statistics query (correctly
     // deduplicates overlapping samples from iPhone + Apple Watch).
-    // queryStatisticsForQuantity takes positional (from, to, unit) — NOT an options object.
+    // 3rd arg is an options object: { from, to, unit }
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
     const stepsStats = await HealthKit.queryStatisticsForQuantity(
       "HKQuantityTypeIdentifierStepCount",
       ["cumulativeSum"],
-      startOfToday,
-      now,
-      "count",
+      { from: startOfToday, to: now, unit: "count" },
     );
     const totalSteps = Math.round(stepsStats?.sumQuantity?.quantity ?? 0);
     if (totalSteps > 0) {
@@ -431,15 +433,13 @@ export async function silentDailySync(userId: string): Promise<{ stepsSynced: bo
       let weightSynced = false;
 
       // Steps — cumulative sum for today
-      // queryStatisticsForQuantity takes positional (from, to, unit) — NOT an options object.
+      // 3rd arg is an options object: { from, to, unit }
       const now = new Date();
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
       const stepsStats = await HealthKit.queryStatisticsForQuantity(
         "HKQuantityTypeIdentifierStepCount",
         ["cumulativeSum"],
-        startOfToday,
-        now,
-        "count",
+        { from: startOfToday, to: now, unit: "count" },
       );
       const steps = stepsStats?.sumQuantity?.quantity;
       if (steps != null && steps > 0) {
@@ -447,13 +447,17 @@ export async function silentDailySync(userId: string): Promise<{ stepsSynced: bo
         stepsSynced = true;
       }
 
-      // Weight — only if nothing logged today
+      // Weight — only if nothing logged today AND the sample itself is from today
       if (!alreadyHasWeight) {
         const weightSample = await HealthKit.getMostRecentQuantitySample(
           "HKQuantityTypeIdentifierBodyMass",
           "kg"
         );
-        if (weightSample?.quantity != null && weightSample.quantity > 0) {
+        const sampleDate = weightSample?.endDate ?? weightSample?.startDate;
+        const sampleIsToday = sampleDate
+          ? new Date(sampleDate).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10)
+          : false;
+        if (sampleIsToday && weightSample?.quantity != null && weightSample.quantity > 0) {
           await logBodyWeight(userId, weightSample.quantity);
           weightSynced = true;
         }

@@ -1838,6 +1838,16 @@ export async function deleteBodyWeightEntry(id: string): Promise<void> {
   await db.runAsync("DELETE FROM body_weight_logs WHERE id = ?", [id]);
 }
 
+/** Returns the most recent logged body weight in kg, or null if none exists. */
+export async function getMostRecentBodyWeightKg(userId: string): Promise<number | null> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ weight_kg: number }>(
+    "SELECT weight_kg FROM body_weight_logs WHERE user_id = ? ORDER BY logged_at DESC LIMIT 1",
+    [userId]
+  );
+  return row?.weight_kg ?? null;
+}
+
 /** Returns true if a body-weight entry already exists for today (local date). */
 export async function hasTodayWeightLog(userId: string): Promise<boolean> {
   const db = getDb();

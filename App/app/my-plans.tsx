@@ -72,13 +72,21 @@ export default function MyPlansScreen() {
       if (uid) {
         const summaries = await getUserPlanSummaries(uid);
         setPlans(summaries);
-        // Load weekly progress for all plans in parallel
-        const progEntries = await Promise.all(
-          summaries.map(async (p) => [p.id, await getPlanWeeklyProgress(p.id)] as const)
-        );
-        setWeeklyProgress(Object.fromEntries(progEntries));
+        setLoading(false);
+        // Load weekly progress separately — never block showing the plans
+        try {
+          const progEntries = await Promise.all(
+            summaries.map(async (p) => [p.id, await getPlanWeeklyProgress(p.id)] as const)
+          );
+          setWeeklyProgress(Object.fromEntries(progEntries));
+        } catch (e) {
+          console.warn("Weekly progress load failed:", e);
+        }
+      } else {
+        setLoading(false);
       }
-    } finally {
+    } catch (e) {
+      console.error("My Plans load error:", e);
       setLoading(false);
     }
   }
