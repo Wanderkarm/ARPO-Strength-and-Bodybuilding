@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Animated,
 } from "react-native";
 import { router } from "expo-router";
 import { useFocusEffect } from "expo-router";
@@ -23,6 +24,7 @@ import {
   logBodyWeight,
   getBodyWeightHistory,
   deleteBodyWeightEntry,
+  updateBodyWeightEntry,
   type BodyWeightEntry,
 } from "@/lib/local-db";
 import { kgToLbs, lbsToKg } from "@/utils/nutritionCalculator";
@@ -106,7 +108,6 @@ function BodyWeightChart({ data, unit }: { data: BodyWeightEntry[]; unit: string
 export default function BodyWeightLogScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
-  const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { unit } = useUnit();
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -115,11 +116,44 @@ export default function BodyWeightLogScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Inline edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+
+  // Sync acknowledgment banner
+  const [syncBanner, setSyncBanner] = useState<string | null>(null);
+  const bannerOpacity = useRef(new Animated.Value(0)).current;
+  const bannerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       load();
-    }, [])
+      checkPendingSync();
+    }, [unit])
   );
+
+  async function checkPendingSync() {
+    try {
+      const raw = await AsyncStorage.getItem("weight_sync_pending");
+      if (!raw) return;
+      const { kg } = JSON.parse(raw) as { kg: number; ts: string };
+      await AsyncStorage.removeItem("weight_sync_pending");
+      const display = unit === "lbs"
+        ? `${kgToLbs(kg).toFixed(1)} lbs`
+        : `${kg.toFixed(1)} kg`;
+      showSyncBanner(display);
+    } catch {}
+  }
+
+  function showSyncBanner(displayWeight: string) {
+    setSyncBanner(displayWeight);
+    bannerOpacity.setValue(0);
+    Animated.sequence([
+      Animated.timing(bannerOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(3000),
+      Animated.timing(bannerOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+    ]).start(() => setSyncBanner(null));
+  }
 
   async function load() {
     setLoading(true);
@@ -150,6 +184,31 @@ export default function BodyWeightLogScreen() {
     }
   }
 
+  function startEdit(entry: BodyWeightEntry) {
+    const display = unit === "lbs"
+      ? kgToLbs(entry.weightKg).toFixed(1)
+      : entry.weightKg.toFixed(1);
+    setEditingId(entry.id);
+    setEditingValue(display);
+  }
+
+  async function confirmEdit() {
+    if (!editingId) return;
+    const val = parseFloat(editingValue);
+    if (isNaN(val) || val <= 0) { cancelEdit(); return; }
+    const kg = unit === "lbs" ? lbsToKg(val) : val;
+    await updateBodyWeightEntry(editingId, kg);
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setEditingId(null);
+    setEditingValue("");
+    await load();
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditingValue("");
+  }
+
   async function handleDelete(id: string) {
     Alert.alert("Delete Entry", "Remove this weigh-in?", [
       { text: "Cancel", style: "cancel" },
@@ -157,6 +216,7 @@ export default function BodyWeightLogScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          if (editingId === id) cancelEdit();
           await deleteBodyWeightEntry(id);
           await load();
         },
@@ -202,6 +262,26 @@ export default function BodyWeightLogScreen() {
         </View>
         <View style={{ width: 24 }} />
       </View>
+
+      {/* Sync acknowledgment banner */}
+      {syncBanner !== null && (
+        <Animated.View style={{
+          opacity: bannerOpacity,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          backgroundColor: "#0d2010",
+          borderBottomWidth: 1,
+          borderBottomColor: Colors.success + "44",
+        }}>
+          <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.success, flex: 1 }}>
+            Apple Health synced · {syncBanner} logged
+          </Text>
+        </Animated.View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
@@ -267,6 +347,8 @@ export default function BodyWeightLogScreen() {
             <TextInput
               value={weightInput}
               onChangeText={setWeightInput}
+              onSubmitEditing={handleLog}
+              returnKeyType="done"
               keyboardType="decimal-pad"
               placeholder={unit === "lbs" ? "e.g. 185.0" : "e.g. 84.0"}
               placeholderTextColor={Colors.textMuted}
@@ -313,32 +395,75 @@ export default function BodyWeightLogScreen() {
                 {displayHistory.map((entry, i) => {
                   const date = new Date(entry.loggedAt);
                   const displayW = unit === "lbs" ? kgToLbs(entry.weightKg).toFixed(1) : entry.weightKg.toFixed(1);
+                  const isEditing = editingId === entry.id;
+
                   return (
                     <View
                       key={entry.id}
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        padding: 14,
                         borderTopWidth: i > 0 ? 1 : 0,
                         borderTopColor: Colors.border,
+                        backgroundColor: isEditing ? Colors.bgAccent : "transparent",
                       }}
                     >
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                          {displayW} {unit}
-                        </Text>
-                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                          {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                        </Text>
-                      </View>
-                      <Pressable
-                        onPress={() => handleDelete(entry.id)}
-                        hitSlop={12}
-                        style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 4 })}
-                      >
-                        <Ionicons name="trash-outline" size={16} color={Colors.textMuted} />
-                      </Pressable>
+                      {isEditing ? (
+                        /* ── Edit mode row ── */
+                        <View style={{ flexDirection: "row", alignItems: "center", padding: 10, gap: 8 }}>
+                          <TextInput
+                            value={editingValue}
+                            onChangeText={setEditingValue}
+                            onSubmitEditing={confirmEdit}
+                            autoFocus
+                            selectTextOnFocus
+                            keyboardType="decimal-pad"
+                            returnKeyType="done"
+                            style={{
+                              flex: 1,
+                              fontFamily: "Rubik_700Bold",
+                              fontSize: 16,
+                              color: Colors.text,
+                              borderWidth: 1,
+                              borderColor: Colors.primary,
+                              paddingHorizontal: 10,
+                              paddingVertical: 8,
+                              textAlign: "center",
+                            }}
+                          />
+                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>{unit}</Text>
+                          <Pressable onPress={confirmEdit} hitSlop={10} style={{ padding: 6 }}>
+                            <Ionicons name="checkmark-circle" size={22} color={Colors.success} />
+                          </Pressable>
+                          <Pressable onPress={cancelEdit} hitSlop={10} style={{ padding: 6 }}>
+                            <Ionicons name="close-circle" size={22} color={Colors.textMuted} />
+                          </Pressable>
+                        </View>
+                      ) : (
+                        /* ── Normal row ── */
+                        <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                              {displayW} {unit}
+                            </Text>
+                            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                              {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                            </Text>
+                          </View>
+                          <Pressable
+                            onPress={() => startEdit(entry)}
+                            hitSlop={12}
+                            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 4, marginRight: 4 })}
+                          >
+                            <Ionicons name="pencil-outline" size={15} color={Colors.textMuted} />
+                          </Pressable>
+                          <Pressable
+                            onPress={() => handleDelete(entry.id)}
+                            hitSlop={12}
+                            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 4 })}
+                          >
+                            <Ionicons name="trash-outline" size={15} color={Colors.textMuted} />
+                          </Pressable>
+                        </View>
+                      )}
                     </View>
                   );
                 })}

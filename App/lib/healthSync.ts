@@ -249,6 +249,10 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
       weightKg = weightSample.quantity;
       await logBodyWeight(userId, weightSample.quantity);
       weightSynced = true;
+      await AsyncStorage.setItem(
+        "weight_sync_pending",
+        JSON.stringify({ kg: weightSample.quantity, ts: new Date().toISOString() })
+      );
     }
 
     // Read latest body fat % — HealthKit stores as fraction (0.185), unit '%' converts to 18.5
@@ -460,6 +464,11 @@ export async function silentDailySync(userId: string): Promise<{ stepsSynced: bo
         if (sampleIsToday && weightSample?.quantity != null && weightSample.quantity > 0) {
           await logBodyWeight(userId, weightSample.quantity);
           weightSynced = true;
+          // Store a pending acknowledgment so the weight log screen can show a banner
+          await AsyncStorage.setItem(
+            "weight_sync_pending",
+            JSON.stringify({ kg: weightSample.quantity, ts: new Date().toISOString() })
+          );
         }
       }
 
@@ -501,6 +510,10 @@ export async function silentDailySync(userId: string): Promise<{ stepsSynced: bo
         if (latestWeight?.weight?.inKilograms > 0) {
           await logBodyWeight(userId, latestWeight.weight.inKilograms);
           weightSynced = true;
+          await AsyncStorage.setItem(
+            "weight_sync_pending",
+            JSON.stringify({ kg: latestWeight.weight.inKilograms, ts: new Date().toISOString() })
+          );
         }
       }
 

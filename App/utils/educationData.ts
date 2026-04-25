@@ -1,7 +1,7 @@
 export const restFacts = [
   {
     id: "rest-1",
-    excerpt: "ARPO Directive: A 3-minute rest between heavy sets allows local force output to recover, sustaining your volume of hard sets.",
+    excerpt: "ARPO Brief: A 3-minute rest between heavy sets allows local force output to recover, sustaining your volume of hard sets.",
     citation: "Singer et al., 2024",
     paperTitle: "Give it a Rest: A systematic review with Bayesian meta-analysis on the effect of inter-set rest interval duration on muscle hypertrophy.",
     sampleSize: "Meta-analysis (Synthesis of multiple Randomized Controlled Trials)",
@@ -10,7 +10,7 @@ export const restFacts = [
   },
   {
     id: "rom-1",
-    excerpt: "ARPO Directive: Training at long muscle lengths (the stretched position) provides a distinct hypertrophic advantage, often rivaling or exceeding standard range of motion.",
+    excerpt: "ARPO Brief: Training at long muscle lengths (the stretched position) provides a distinct hypertrophic advantage, often rivaling or exceeding standard range of motion.",
     citation: "Wolf et al., 2023",
     paperTitle: "Partial Vs Full Range of Motion Resistance Training: A Systematic Review and Meta-Analysis.",
     sampleSize: "Meta-analysis of 24 structured studies",
@@ -19,7 +19,7 @@ export const restFacts = [
   },
   {
     id: "rir-1",
-    excerpt: "ARPO Directive: Absolute failure is not required. Terminating sets 1-2 reps shy of failure yields equivalent muscle growth with a manageable recovery cost.",
+    excerpt: "ARPO Brief: Absolute failure is not required. Terminating sets 1-2 reps shy of failure yields equivalent muscle growth with a manageable recovery cost.",
     citation: "Refalo et al., 2023",
     paperTitle: "Influence of Resistance Training Proximity-to-Failure on Skeletal Muscle Hypertrophy.",
     sampleSize: "Systematic Review with Meta-analysis",
@@ -28,7 +28,7 @@ export const restFacts = [
   },
   {
     id: "vol-1",
-    excerpt: "ARPO Directive: The number of 'hard sets' taken close to failure is the primary metric for volume, not just total weight moved.",
+    excerpt: "ARPO Brief: The number of 'hard sets' taken close to failure is the primary metric for volume, not just total weight moved.",
     citation: "Schoenfeld et al., 2017",
     paperTitle: "Dose-response relationship between weekly resistance training volume and increases in muscle mass.",
     sampleSize: "Meta-analysis of 15 clinical studies",
@@ -37,7 +37,7 @@ export const restFacts = [
   },
   {
     id: "pro-1",
-    excerpt: "ARPO Directive: Muscle protein synthesis optimally plateaus between 0.75g and 1g of protein per pound of body weight daily.",
+    excerpt: "ARPO Brief: Muscle protein synthesis optimally plateaus between 0.75g and 1g of protein per pound of body weight daily.",
     citation: "Morton et al., 2018",
     paperTitle: "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains.",
     sampleSize: "49 studies comprising 1,863 participants",

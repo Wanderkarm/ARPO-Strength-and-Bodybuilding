@@ -1838,6 +1838,11 @@ export async function deleteBodyWeightEntry(id: string): Promise<void> {
   await db.runAsync("DELETE FROM body_weight_logs WHERE id = ?", [id]);
 }
 
+export async function updateBodyWeightEntry(id: string, weightKg: number): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE body_weight_logs SET weight_kg = ? WHERE id = ?", [weightKg, id]);
+}
+
 /** Returns the most recent logged body weight in kg, or null if none exists. */
 export async function getMostRecentBodyWeightKg(userId: string): Promise<number | null> {
   const db = getDb();

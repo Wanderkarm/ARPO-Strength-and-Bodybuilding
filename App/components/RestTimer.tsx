@@ -165,18 +165,25 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
         </View>
       )}
 
-      {!isFinished && (
-        <View style={styles.factContainer}>
-          <Text style={styles.factText}>{fact.excerpt}</Text>
-          <Pressable
-            testID="read-source-btn"
-            onPress={() => setPaperModalVisible(true)}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, marginTop: 10 })}
-          >
-            <Text style={styles.readSourceText}>Read Source Paper</Text>
-          </Pressable>
-        </View>
-      )}
+      {!isFinished && (() => {
+        // Parse "ARPO Brief: [text]" into label + body
+        const colonIdx = fact.excerpt.indexOf(": ");
+        const briefLabel = colonIdx !== -1 ? fact.excerpt.slice(0, colonIdx) : "ARPO Brief";
+        const briefText  = colonIdx !== -1 ? fact.excerpt.slice(colonIdx + 2) : fact.excerpt;
+        return (
+          <View style={styles.factContainer}>
+            <Text style={styles.factLabel}>{briefLabel.toUpperCase()}</Text>
+            <Text style={styles.factText}>{briefText}</Text>
+            <Pressable
+              testID="read-source-btn"
+              onPress={() => setPaperModalVisible(true)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, marginTop: 10 })}
+            >
+              <Text style={styles.readSourceText}>Read Source Paper</Text>
+            </Pressable>
+          </View>
+        );
+      })()}
 
       <Modal
         visible={paperModalVisible}
@@ -259,11 +266,18 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     alignItems: "center",
   },
+  factLabel: {
+    fontFamily: "Rubik_700Bold",
+    fontSize: 9,
+    color: Colors.primary,
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
   factText: {
-    fontFamily: "Rubik_400Regular",
-    fontSize: 12,
-    color: Colors.textMuted,
-    lineHeight: 18,
+    fontFamily: "Rubik_500Medium",
+    fontSize: 14,
+    color: Colors.text,
+    lineHeight: 22,
     textAlign: "center",
   },
   readSourceText: {

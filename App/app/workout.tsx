@@ -49,6 +49,24 @@ import { firePRNotification } from "@/lib/notifications";
 import * as Notifications from "expo-notifications";
 import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
 
+const SCIENCE_TIPS: { icon: string; text: string }[] = [
+  { icon: "flask-outline",       text: "RIR 3 is the hypertrophy sweet spot — hard enough to grow, controlled enough for clean technique." },
+  { icon: "time-outline",        text: "Rest 2-3 min between compound sets. ATP restores in ~90 sec, but neural fatigue takes longer." },
+  { icon: "trending-up-outline", text: "Progressive overload = more weight OR more reps at the same load. Both drive muscle growth equally." },
+  { icon: "moon-outline",        text: "Growth hormone peaks during deep sleep. 7-9 hours isn't optional — it's part of the program." },
+  { icon: "body-outline",        text: "Controlled negatives (3-4 sec) increase mechanical tension — the primary driver of hypertrophy." },
+  { icon: "fitness-outline",     text: "Focusing on the working muscle can raise activation by up to 35% in isolation exercises." },
+  { icon: "refresh-outline",     text: "Deload weeks aren't lost training — they're when adaptations consolidate and performance rebounds." },
+  { icon: "nutrition-outline",   text: "20-40 g protein within 2 hours post-workout maximizes muscle protein synthesis." },
+  { icon: "stats-chart-outline", text: "Volume (sets × reps × load) is the #1 driver of hypertrophy. RIR keeps set quality high." },
+  { icon: "water-outline",       text: "Even 2% dehydration drops strength output 5-8%. Sip 500 ml before you start." },
+  { icon: "thunderstorm-outline",text: "Antagonist supersets (chest + back) let one muscle recover while the other works — no strength loss." },
+  { icon: "layers-outline",      text: "Accumulated fatigue masks fitness gains. Deloads reveal how much stronger you've actually become." },
+  { icon: "pulse-outline",       text: "Compound lifts first, isolation after. Spend your best energy where it moves the most load." },
+  { icon: "flame-outline",       text: "Muscle soreness ≠ effective training. DOMS is inflammation, not a growth signal." },
+  { icon: "cellular-outline",    text: "Each muscle needs 10-20 hard sets per week to grow. This program keeps you in that optimal range." },
+];
+
 interface SetState {
   setLogId: string;
   setNumber: number;
@@ -211,6 +229,8 @@ export default function WorkoutScreen() {
   const [supersetIntroVisible, setSupersetIntroVisible] = useState(false);
   // ── Superset jump banner ──────────────────────────────────────────────────
   const [supersetJumpBanner, setSupersetJumpBanner] = useState<string | null>(null);
+  // ── Keyboard visibility (used to hide guide during input) ────────────────
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     loadPlan();
@@ -223,9 +243,14 @@ export default function WorkoutScreen() {
         } catch {}
       }
     });
+    // Track keyboard so we can hide the exercise guide during set entry
+    const kbShow = Keyboard.addListener("keyboardWillShow", () => setKeyboardVisible(true));
+    const kbHide = Keyboard.addListener("keyboardWillHide", () => setKeyboardVisible(false));
     // Cleanup timer on unmount
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      kbShow.remove();
+      kbHide.remove();
     };
   }, []);
 
@@ -1034,7 +1059,9 @@ export default function WorkoutScreen() {
         </View>
       )}
 
-      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 }}>
+      {/* ── Non-scrollable content: exercise header + set table ─────────────
+           TextInputs live here so iOS never auto-scrolls the screen          ── */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
           <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, flexShrink: 1 }}>
@@ -1125,6 +1152,28 @@ export default function WorkoutScreen() {
             ))}
           </View>
         )}
+
+        {/* ARPO Brief — science tip, rotates per exercise, hidden once all sets are done */}
+        {!isExerciseComplete(currentEx) && (() => {
+          const tip = SCIENCE_TIPS[currentExerciseIndex % SCIENCE_TIPS.length];
+          return (
+            <View style={{
+              marginBottom: 12, paddingHorizontal: 10, paddingVertical: 8,
+              backgroundColor: Colors.bgAccent,
+              borderLeftWidth: 2, borderLeftColor: Colors.primary + "66",
+            }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <Ionicons name={tip.icon as any} size={11} color={Colors.primary} />
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, letterSpacing: 2, textTransform: "uppercase" }}>
+                  ARPO Brief
+                </Text>
+              </View>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 17 }}>
+                {tip.text}
+              </Text>
+            </View>
+          );
+        })()}
 
         <View ref={setTableRef} style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 16 }}>
           <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.bgAccent }}>
@@ -1326,14 +1375,14 @@ export default function WorkoutScreen() {
           </Pressable>
         )}
 
-        {/* Per-exercise ratings — appear inline as soon as all sets are complete */}
+      </View>{/* end non-scrollable content */}
+
+      {/* ── Scrollable lower area: rating (post-exercise) + guide ───────────── */}
+      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}>
+
+        {/* Per-exercise ratings — appear once all sets are complete */}
         {isExerciseComplete(currentEx) && (
           <View
-            onLayout={(e) => {
-              // Auto-scroll to the rating strip the moment it first appears
-              const y = e.nativeEvent.layout.y;
-              setTimeout(() => scrollRef.current?.scrollTo({ y: y - 16, animated: true }), 80);
-            }}
             style={{ marginHorizontal: 20, marginTop: 20, borderWidth: 1, borderColor: Colors.primary + "66", padding: 16 }}
           >
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14 }}>
@@ -1451,13 +1500,14 @@ export default function WorkoutScreen() {
           />
         )}
 
-        {/* Exercise guide — anatomy map + breakdown + instructions */}
-        <View ref={guideRef}>
-          <ExerciseGuide exercise={currentEx.exercise} />
-        </View>
+        {/* Exercise guide — hidden while keyboard is open so it can't scroll into view */}
+        {!keyboardVisible && (
+          <View ref={guideRef}>
+            <ExerciseGuide exercise={currentEx.exercise} />
+          </View>
+        )}
 
-        {/* Bottom padding so the guide doesn't sit right against the action bar */}
-        <View style={{ height: 28 }} />
+        {!keyboardVisible && <View style={{ height: 28 }} />}
       </ScrollView>
 
       <View ref={actionBarRef} style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
