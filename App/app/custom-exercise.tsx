@@ -45,8 +45,9 @@ const EQUIPMENT_OPTIONS = [
   { value: "DUMBBELL",   label: "Dumbbell" },
   { value: "MACHINE",    label: "Machine" },
   { value: "CABLE",      label: "Cable" },
-  { value: "BODYWEIGHT", label: "Bodyweight" },
-  { value: "BAND",       label: "Band" },
+  { value: "BODYWEIGHT",          label: "Bodyweight" },
+  { value: "WEIGHTED_BODYWEIGHT", label: "Weighted BW (belt/dumbbell)" },
+  { value: "BAND",                label: "Band" },
   { value: "OTHER",      label: "Other" },
 ];
 

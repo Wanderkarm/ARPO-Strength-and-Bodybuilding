@@ -38,6 +38,7 @@ import {
   resetAllExercisesToOriginal as resetAllExercisesToOriginalDb,
   completeWorkout,
   updateExercise,
+  updateExerciseEquipment,
   getPreviousSessionSets,
   updateExerciseNotes,
   startWorkoutSession,
@@ -190,6 +191,7 @@ export default function WorkoutScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editName, setEditName] = useState("");
   const [editVideoUrl, setEditVideoUrl] = useState("");
+  const [editEquipment, setEditEquipment] = useState("BARBELL");
   const [editSaving, setEditSaving] = useState(false);
   const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
   // ── Session timer ────────────────────────────────────────────────────────
@@ -653,6 +655,7 @@ export default function WorkoutScreen() {
     const ex = exerciseStates[currentExerciseIndex];
     setEditName(ex.exercise.name);
     setEditVideoUrl(ex.exercise.defaultVideoUrl || "");
+    setEditEquipment(ex.exercise.equipment);
     setEditModalVisible(true);
   }
 
@@ -664,10 +667,24 @@ export default function WorkoutScreen() {
     try {
       const newVideoUrl = editVideoUrl.trim() || null;
       await updateExercise(ex.exercise.id, trimmedName, newVideoUrl);
+      const equipmentChanged = editEquipment !== ex.exercise.equipment;
+      if (equipmentChanged) {
+        await updateExerciseEquipment(ex.exercise.id, editEquipment);
+        // Clear logged weights when switching to weighted BW — old "0" values are stale
+        if (editEquipment === "WEIGHTED_BODYWEIGHT") {
+          setExerciseStates((prev) =>
+            prev.map((s, i) =>
+              i === currentExerciseIndex
+                ? { ...s, sets: s.sets.map((set) => ({ ...set, weightUsed: "", feedback: null })) }
+                : s
+            )
+          );
+        }
+      }
       setExerciseStates((prev) =>
         prev.map((s, i) =>
           i === currentExerciseIndex
-            ? { ...s, exercise: { ...s.exercise, name: trimmedName, defaultVideoUrl: newVideoUrl } }
+            ? { ...s, exercise: { ...s.exercise, name: trimmedName, defaultVideoUrl: newVideoUrl, equipment: editEquipment } }
             : s
         )
       );
@@ -825,7 +842,7 @@ export default function WorkoutScreen() {
   const filteredExercises = allExercisesList.filter((ex) => {
     if (ex.id === currentExerciseId) return false;
     if (ex.category !== currentCategory) return false;
-    if (homeGymOnly && ex.equipment !== "DUMBBELL" && ex.equipment !== "BODYWEIGHT") return false;
+    if (homeGymOnly && ex.equipment !== "DUMBBELL" && ex.equipment !== "BODYWEIGHT" && ex.equipment !== "WEIGHTED_BODYWEIGHT") return false;
     return true;
   });
 
@@ -940,6 +957,7 @@ export default function WorkoutScreen() {
   const currentEx = exerciseStates[currentExerciseIndex];
   const isLastExercise = currentExerciseIndex === exerciseStates.length - 1;
   const isBodyweight = currentEx.exercise.equipment === "BODYWEIGHT";
+  const isWeightedBW = currentEx.exercise.equipment === "WEIGHTED_BODYWEIGHT";
   const allSetsLogged = currentEx.sets.every((s) =>
     isBodyweight ? s.repsCompleted !== "" : s.repsCompleted !== "" && s.weightUsed !== ""
   );
@@ -1146,7 +1164,11 @@ export default function WorkoutScreen() {
             </Text>
             {currentEx.prevSets.map((ps, i) => (
               <Text key={i} style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
-                {isBodyweight ? `BW×${ps.repsCompleted}` : `${ps.weightUsed}×${ps.repsCompleted}`}
+                {isBodyweight
+                  ? `BW×${ps.repsCompleted}`
+                  : isWeightedBW
+                    ? `BW+${ps.weightUsed}×${ps.repsCompleted}`
+                    : `${ps.weightUsed}×${ps.repsCompleted}`}
                 {i < currentEx.prevSets!.length - 1 ? "  ·" : ""}
               </Text>
             ))}
@@ -1189,27 +1211,34 @@ export default function WorkoutScreen() {
             </View>
             {!isBodyweight && (
               <View style={{ flex: 1, paddingVertical: 8, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
-                {/* Plate calculator trigger */}
-                <Pressable
-                  onPress={() => {
-                    const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
-                    setPlateCalcTarget(target);
-                    setPlateCalcBar(null);
-                    if (target) {
-                      setPlateResult(calculatePlates(parseFloat(target), unit));
-                    } else {
-                      setPlateResult(null);
-                    }
-                    setPlateCalcVisible(true);
-                  }}
-                  hitSlop={10}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
-                >
+                {isWeightedBW ? (
+                  /* Added weight column — no plate calc for belt weight */
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {unit}
+                    +{unit}
                   </Text>
-                  <Ionicons name="barbell-outline" size={10} color={Colors.primary} />
-                </Pressable>
+                ) : (
+                  /* Plate calculator trigger */
+                  <Pressable
+                    onPress={() => {
+                      const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
+                      setPlateCalcTarget(target);
+                      setPlateCalcBar(null);
+                      if (target) {
+                        setPlateResult(calculatePlates(parseFloat(target), unit));
+                      } else {
+                        setPlateResult(null);
+                      }
+                      setPlateCalcVisible(true);
+                    }}
+                    hitSlop={10}
+                    style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+                  >
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                      {unit}
+                    </Text>
+                    <Ionicons name="barbell-outline" size={10} color={Colors.primary} />
+                  </Pressable>
+                )}
               </View>
             )}
             <View style={{ flex: 1, paddingVertical: 8, alignItems: "center" }}>
@@ -1241,7 +1270,11 @@ export default function WorkoutScreen() {
 
                   <View style={{ flex: 1, paddingVertical: 10, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
-                      {isBodyweight ? `BW × ${set.targetReps}` : `${set.targetWeight} ${unit} × ${set.targetReps}`}
+                      {isBodyweight
+                        ? `BW × ${set.targetReps}`
+                        : isWeightedBW
+                          ? (set.targetWeight > 0 ? `BW+${set.targetWeight} × ${set.targetReps}` : `BW × ${set.targetReps}`)
+                          : `${set.targetWeight} ${unit} × ${set.targetReps}`}
                     </Text>
                   </View>
 
@@ -1337,8 +1370,8 @@ export default function WorkoutScreen() {
           })}
         </View>
 
-        {/* Plate calculator shortcut — shown below the set table for barbell/weighted exercises */}
-        {!isBodyweight && (
+        {/* Plate calculator shortcut — shown for barbell/weighted exercises, not belt weight */}
+        {!isBodyweight && !isWeightedBW && (
           <Pressable
             onPress={() => {
               const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
@@ -1631,6 +1664,7 @@ export default function WorkoutScreen() {
               <ScrollView style={{ maxHeight: screenHeight * 0.6 }}>
                 {exerciseStates.map((ex, i) => {
                   const isBodyweightEx = ex.exercise.equipment === "BODYWEIGHT";
+                  const isWeightedBWEx = ex.exercise.equipment === "WEIGHTED_BODYWEIGHT";
                   const setsLogged = ex.sets.filter((s) => s.feedback !== null).length;
                   const totalSets = ex.sets.length;
                   const isDone = setsLogged === totalSets;
@@ -2202,6 +2236,39 @@ export default function WorkoutScreen() {
                     backgroundColor: Colors.bgAccent,
                   }}
                 />
+
+                {/* Belt weight toggle — only shown for bodyweight-based exercises */}
+                {(editEquipment === "BODYWEIGHT" || editEquipment === "WEIGHTED_BODYWEIGHT") && (
+                  <View style={{ marginBottom: 20 }}>
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
+                      Weight Type
+                    </Text>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      {[
+                        { value: "BODYWEIGHT",          label: "Bodyweight Only" },
+                        { value: "WEIGHTED_BODYWEIGHT", label: "+ Belt / Dumbbell" },
+                      ].map((opt) => (
+                        <Pressable
+                          key={opt.value}
+                          onPress={() => setEditEquipment(opt.value)}
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            borderWidth: 1,
+                            borderColor: editEquipment === opt.value ? Colors.primary : Colors.border,
+                            paddingVertical: 10,
+                            alignItems: "center",
+                            opacity: pressed ? 0.7 : 1,
+                            backgroundColor: editEquipment === opt.value ? Colors.primary + "22" : "transparent",
+                          })}
+                        >
+                          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: editEquipment === opt.value ? Colors.primary : Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                            {opt.label}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                )}
 
                 <Pressable
                   testID="save-exercise-btn"

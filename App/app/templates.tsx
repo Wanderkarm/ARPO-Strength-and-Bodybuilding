@@ -130,7 +130,7 @@ export default function TemplatesScreen() {
               const alt = allExercises.find(
                 (e) =>
                   e.category === ex.category &&
-                  (e.equipment === "DUMBBELL" || e.equipment === "BODYWEIGHT") &&
+                  (e.equipment === "DUMBBELL" || e.equipment === "BODYWEIGHT" || e.equipment === "WEIGHTED_BODYWEIGHT") &&
                   e.id !== ex.id &&
                   !Object.values(swapMap).includes(e.id)
               );

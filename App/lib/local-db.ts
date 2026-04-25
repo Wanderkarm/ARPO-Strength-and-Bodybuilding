@@ -258,6 +258,11 @@ export async function updateExercise(id: string, name: string, videoUrl: string 
   );
 }
 
+export async function updateExerciseEquipment(id: string, equipment: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE exercises SET equipment = ? WHERE id = ?", [equipment, id]);
+}
+
 async function getTemplateWithDays(templateId: string): Promise<Template | null> {
   const db = getDb();
   const tmpl = await db.getFirstAsync<{ id: string; name: string; meso_type: number }>(
@@ -721,8 +726,8 @@ export async function createWorkoutPlan(
       }
 
       let targetWeight = baselineMap[exerciseCategory] || 50;
-      if (exerciseEquipment === "BODYWEIGHT") {
-        targetWeight = 0;
+      if (exerciseEquipment === "BODYWEIGHT" || exerciseEquipment === "WEIGHTED_BODYWEIGHT") {
+        targetWeight = 0; // starts at 0; added weight builds via progressive overload
       } else if (exerciseEquipment === "DUMBBELL") {
         // Dumbbell weight is per hand — use 35% of barbell baseline
         targetWeight = Math.round((targetWeight * 0.35) / 5) * 5;
