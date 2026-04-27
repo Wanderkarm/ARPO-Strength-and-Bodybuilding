@@ -15,6 +15,40 @@ const RIR_SCHEDULE: Record<number, string> = {
   4: "Deload",
 };
 
+/**
+ * Per-category fraction of barbell baseline to use as the starting
+ * per-dumbbell weight.  Compound push/pull categories start conservatively
+ * so the first session is achievable even for isolation variations (e.g. fly
+ * vs. bench press both land in HORIZONTAL PUSH).
+ */
+const DUMBBELL_FACTOR: Record<string, number> = {
+  "HORIZONTAL PUSH": 0.28,
+  "INCLINE PUSH":    0.25,
+  "VERTICAL PUSH":   0.22,
+  "HORIZONTAL BACK": 0.32,
+  "VERTICAL BACK":   0.28,
+  "BICEPS":          0.35, // curl baseline is already modest
+  "TRICEPS":         0.28,
+  "REAR DELTS":      0.35, // category modifier (×0.4) already discounts heavily
+  "TRAPS":           0.30,
+  "QUADS":           0.25,
+  "HAMSTRINGS":      0.28,
+  "GLUTES":          0.22,
+  "CALVES":          0.25,
+  "ABS":             0.22,
+};
+
+/**
+ * Rounds a dumbbell weight to the nearest available rack increment:
+ *   < 50  →  nearest 2.5  (e.g. 22.5, 27.5, 32.5 …)
+ *   ≥ 50  →  nearest 5    (most gyms stop stocking 2.5-lb steps above 50 lb)
+ * Works for both lbs and kg since 2.5 / 5 are standard in both systems.
+ */
+function snapDumbbellWeight(weight: number): number {
+  const step = weight >= 50 ? 5 : 2.5;
+  return Math.max(step, Math.round(weight / step) * step);
+}
+
 export async function initializeDatabase(): Promise<void> {
   await initializeSchema();
   const db = getDb();
@@ -729,8 +763,10 @@ export async function createWorkoutPlan(
       if (exerciseEquipment === "BODYWEIGHT" || exerciseEquipment === "WEIGHTED_BODYWEIGHT") {
         targetWeight = 0; // starts at 0; added weight builds via progressive overload
       } else if (exerciseEquipment === "DUMBBELL") {
-        // Dumbbell weight is per hand — use 35% of barbell baseline
-        targetWeight = Math.round((targetWeight * 0.35) / 5) * 5;
+        // Per-dumbbell (per-hand) weight — category-specific fraction of barbell baseline,
+        // snapped to the nearest real rack increment (2.5 below 50, 5 above 50).
+        const factor = DUMBBELL_FACTOR[exerciseCategory] ?? 0.28;
+        targetWeight = snapDumbbellWeight(targetWeight * factor);
       }
 
       const logId = generateId();
@@ -1017,11 +1053,13 @@ export async function skipSession(
 
     const allWeekLogs = await db.getAllAsync<{
       exercise_id: string; day_number: number; target_sets: number;
-      target_weight: number; target_rir: string; is_skipped: number;
+      target_weight: number; target_rir: string; is_skipped: number; equipment: string;
     }>(
-      `SELECT exercise_id, day_number, target_sets, target_weight, target_rir, is_skipped
-       FROM workout_logs
-       WHERE workout_plan_id = ? AND week_number = ? AND completed_at IS NOT NULL`,
+      `SELECT wl.exercise_id, wl.day_number, wl.target_sets, wl.target_weight,
+              wl.target_rir, wl.is_skipped, e.equipment
+       FROM workout_logs wl
+       JOIN exercises e ON wl.exercise_id = e.id
+       WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.completed_at IS NOT NULL`,
       [workoutPlanId, plan.current_week]
     );
 
@@ -1085,7 +1123,9 @@ export async function skipSession(
           goalType: skipGoalType,
         });
         nextSets = targets.targetSets;
-        nextWeight = targets.targetWeight;
+        nextWeight = log.equipment === "DUMBBELL"
+          ? snapDumbbellWeight(targets.targetWeight)
+          : targets.targetWeight;
       }
 
       const logId = generateId();
@@ -1484,11 +1524,11 @@ export async function completeWorkout(
       exercise_id: string; original_exercise_id: string | null;
       is_permanent_swap: number; day_number: number; target_sets: number;
       target_weight: number; target_rir: string; soreness_rating: number | null;
-      pump_rating: number | null; category: string;
+      pump_rating: number | null; category: string; equipment: string;
     }>(
       `SELECT wl.exercise_id, wl.original_exercise_id, wl.is_permanent_swap,
               wl.day_number, wl.target_sets, wl.target_weight,
-              wl.target_rir, wl.soreness_rating, wl.pump_rating, e.category
+              wl.target_rir, wl.soreness_rating, wl.pump_rating, e.category, e.equipment
        FROM workout_logs wl
        JOIN exercises e ON wl.exercise_id = e.id
        WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.completed_at IS NOT NULL`,
@@ -1561,6 +1601,11 @@ export async function completeWorkout(
         pumpRating: log.pump_rating ?? null,
         goalType: planGoalType,
       });
+
+      // Snap dumbbell targets to real rack increments so we never suggest 67.5 lbs
+      if (log.equipment === "DUMBBELL") {
+        targets.targetWeight = snapDumbbellWeight(targets.targetWeight);
+      }
 
       const logId = generateId();
       // For one-off swaps: next week reverts to the original exercise.
@@ -2536,4 +2581,117 @@ export async function createWorkoutPlanFromPrevious(
   }
 
   return createWorkoutPlan(oldPlan.user_id, oldPlan.template_id);
+}
+
+// ─── Set Management (add / remove sets mid-workout) ───────────────────────────
+
+/**
+ * Appends a new set to an active workout log, copying target values from the
+ * last set.  Also increments target_sets on the log.
+ * Returns the new row's id, setNumber, targetWeight, targetReps, or null if
+ * the log has no sets yet.
+ */
+export async function addSetToLog(workoutLogId: string): Promise<{
+  id: string;
+  setNumber: number;
+  targetWeight: number;
+  targetReps: number;
+} | null> {
+  const db = getDb();
+  const lastSet = await db.getFirstAsync<{
+    set_number: number; target_weight: number; target_reps: number;
+  }>(
+    "SELECT set_number, target_weight, target_reps FROM set_logs WHERE workout_log_id = ? ORDER BY set_number DESC LIMIT 1",
+    [workoutLogId]
+  );
+  if (!lastSet) return null;
+
+  const newSetNumber = lastSet.set_number + 1;
+  const id = generateId();
+  await db.runAsync(
+    "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
+    [id, workoutLogId, newSetNumber, lastSet.target_weight, lastSet.target_reps]
+  );
+  await db.runAsync(
+    "UPDATE workout_logs SET target_sets = target_sets + 1 WHERE id = ?",
+    [workoutLogId]
+  );
+  return { id, setNumber: newSetNumber, targetWeight: lastSet.target_weight, targetReps: lastSet.target_reps };
+}
+
+/**
+ * Deletes the last set from an active workout log, but only if it has not yet
+ * been completed (reps_completed IS NULL) and there is more than one set.
+ * Also decrements target_sets on the log.
+ * Returns true when a set was removed.
+ */
+export async function removeLastSetFromLog(workoutLogId: string): Promise<boolean> {
+  const db = getDb();
+  const lastSet = await db.getFirstAsync<{ id: string; reps_completed: number | null }>(
+    "SELECT id, reps_completed FROM set_logs WHERE workout_log_id = ? ORDER BY set_number DESC LIMIT 1",
+    [workoutLogId]
+  );
+  if (!lastSet || lastSet.reps_completed !== null) return false;
+
+  const countRow = await db.getFirstAsync<{ count: number }>(
+    "SELECT COUNT(*) as count FROM set_logs WHERE workout_log_id = ?",
+    [workoutLogId]
+  );
+  if (!countRow || countRow.count <= 1) return false;
+
+  await db.runAsync("DELETE FROM set_logs WHERE id = ?", [lastSet.id]);
+  await db.runAsync("UPDATE workout_logs SET target_sets = target_sets - 1 WHERE id = ?", [workoutLogId]);
+  return true;
+}
+
+/**
+ * Propagates a set-count delta (+1 or -1) to every future uncompleted
+ * workout_log for the same exercise in the same plan.
+ * Called when the user picks "Every session from now on".
+ */
+export async function propagateSetChangeToPlan(
+  planId: string,
+  exerciseId: string,
+  currentLogId: string,
+  delta: 1 | -1
+): Promise<void> {
+  const db = getDb();
+  const futureLogs = await db.getAllAsync<{ id: string }>(
+    `SELECT id FROM workout_logs
+     WHERE workout_plan_id = ? AND exercise_id = ?
+       AND completed_at IS NULL AND id != ?`,
+    [planId, exerciseId, currentLogId]
+  );
+
+  for (const log of futureLogs) {
+    if (delta === 1) {
+      const lastSet = await db.getFirstAsync<{
+        set_number: number; target_weight: number; target_reps: number;
+      }>(
+        "SELECT set_number, target_weight, target_reps FROM set_logs WHERE workout_log_id = ? ORDER BY set_number DESC LIMIT 1",
+        [log.id]
+      );
+      if (lastSet) {
+        const id = generateId();
+        await db.runAsync(
+          "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
+          [id, log.id, lastSet.set_number + 1, lastSet.target_weight, lastSet.target_reps]
+        );
+        await db.runAsync("UPDATE workout_logs SET target_sets = target_sets + 1 WHERE id = ?", [log.id]);
+      }
+    } else {
+      const lastSet = await db.getFirstAsync<{ id: string; reps_completed: number | null }>(
+        "SELECT id, reps_completed FROM set_logs WHERE workout_log_id = ? ORDER BY set_number DESC LIMIT 1",
+        [log.id]
+      );
+      const countRow = await db.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) as count FROM set_logs WHERE workout_log_id = ?",
+        [log.id]
+      );
+      if (lastSet && lastSet.reps_completed === null && countRow && countRow.count > 1) {
+        await db.runAsync("DELETE FROM set_logs WHERE id = ?", [lastSet.id]);
+        await db.runAsync("UPDATE workout_logs SET target_sets = target_sets - 1 WHERE id = ?", [log.id]);
+      }
+    }
+  }
 }

@@ -43,6 +43,9 @@ import {
   updateExerciseNotes,
   startWorkoutSession,
   finishWorkoutSession,
+  addSetToLog,
+  removeLastSetFromLog,
+  propagateSetChangeToPlan,
   type WorkoutPlan,
   type Exercise,
 } from "@/lib/local-db";
@@ -67,6 +70,24 @@ const SCIENCE_TIPS: { icon: string; text: string }[] = [
   { icon: "flame-outline",       text: "Muscle soreness ≠ effective training. DOMS is inflammation, not a growth signal." },
   { icon: "cellular-outline",    text: "Each muscle needs 10-20 hard sets per week to grow. This program keeps you in that optimal range." },
 ];
+
+/** MEV (Minimum Effective Volume) and MAV (Maximum Adaptive Volume) sets per week, by category. */
+const MEV_MAV: Record<string, { mev: number; mav: number }> = {
+  "HORIZONTAL PUSH": { mev: 8,  mav: 16 },
+  "INCLINE PUSH":    { mev: 6,  mav: 14 },
+  "VERTICAL PUSH":   { mev: 6,  mav: 14 },
+  "HORIZONTAL BACK": { mev: 10, mav: 20 },
+  "VERTICAL BACK":   { mev: 8,  mav: 18 },
+  "BICEPS":          { mev: 8,  mav: 20 },
+  "TRICEPS":         { mev: 6,  mav: 16 },
+  "REAR DELTS":      { mev: 10, mav: 20 },
+  "TRAPS":           { mev: 8,  mav: 18 },
+  "QUADS":           { mev: 8,  mav: 18 },
+  "HAMSTRINGS":      { mev: 6,  mav: 16 },
+  "GLUTES":          { mev: 8,  mav: 18 },
+  "CALVES":          { mev: 10, mav: 20 },
+  "ABS":             { mev: 10, mav: 20 },
+};
 
 interface SetState {
   setLogId: string;
@@ -233,6 +254,9 @@ export default function WorkoutScreen() {
   const [supersetJumpBanner, setSupersetJumpBanner] = useState<string | null>(null);
   // ── Keyboard visibility (used to hide guide during input) ────────────────
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // ── Add / Remove Sets scope modal ────────────────────────────────────────
+  const [setManageModal, setSetManageModal] = useState<'add' | 'remove' | null>(null);
+  const [setManageSaving, setSetManageSaving] = useState(false);
 
   useEffect(() => {
     loadPlan();
@@ -946,6 +970,76 @@ export default function WorkoutScreen() {
     }
   }
 
+  async function handleConfirmSetChange(scope: 'once' | 'permanent') {
+    const action = setManageModal; // capture before clearing (state updates are async)
+    if (!action) return;
+    setSetManageModal(null);
+
+    const planId = await AsyncStorage.getItem("activePlanId");
+    if (!planId) return;
+    const logId     = exerciseStates[currentExerciseIndex]?.logId;
+    const exerciseId = exerciseStates[currentExerciseIndex]?.exerciseId;
+    if (!logId) return;
+
+    setSetManageSaving(true);
+    try {
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      if (action === 'add') {
+        const newSet = await addSetToLog(logId);
+        if (newSet) {
+          setExerciseStates((prev) => {
+            const next = [...prev];
+            const ex = { ...next[currentExerciseIndex] };
+            ex.sets = [
+              ...ex.sets,
+              {
+                setLogId:      newSet.id,
+                setNumber:     newSet.setNumber,
+                targetWeight:  newSet.targetWeight,
+                targetReps:    newSet.targetReps,
+                repsCompleted: "",
+                weightUsed:    "",
+                feedback:      null,
+              },
+            ];
+            ex.targetSets = ex.sets.length;
+            next[currentExerciseIndex] = ex;
+            return next;
+          });
+          if (scope === 'permanent') {
+            await propagateSetChangeToPlan(planId, exerciseId, logId, 1);
+          }
+        }
+      } else {
+        // remove
+        const lastSet = exerciseStates[currentExerciseIndex].sets.at(-1);
+        if (!lastSet || lastSet.feedback) {
+          // Already completed — cannot remove
+          return;
+        }
+        const removed = await removeLastSetFromLog(logId);
+        if (removed) {
+          setExerciseStates((prev) => {
+            const next = [...prev];
+            const ex = { ...next[currentExerciseIndex] };
+            ex.sets = ex.sets.slice(0, -1);
+            ex.targetSets = ex.sets.length;
+            next[currentExerciseIndex] = ex;
+            return next;
+          });
+          if (scope === 'permanent') {
+            await propagateSetChangeToPlan(planId, exerciseId, logId, -1);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("handleConfirmSetChange error:", err);
+    } finally {
+      setSetManageSaving(false);
+    }
+  }
+
   if (isLoading || exerciseStates.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: "center", alignItems: "center" }}>
@@ -961,6 +1055,9 @@ export default function WorkoutScreen() {
   const allSetsLogged = currentEx.sets.every((s) =>
     isBodyweight ? s.repsCompleted !== "" : s.repsCompleted !== "" && s.weightUsed !== ""
   );
+  const setsRemaining = allSetsLogged ? 0 : currentEx.sets.filter((s) =>
+    isBodyweight ? s.repsCompleted === "" : s.repsCompleted === "" || s.weightUsed === ""
+  ).length;
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
@@ -1216,8 +1313,13 @@ export default function WorkoutScreen() {
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                     +{unit}
                   </Text>
+                ) : currentEx.exercise.equipment === "DUMBBELL" ? (
+                  /* Dumbbell: plain label, no plate calc */
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    per DB
+                  </Text>
                 ) : (
-                  /* Plate calculator trigger */
+                  /* Barbell / cable / machine — show plate calculator trigger */
                   <Pressable
                     onPress={() => {
                       const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
@@ -1370,8 +1472,8 @@ export default function WorkoutScreen() {
           })}
         </View>
 
-        {/* Plate calculator shortcut — shown for barbell/weighted exercises, not belt weight */}
-        {!isBodyweight && !isWeightedBW && (
+        {/* Plate calculator shortcut — barbell/cable/machine only; not dumbbells or bodyweight */}
+        {!isBodyweight && !isWeightedBW && currentEx.exercise.equipment !== "DUMBBELL" && (
           <Pressable
             onPress={() => {
               const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
@@ -1407,6 +1509,82 @@ export default function WorkoutScreen() {
             </Text>
           </Pressable>
         )}
+
+        {/* ── Add / Remove Sets row ── */}
+        {(() => {
+          const lastSet = currentEx.sets.at(-1);
+          const canRemove = currentEx.sets.length > 1 && !lastSet?.feedback;
+          return (
+            <View style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 12,
+              marginBottom: 2,
+            }}>
+              {/* Remove last set */}
+              <Pressable
+                onPress={() => {
+                  if (!canRemove) return;
+                  setSetManageModal('remove');
+                }}
+                disabled={!canRemove}
+                hitSlop={12}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 5,
+                  opacity: pressed ? 0.5 : canRemove ? 1 : 0.3,
+                })}
+              >
+                <Ionicons name="remove-circle-outline" size={16} color={Colors.textMuted} />
+                <Text style={{
+                  fontFamily: "Rubik_500Medium",
+                  fontSize: 10,
+                  color: Colors.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}>
+                  Remove
+                </Text>
+              </Pressable>
+
+              {/* Set count */}
+              <Text style={{
+                fontFamily: "Rubik_600SemiBold",
+                fontSize: 11,
+                color: Colors.textMuted,
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+              }}>
+                {currentEx.sets.length} {currentEx.sets.length === 1 ? "Set" : "Sets"}
+              </Text>
+
+              {/* Add set */}
+              <Pressable
+                onPress={() => setSetManageModal('add')}
+                hitSlop={12}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 5,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text style={{
+                  fontFamily: "Rubik_500Medium",
+                  fontSize: 10,
+                  color: Colors.primary,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}>
+                  Add Set
+                </Text>
+                <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
+              </Pressable>
+            </View>
+          );
+        })()}
 
       </View>{/* end non-scrollable content */}
 
@@ -1525,6 +1703,71 @@ export default function WorkoutScreen() {
           </View>
         )}
 
+        {/* ── MEV/MAV volume nudge — appears after exercise is rated ── */}
+        {isExerciseComplete(currentEx) && (() => {
+          const cat = currentEx.exercise.category;
+          const mavData = MEV_MAV[cat];
+          if (!mavData) return null;
+          const setsToday = currentEx.sets.length;
+          if (setsToday >= 5) return null; // already at a reasonable session cap
+          return (
+            <View style={{
+              marginHorizontal: 20,
+              marginTop: 10,
+              borderWidth: 1,
+              borderColor: Colors.primary + "33",
+              paddingHorizontal: 14,
+              paddingVertical: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+            }}>
+              <Ionicons name="trending-up-outline" size={20} color={Colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={{
+                  fontFamily: "Rubik_700Bold",
+                  fontSize: 9,
+                  color: Colors.primary,
+                  textTransform: "uppercase",
+                  letterSpacing: 1.5,
+                  marginBottom: 3,
+                }}>
+                  Volume Tip
+                </Text>
+                <Text style={{
+                  fontFamily: "Rubik_400Regular",
+                  fontSize: 11,
+                  color: Colors.textSecondary,
+                  lineHeight: 16,
+                }}>
+                  {cat}: aim for {mavData.mev}–{mavData.mav} sets/week.{"\n"}You have {setsToday} set{setsToday !== 1 ? "s" : ""} today — room to grow.
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setSetManageModal('add')}
+                hitSlop={10}
+                style={({ pressed }) => ({
+                  borderWidth: 1,
+                  borderColor: Colors.primary,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text style={{
+                  fontFamily: "Rubik_700Bold",
+                  fontSize: 10,
+                  color: Colors.primary,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}>
+                  + Set
+                </Text>
+              </Pressable>
+            </View>
+          );
+        })()}
+
         {restTimerVisible && (
           <RestTimer
             key={restTimerKey}
@@ -1595,16 +1838,27 @@ export default function WorkoutScreen() {
               disabled={finishing}
               style={({ pressed }) => ({
                 flex: 2,
-                backgroundColor: Colors.primary,
+                backgroundColor: allSetsLogged ? Colors.primary : "transparent",
+                borderWidth: allSetsLogged ? 0 : 1,
+                borderColor: Colors.border,
                 paddingVertical: 16,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
               {finishing ? (
-                <ActivityIndicator color={Colors.text} />
+                <ActivityIndicator color={allSetsLogged ? Colors.text : Colors.textMuted} />
               ) : (
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textAlign: "center", textTransform: "uppercase", letterSpacing: 2 }}>
-                  Complete Session
+                <Text style={{
+                  fontFamily: "Rubik_700Bold",
+                  fontSize: allSetsLogged ? 14 : 12,
+                  color: allSetsLogged ? Colors.text : Colors.textMuted,
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                  letterSpacing: 2,
+                }}>
+                  {allSetsLogged
+                    ? "Complete Session"
+                    : `${setsRemaining} Set${setsRemaining !== 1 ? "s" : ""} Remaining`}
                 </Text>
               )}
             </Pressable>
@@ -1613,13 +1867,24 @@ export default function WorkoutScreen() {
               onPress={handleNextExercise}
               style={({ pressed }) => ({
                 flex: 2,
-                backgroundColor: Colors.primary,
+                backgroundColor: allSetsLogged ? Colors.primary : "transparent",
+                borderWidth: allSetsLogged ? 0 : 1,
+                borderColor: Colors.border,
                 paddingVertical: 16,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textAlign: "center", textTransform: "uppercase", letterSpacing: 2 }}>
-                Next Exercise
+              <Text style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: allSetsLogged ? 14 : 12,
+                color: allSetsLogged ? Colors.text : Colors.textMuted,
+                textAlign: "center",
+                textTransform: "uppercase",
+                letterSpacing: 2,
+              }}>
+                {allSetsLogged
+                  ? "Next Exercise"
+                  : `${setsRemaining} Set${setsRemaining !== 1 ? "s" : ""} Remaining`}
               </Text>
             </Pressable>
           )}
@@ -2067,6 +2332,78 @@ export default function WorkoutScreen() {
 
             <Pressable
               onPress={() => { setSwapScopeVisible(false); setPendingSwapExerciseId(null); }}
+              style={({ pressed }) => ({ padding: 18, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
+            >
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── SET COUNT SCOPE PICKER ── */}
+      <Modal
+        visible={setManageModal !== null}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setSetManageModal(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border }}>
+            <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>
+                {setManageModal === 'add' ? 'Add a Set' : 'Remove Last Set'}
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                Apply change to...
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => handleConfirmSetChange('once')}
+              disabled={setManageSaving}
+              style={({ pressed }) => ({
+                padding: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.border,
+                opacity: pressed || setManageSaving ? 0.7 : 1,
+              })}
+            >
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                Just this session
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                Next session reverts to the original set count
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => handleConfirmSetChange('permanent')}
+              disabled={setManageSaving}
+              style={({ pressed }) => ({
+                padding: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.border,
+                opacity: pressed || setManageSaving ? 0.7 : 1,
+              })}
+            >
+              {setManageSaving ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                    Every session from now on
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                    Updates all future sessions in this plan
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => setSetManageModal(null)}
               style={({ pressed }) => ({ padding: 18, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
