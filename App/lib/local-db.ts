@@ -49,6 +49,19 @@ function snapDumbbellWeight(weight: number): number {
   return Math.max(step, Math.round(weight / step) * step);
 }
 
+/**
+ * Rounds a barbell weight to the nearest loadable plate combination:
+ *   lbs  →  nearest 5 lbs  (Olympic bar = 45 lb; min plates 2.5 lb/side = 5 lb total)
+ *   kg   →  nearest 2.5 kg (Olympic bar = 20 kg; min plates 1.25 kg/side = 2.5 kg total)
+ * The bar weight is enforced as the floor (45 lb / 20 kg).
+ */
+function snapBarbellWeight(weight: number, unit: 'lbs' | 'kg'): number {
+  if (unit === 'kg') {
+    return Math.max(20, Math.round(weight / 2.5) * 2.5);
+  }
+  return Math.max(45, Math.round(weight / 5) * 5);
+}
+
 export async function initializeDatabase(): Promise<void> {
   await initializeSchema();
   const db = getDb();
@@ -726,6 +739,8 @@ export async function createWorkoutPlan(
   const template = await getTemplateWithDays(templateId);
   if (!template) throw new Error("Template not found");
 
+  const userUnit = await getUserUnit(userId);
+
   const baselineRows = await db.getAllAsync<{ category: string; weight: number }>(
     "SELECT category, weight FROM user_weight_baselines WHERE user_id = ?",
     [userId]
@@ -767,6 +782,9 @@ export async function createWorkoutPlan(
         // snapped to the nearest real rack increment (2.5 below 50, 5 above 50).
         const factor = DUMBBELL_FACTOR[exerciseCategory] ?? 0.28;
         targetWeight = snapDumbbellWeight(targetWeight * factor);
+      } else if (exerciseEquipment === "BARBELL") {
+        // Snap to nearest loadable barbell combination (5 lb or 2.5 kg steps from bar weight).
+        targetWeight = snapBarbellWeight(targetWeight, userUnit);
       }
 
       const logId = generateId();
@@ -1003,11 +1021,12 @@ export async function skipSession(
   const db = getDb();
 
   const plan = await db.getFirstAsync<{
-    id: string; template_id: string; current_week: number; goal_type: string;
-  }>("SELECT id, template_id, current_week, goal_type FROM workout_plans WHERE id = ?", [workoutPlanId]);
+    id: string; template_id: string; current_week: number; goal_type: string; user_id: string;
+  }>("SELECT id, template_id, current_week, goal_type, user_id FROM workout_plans WHERE id = ?", [workoutPlanId]);
   if (!plan) throw new Error("Plan not found");
 
   const skipGoalType: GoalType = (plan.goal_type as GoalType) ?? "hypertrophy";
+  const userUnit = await getUserUnit(plan.user_id);
 
   const totalDaysResult = await db.getFirstAsync<{ count: number }>(
     "SELECT COUNT(*) as count FROM template_days WHERE template_id = ?",
@@ -1123,9 +1142,13 @@ export async function skipSession(
           goalType: skipGoalType,
         });
         nextSets = targets.targetSets;
-        nextWeight = log.equipment === "DUMBBELL"
-          ? snapDumbbellWeight(targets.targetWeight)
-          : targets.targetWeight;
+        if (log.equipment === "DUMBBELL") {
+          nextWeight = snapDumbbellWeight(targets.targetWeight);
+        } else if (log.equipment === "BARBELL") {
+          nextWeight = snapBarbellWeight(targets.targetWeight, userUnit);
+        } else {
+          nextWeight = targets.targetWeight;
+        }
       }
 
       const logId = generateId();
@@ -1398,6 +1421,7 @@ export async function completeWorkout(
   if (!plan) throw new Error("Plan not found");
 
   const planGoalType: GoalType = (plan.goal_type as GoalType) ?? "hypertrophy";
+  const userUnit = await getUserUnit(plan.user_id);
 
   const totalDaysResult = await db.getFirstAsync<{ count: number }>(
     "SELECT COUNT(*) as count FROM template_days WHERE template_id = ?",
@@ -1602,9 +1626,11 @@ export async function completeWorkout(
         goalType: planGoalType,
       });
 
-      // Snap dumbbell targets to real rack increments so we never suggest 67.5 lbs
+      // Snap targets to real loadable increments
       if (log.equipment === "DUMBBELL") {
         targets.targetWeight = snapDumbbellWeight(targets.targetWeight);
+      } else if (log.equipment === "BARBELL") {
+        targets.targetWeight = snapBarbellWeight(targets.targetWeight, userUnit);
       }
 
       const logId = generateId();

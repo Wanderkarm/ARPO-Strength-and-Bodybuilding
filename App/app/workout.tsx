@@ -663,9 +663,21 @@ export default function WorkoutScreen() {
     }
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setRestTimerVisible(false);
-    if (currentExerciseIndex < exerciseStates.length - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
+    // Find the next incomplete exercise (search forward, then wrap from beginning)
+    let nextIdx = -1;
+    for (let i = currentExerciseIndex + 1; i < exerciseStates.length; i++) {
+      if (!isExerciseComplete(exerciseStates[i])) { nextIdx = i; break; }
     }
+    if (nextIdx === -1) {
+      for (let i = 0; i < currentExerciseIndex; i++) {
+        if (!isExerciseComplete(exerciseStates[i])) { nextIdx = i; break; }
+      }
+    }
+    if (nextIdx >= 0) {
+      setCurrentExerciseIndex(nextIdx);
+    }
+    // nextIdx === -1 means all exercises are done → allSessionComplete becomes true,
+    // the CTA switches to "Complete Session" automatically.
   }
 
   function handlePrevExercise() {
@@ -1050,6 +1062,7 @@ export default function WorkoutScreen() {
 
   const currentEx = exerciseStates[currentExerciseIndex];
   const isLastExercise = currentExerciseIndex === exerciseStates.length - 1;
+  const allSessionComplete = exerciseStates.every(isExerciseComplete);
   const isBodyweight = currentEx.exercise.equipment === "BODYWEIGHT";
   const isWeightedBW = currentEx.exercise.equipment === "WEIGHTED_BODYWEIGHT";
   const allSetsLogged = currentEx.sets.every((s) =>
@@ -1787,8 +1800,8 @@ export default function WorkoutScreen() {
       </ScrollView>
 
       <View ref={actionBarRef} style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border }}>
-        {/* Session notes — shown on the last exercise */}
-        {isLastExercise && (
+        {/* Session notes — shown once all exercises are complete */}
+        {allSessionComplete && (
           <View style={{ marginBottom: 10 }}>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 5 }}>
               Session Note (optional)
@@ -1832,7 +1845,7 @@ export default function WorkoutScreen() {
             </Pressable>
           )}
 
-          {isLastExercise ? (
+          {allSessionComplete ? (
             <Pressable
               onPress={handleFinishWorkout}
               disabled={finishing}

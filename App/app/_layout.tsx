@@ -18,13 +18,21 @@ import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    // Rest-timer notifications fire ~1 s after the in-app countdown ends.
+    // When the app is in the foreground we suppress the phone banner and duplicate
+    // sound, but iOS still *delivers* the notification → Apple Watch receives it
+    // and fires its own haptic without interrupting the phone UI.
+    const isRestTimer =
+      notification.request.content.categoryIdentifier === "rest-timer";
+    return {
+      shouldShowAlert:  !isRestTimer,
+      shouldShowBanner: !isRestTimer,
+      shouldShowList:   !isRestTimer,
+      shouldPlaySound:  !isRestTimer,
+      shouldSetBadge:   false,
+    };
+  },
 });
 
 SplashScreen.preventAutoHideAsync();

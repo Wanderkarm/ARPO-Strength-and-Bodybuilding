@@ -21,6 +21,9 @@ async function scheduleEndNotification(inSeconds: number): Promise<string | null
         title: "Rest Complete",
         body: "Time to lift. Get back to your set.",
         sound: true,
+        // categoryIdentifier lets the global handler suppress the phone banner/sound
+        // while still delivering the notification to Apple Watch for haptic feedback.
+        categoryIdentifier: "rest-timer",
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
@@ -83,8 +86,13 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
   }, [seconds]);
 
   async function handleTimerComplete() {
-    cancelNotification(notifIdRef.current);
-    notifIdRef.current = null;
+    // Do NOT cancel the notification here when in the foreground.
+    // The scheduled notification fires ~0–1 s after this function runs.
+    // The global handler in _layout.tsx suppresses the phone banner/sound for
+    // "rest-timer" notifications, but iOS still delivers the notification to
+    // Apple Watch → Watch haptic fires without interrupting the phone UI.
+    // (Skip/addTime still cancel explicitly, so those paths are unaffected.)
+    notifIdRef.current = null; // prevent cleanup from double-cancelling
 
     if (Platform.OS !== "web") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
