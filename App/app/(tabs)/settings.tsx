@@ -30,6 +30,7 @@ import {
   switchGymType,
   getAllExercises,
   getWorkoutPlan,
+  getMostRecentBodyWeightKg,
   type GymType,
 } from "@/lib/local-db";
 import type { GoalType } from "@/utils/volumeLandmarks";
@@ -187,11 +188,23 @@ export default function SettingsScreen() {
       setUserId(uid);
 
       if (uid) {
-        const profile = await getUserProfile(uid);
+        const [profile, latestWeightKg] = await Promise.all([
+          getUserProfile(uid),
+          getMostRecentBodyWeightKg(uid),
+        ]);
         if (profile) {
           setGender(profile.gender);
           setExperience(profile.experience);
-          setBodyweightInput(profile.bodyweight ? String(profile.bodyweight) : "");
+          // Prefer most recent weigh-in log; fall back to onboarding profile value
+          if (latestWeightKg !== null) {
+            const displayWeight =
+              unit === "kg"
+                ? Math.round(latestWeightKg * 10) / 10
+                : Math.round(latestWeightKg * 2.20462 * 10) / 10;
+            setBodyweightInput(String(displayWeight));
+          } else if (profile.bodyweight) {
+            setBodyweightInput(String(profile.bodyweight));
+          }
         }
       }
 
@@ -397,6 +410,8 @@ export default function SettingsScreen() {
               value={bodyweightInput}
               onChangeText={setBodyweightInput}
               keyboardType="decimal-pad"
+              returnKeyType="done"
+              onSubmitEditing={handleBodyweightSave}
               placeholder="e.g. 185"
               placeholderTextColor={Colors.textMuted}
               style={{

@@ -22,6 +22,8 @@ const CATEGORY_TO_LIFT: Record<string, keyof BaselineWeights> = {
   TRAPS: "barbellRow",
   "REAR DELTS": "barbellRow",
   ABS: "barbellCurl",
+  "LATERAL DELTS": "overheadPress",
+  FOREARMS: "barbellCurl",
 };
 
 const CATEGORY_WEIGHT_MODIFIER: Record<string, number> = {
@@ -39,6 +41,8 @@ const CATEGORY_WEIGHT_MODIFIER: Record<string, number> = {
   TRAPS: 0.7,
   "REAR DELTS": 0.4,
   ABS: 0.5,
+  "LATERAL DELTS": 0.35,
+  FOREARMS: 0.5,
 };
 
 export function getCategoryWeight(

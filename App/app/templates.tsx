@@ -379,7 +379,7 @@ export default function TemplatesScreen() {
             marginTop: 4,
           }}
         >
-          {isOnboarding ? "Pick a mesocycle — ARPO will set your Week 1 targets." : "Select a mesocycle template"}
+          {isOnboarding ? "Pick a training block (mesocycle) — ARPO will set your Week 1 targets." : "Select a training block"}
         </Text>
       </View>
 
@@ -979,7 +979,7 @@ export default function TemplatesScreen() {
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>Week {activePlanInfo.week} · In progress</Text>
                 </View>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
-                  This is your current plan. Continue where you left off, or start a fresh mesocycle from Week 1.
+                  This is your current plan. Continue where you left off, or start a fresh training block from Week 1.
                 </Text>
                 <Pressable
                   onPress={() => { setShowSwitchConfirm(false); router.replace("/(tabs)"); }}
@@ -1024,7 +1024,7 @@ export default function TemplatesScreen() {
             )}
 
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
-              Starting a new plan will end this mesocycle. Your completed workout history is saved, but targets and progression will reset to the new template.
+              Starting a new plan will end this training block (mesocycle). Your completed workout history is saved, but targets and progression will reset to the new template.
             </Text>
 
             <Pressable

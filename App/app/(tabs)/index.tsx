@@ -19,6 +19,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import GlossaryTerm from "@/components/GlossaryTerm";
+import InfoTip from "@/components/InfoTip";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
@@ -44,6 +45,13 @@ const PHASE_LABEL: Record<number, string> = {
   2: "INTENSIFICATION",
   3: "OVERREACH",
   4: "DELOAD",
+};
+// Maps meso week → GLOSSARY key for the InfoTip tooltip
+const PHASE_GLOSSARY_KEY: Record<number, "Accumulation" | "Intensification" | "Overreach" | "Deload"> = {
+  1: "Accumulation",
+  2: "Intensification",
+  3: "Overreach",
+  4: "Deload",
 };
 const PHASE_RIR: Record<number, number> = { 1: 3, 2: 2, 3: 1, 4: 4 };
 
@@ -88,6 +96,9 @@ export default function DashboardScreen() {
   // Body comp nudge
   const [bodyCompPromptDismissed, setBodyCompPromptDismissed] = useState(true); // start hidden, load below
 
+  // Health permissions nudge (shown to users who predated the onboarding health step)
+  const [healthNudgeDismissed, setHealthNudgeDismissed] = useState(true);
+
   // Calendar strip
   const [weekCalData, setWeekCalData] = useState<CalendarData>({});
   const [trainingDays, setTrainingDays] = useState<number[] | null>(null);
@@ -128,6 +139,11 @@ export default function DashboardScreen() {
     // Body comp nudge
     AsyncStorage.getItem("bodyCompPromptDismissed").then((val) => {
       setBodyCompPromptDismissed(val === "1");
+    });
+
+    // Health permissions nudge — show only if they haven't gone through the health screen
+    AsyncStorage.getItem("healthPermissionsRequested").then((val) => {
+      setHealthNudgeDismissed(val === "1");
     });
 
     // Calendar strip — load current week data + training schedule
@@ -540,6 +556,7 @@ export default function DashboardScreen() {
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.8 }}>
                   {mesoPhase}
                 </Text>
+                <InfoTip term={PHASE_GLOSSARY_KEY[mesoWeek]} size={11} />
                 <View style={{ flex: 1 }} />
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
                   {completedDays}/{totalDays} sessions
@@ -978,9 +995,11 @@ export default function DashboardScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: hasRecovery ? STATUS_COLOR[overallStatus] : Colors.textMuted }} />
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    Recovery
-                  </Text>
+                  <GlossaryTerm
+                    text="Recovery"
+                    termKey="Recovery"
+                    style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}
+                  />
                 </View>
                 <Pressable
                   onPress={async () => {
@@ -1022,7 +1041,7 @@ export default function DashboardScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                           <Ionicons name="moon-outline" size={11} color={STATUS_COLOR[sleepStatus]} />
-                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>Sleep</Text>
+                          <GlossaryTerm text="Sleep" termKey="Sleep" style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }} />
                         </View>
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[sleepStatus] }}>{recovery.sleepHours}h</Text>
                       </View>
@@ -1031,7 +1050,7 @@ export default function DashboardScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                           <Ionicons name="heart-outline" size={11} color={STATUS_COLOR[rhrStatus]} />
-                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>RHR</Text>
+                          <GlossaryTerm text="RHR" termKey="RHR" style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }} />
                         </View>
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[rhrStatus] }}>{recovery.rhr} bpm</Text>
                       </View>
@@ -1040,7 +1059,7 @@ export default function DashboardScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                           <Ionicons name="pulse-outline" size={11} color={STATUS_COLOR[hrvStatus]} />
-                          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>HRV</Text>
+                          <GlossaryTerm text="HRV" termKey="HRV" style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }} />
                         </View>
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[hrvStatus] }}>{recovery.hrv} ms</Text>
                       </View>
@@ -1071,6 +1090,45 @@ export default function DashboardScreen() {
         </View>
 
         {/* ── Body Composition Nudge ── */}
+        {!healthNudgeDismissed && (
+          <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
+            <View style={{
+              borderWidth: 1, borderColor: Colors.border,
+              borderLeftWidth: 3, borderLeftColor: "#e91e8c",
+              backgroundColor: "#e91e8c08",
+              padding: 14, flexDirection: "row", alignItems: "flex-start", gap: 10,
+            }}>
+              <Ionicons name="heart-outline" size={18} color="#e91e8c" style={{ marginTop: 1 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 4 }}>
+                  Connect {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18 }}>
+                  Auto-sync steps, body weight, sleep, RHR and HRV to power your Recovery score and activity tracking.
+                </Text>
+                <Pressable
+                  onPress={() => router.push("/health-permissions" as any)}
+                  style={({ pressed }) => ({ marginTop: 10, opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: "#e91e8c", textTransform: "uppercase", letterSpacing: 1 }}>
+                    Connect Now →
+                  </Text>
+                </Pressable>
+              </View>
+              <Pressable
+                onPress={async () => {
+                  await AsyncStorage.setItem("healthPermissionsRequested", "1");
+                  setHealthNudgeDismissed(true);
+                }}
+                hitSlop={12}
+                style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, marginTop: 1 })}
+              >
+                <Ionicons name="close" size={16} color={Colors.textMuted} />
+              </Pressable>
+            </View>
+          </View>
+        )}
+
         {!bodyCompPromptDismissed && (
           <View style={{ paddingHorizontal: 24, marginTop: 12 }}>
             <View style={{

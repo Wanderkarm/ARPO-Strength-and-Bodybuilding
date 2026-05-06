@@ -13,6 +13,7 @@ import {
   Alert,
   useWindowDimensions,
   Keyboard,
+  Linking,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
@@ -22,7 +23,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import ExerciseGuide from "@/components/ExerciseGuide";
 import SupersetIcon from "@/components/SupersetIcon";
-import ExerciseVideoPlayer from "@/components/ExerciseVideoPlayer";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
 import RestTimer from "@/components/RestTimer";
@@ -70,6 +70,46 @@ const SCIENCE_TIPS: { icon: string; text: string }[] = [
   { icon: "flame-outline",       text: "Muscle soreness ≠ effective training. DOMS is inflammation, not a growth signal." },
   { icon: "cellular-outline",    text: "Each muscle needs 10-20 hard sets per week to grow. This program keeps you in that optimal range." },
 ];
+
+/**
+ * Antagonist category pairs for auto-suggesting supersets.
+ * Order within each pair doesn't matter — the algorithm checks both directions.
+ */
+const ANTAGONIST_PAIRS: [string, string][] = [
+  ["HORIZONTAL PUSH", "HORIZONTAL BACK"],
+  ["INCLINE PUSH",    "VERTICAL BACK"],
+  ["VERTICAL PUSH",   "HORIZONTAL BACK"],
+  ["BICEPS",          "TRICEPS"],
+  ["QUADS",           "HAMSTRINGS"],
+  ["QUADS",           "GLUTES"],
+  ["LATERAL DELTS",   "BICEPS"],
+  ["REAR DELTS",      "BICEPS"],
+  ["VERTICAL PUSH",   "VERTICAL BACK"],
+];
+
+/** Given the current exercise list, return index pairs that make good supersets. */
+function suggestSupersetPairs(states: { exercise: { category: string } }[]): [number, number][] {
+  const used = new Set<number>();
+  const pairs: [number, number][] = [];
+  for (let i = 0; i < states.length; i++) {
+    if (used.has(i)) continue;
+    const catA = states[i].exercise.category?.toUpperCase();
+    for (let j = i + 1; j < states.length; j++) {
+      if (used.has(j)) continue;
+      const catB = states[j].exercise.category?.toUpperCase();
+      const isAntagonist = ANTAGONIST_PAIRS.some(
+        ([a, b]) => (a === catA && b === catB) || (b === catA && a === catB)
+      );
+      if (isAntagonist) {
+        pairs.push([i, j]);
+        used.add(i);
+        used.add(j);
+        break;
+      }
+    }
+  }
+  return pairs;
+}
 
 /** MEV (Minimum Effective Volume) and MAV (Maximum Adaptive Volume) sets per week, by category. */
 const MEV_MAV: Record<string, { mev: number; mav: number }> = {
@@ -214,7 +254,6 @@ export default function WorkoutScreen() {
   const [editVideoUrl, setEditVideoUrl] = useState("");
   const [editEquipment, setEditEquipment] = useState("BARBELL");
   const [editSaving, setEditSaving] = useState(false);
-  const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
   // ── Session timer ────────────────────────────────────────────────────────
   const startedAtRef     = useRef<string | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -228,7 +267,10 @@ export default function WorkoutScreen() {
   const [plateResult, setPlateResult] = useState<PlateResult | null>(null);
 
   const scrollRef = useRef<ScrollView>(null);
+  const restTimerContainerRef = useRef<View>(null);
+  const restTimerY = useRef<number>(0);
   const exerciseStatesRef = useRef<ExerciseState[]>([]);
+  const autoFinishTriggeredRef = useRef(false);
   const { height: screenHeight } = useWindowDimensions();
 
   const [tourVisible, setTourVisible] = useState(false);
@@ -248,8 +290,9 @@ export default function WorkoutScreen() {
   const [supersetPickMode, setSupersetPickMode] = useState(false);
   const [supersetPickSource, setSupersetPickSource] = useState<number | null>(null);
   const supersetGroupCounterRef = useRef(1);
-  // ── Superset onboarding (shown once) ─────────────────────────────────────
+  // ── Superset onboarding ───────────────────────────────────────────────────
   const [supersetIntroVisible, setSupersetIntroVisible] = useState(false);
+  const [supersetIntroIsFirstTime, setSupersetIntroIsFirstTime] = useState(false);
   // ── Superset jump banner ──────────────────────────────────────────────────
   const [supersetJumpBanner, setSupersetJumpBanner] = useState<string | null>(null);
   // ── Keyboard visibility (used to hide guide during input) ────────────────
@@ -316,8 +359,11 @@ export default function WorkoutScreen() {
         const initial = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
         // Only trigger watch reminder on a fresh session start (not resume)
         if (initial < 10) {
-          // Show superset intro on every fresh workout start
+          // Show superset suggestion modal on fresh session start
+          const hasSeen = await AsyncStorage.getItem("supersetIntroSeen");
+          setSupersetIntroIsFirstTime(!hasSeen);
           setSupersetIntroVisible(true);
+          if (!hasSeen) await AsyncStorage.setItem("supersetIntroSeen", "1");
           const watchEnabled = await AsyncStorage.getItem("watchReminderEnabled");
           if (watchEnabled === "true") {
             setWatchBannerVisible(true);
@@ -373,6 +419,7 @@ export default function WorkoutScreen() {
         }),
       }));
 
+      autoFinishTriggeredRef.current = false;
       setExerciseStates(states);
 
       // Load previous session sets for each exercise
@@ -528,6 +575,22 @@ export default function WorkoutScreen() {
     exerciseStatesRef.current = exerciseStates;
   }, [exerciseStates]);
 
+  // Auto-complete: as soon as every set on every exercise is logged, save and
+  // navigate to the summary — no "Finish Workout" tap required.
+  useEffect(() => {
+    if (exerciseStates.length === 0) return;
+    if (autoFinishTriggeredRef.current) return;
+    if (finishing) return;
+    const allDone = exerciseStates.every(isExerciseComplete);
+    if (allDone) {
+      autoFinishTriggeredRef.current = true;
+      // Brief delay so the user sees the last feedback row before the screen transitions
+      setTimeout(() => {
+        handleConfirmRecovery();
+      }, 1200);
+    }
+  }, [exerciseStates]);
+
   function handleFieldBlur(exIndex: number, setIndex: number) {
     setTimeout(() => {
       setExerciseStates((current) => {
@@ -562,8 +625,8 @@ export default function WorkoutScreen() {
           setRestTimerKey((prev) => prev + 1);
           setRestTimerVisible(true);
           setTimeout(() => {
-            scrollRef.current?.scrollToEnd({ animated: true });
-          }, 100);
+            scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
+          }, 150);
         }
 
         return updated;
@@ -591,8 +654,8 @@ export default function WorkoutScreen() {
       setRestTimerKey((prev) => prev + 1);
       setRestTimerVisible(true);
       setTimeout(() => {
-        scrollRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+        scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
+      }, 150);
     }
   }
 
@@ -763,7 +826,7 @@ export default function WorkoutScreen() {
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
-      const exercises = exerciseStates.map((ex) => ({
+      const exercises = exerciseStatesRef.current.map((ex) => ({
         logId: ex.logId,
         exerciseId: ex.exerciseId,
         exerciseName: ex.exercise.name,
@@ -1118,10 +1181,21 @@ export default function WorkoutScreen() {
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
             Day {dayNumber}
           </Text>
-          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-            Week {plan?.currentWeek}
-            {plan && ((plan.currentWeek - 1) % 4) + 1 === 4 ? " · DELOAD" : ""}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+              Week {plan?.currentWeek}
+            </Text>
+            {plan && ((plan.currentWeek - 1) % 4) + 1 === 4 && (
+              <>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>·</Text>
+                <GlossaryTerm
+                  text="DELOAD"
+                  termKey="Deload"
+                  style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}
+                />
+              </>
+            )}
+          </View>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           {/* Live session timer */}
@@ -1177,9 +1251,11 @@ export default function WorkoutScreen() {
         }}>
           <Ionicons name="battery-charging-outline" size={16} color="#F59E0B" />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}>
-              Deload Week
-            </Text>
+            <GlossaryTerm
+              text="Deload Week"
+              termKey="Deload"
+              style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}
+            />
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 1 }}>
               Reduced volume, same weight. Focus on form and recovery.
             </Text>
@@ -1228,7 +1304,7 @@ export default function WorkoutScreen() {
               {currentEx.exercise.defaultVideoUrl ? (
                 <Pressable
                   testID="video-link-btn"
-                  onPress={() => setVideoPlayerVisible(true)}
+                  onPress={() => Linking.openURL(currentEx.exercise.defaultVideoUrl!).catch(() => {})}
                   hitSlop={10}
                   style={{ width: 32, height: 32, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}
                 >
@@ -1615,9 +1691,11 @@ export default function WorkoutScreen() {
 
             {/* Recovery row */}
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, marginRight: 8 }} numberOfLines={1}>
-                Recovery
-              </Text>
+              <GlossaryTerm
+                text="Recovery"
+                termKey="Recovery"
+                style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, marginRight: 8 }}
+              />
               <View style={{ flexDirection: "row", flex: 1, gap: 4 }}>
                 {RECOVERY_OPTIONS.map((opt) => {
                   const isSelected = currentEx.sorenessRating === opt.value;
@@ -1647,9 +1725,11 @@ export default function WorkoutScreen() {
 
             {/* Pump row */}
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, marginRight: 8 }} numberOfLines={1}>
-                Pump
-              </Text>
+              <GlossaryTerm
+                text="Pump"
+                termKey="Pump"
+                style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, marginRight: 8 }}
+              />
               <View style={{ flexDirection: "row", flex: 1, gap: 4 }}>
                 {[1, 2, 3, 4, 5].map((v) => {
                   const isSelected = currentEx.pumpRating === v;
@@ -1781,13 +1861,18 @@ export default function WorkoutScreen() {
           );
         })()}
 
-        {restTimerVisible && (
-          <RestTimer
-            key={restTimerKey}
-            initialSeconds={restTimerSeconds}
-            onDismiss={() => setRestTimerVisible(false)}
-          />
-        )}
+        <View
+          ref={restTimerContainerRef}
+          onLayout={(e) => { restTimerY.current = e.nativeEvent.layout.y; }}
+        >
+          {restTimerVisible && (
+            <RestTimer
+              key={restTimerKey}
+              initialSeconds={restTimerSeconds}
+              onDismiss={() => setRestTimerVisible(false)}
+            />
+          )}
+        </View>
 
         {/* Exercise guide — hidden while keyboard is open so it can't scroll into view */}
         {!keyboardVisible && (
@@ -1846,35 +1931,13 @@ export default function WorkoutScreen() {
           )}
 
           {allSessionComplete ? (
-            <Pressable
-              onPress={handleFinishWorkout}
-              disabled={finishing}
-              style={({ pressed }) => ({
-                flex: 2,
-                backgroundColor: allSetsLogged ? Colors.primary : "transparent",
-                borderWidth: allSetsLogged ? 0 : 1,
-                borderColor: Colors.border,
-                paddingVertical: 16,
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              {finishing ? (
-                <ActivityIndicator color={allSetsLogged ? Colors.text : Colors.textMuted} />
-              ) : (
-                <Text style={{
-                  fontFamily: "Rubik_700Bold",
-                  fontSize: allSetsLogged ? 14 : 12,
-                  color: allSetsLogged ? Colors.text : Colors.textMuted,
-                  textAlign: "center",
-                  textTransform: "uppercase",
-                  letterSpacing: 2,
-                }}>
-                  {allSetsLogged
-                    ? "Complete Session"
-                    : `${setsRemaining} Set${setsRemaining !== 1 ? "s" : ""} Remaining`}
-                </Text>
-              )}
-            </Pressable>
+            // Auto-finish is triggered by the useEffect — show saving state
+            <View style={{ flex: 2, backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10 }}>
+              <ActivityIndicator color={Colors.text} size="small" />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                Saving…
+              </Text>
+            </View>
           ) : (
             <Pressable
               onPress={handleNextExercise}
@@ -2072,7 +2135,7 @@ export default function WorkoutScreen() {
         </View>
       )}
 
-      {/* ── Superset onboarding modal ─────────────────────────────────────── */}
+      {/* ── Superset suggestion modal ─────────────────────────────────────── */}
       <Modal
         visible={supersetIntroVisible}
         transparent
@@ -2082,49 +2145,66 @@ export default function WorkoutScreen() {
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, width: "100%", padding: 24, gap: 16 }}>
             {/* Header */}
-            <View style={{ alignItems: "center", gap: 12 }}>
-              <SupersetIcon state="active" size={52} />
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textAlign: "center" }}>
-                Supercharge your workout?
+            <View style={{ alignItems: "center", gap: 8 }}>
+              <SupersetIcon state="active" size={44} />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 17, color: Colors.text, textAlign: "center" }}>
+                Superset suggestions
               </Text>
+              {supersetIntroIsFirstTime && (
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center", lineHeight: 18 }}>
+                  Supersets alternate two exercises back-to-back with no rest between them — saves ~30% time and boosts intensity.
+                </Text>
+              )}
             </View>
 
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 }}>
-              Supersets pair two exercises back-to-back with no rest between them.
-            </Text>
-
-            {/* Pros / Cons */}
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1, backgroundColor: "#0d1f0d", borderWidth: 1, borderColor: "#1a3a1a", borderRadius: 8, padding: 12 }}>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#4caf50", letterSpacing: 1, marginBottom: 6 }}>PROS</Text>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 18 }}>
-                  {"✓ Saves ~30% time\n✓ Higher intensity\n✓ More metabolic stress"}
+            {/* Suggested pairs for this workout */}
+            {(() => {
+              const pairs = suggestSupersetPairs(exerciseStates);
+              if (pairs.length === 0) return (
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, textAlign: "center" }}>
+                  No natural antagonist pairs found in today's exercises. You can still pair manually using the {" "}
+                  <SupersetIcon state="inactive" size={12} /> icon.
                 </Text>
-              </View>
-              <View style={{ flex: 1, backgroundColor: "#1f0d0d", borderWidth: 1, borderColor: "#3a1a1a", borderRadius: 8, padding: 12 }}>
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.primary, letterSpacing: 1, marginBottom: 6 }}>CONS</Text>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 18 }}>
-                  {"✗ More demanding\n✗ May reduce peak\n   strength output"}
-                </Text>
-              </View>
-            </View>
+              );
+              return (
+                <>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    Suggested pairs for today
+                  </Text>
+                  <View style={{ gap: 8 }}>
+                    {pairs.map(([a, b]) => (
+                      <View key={`${a}-${b}`} style={{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border, padding: 10, gap: 8 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }} numberOfLines={1}>
+                            {exerciseStates[a]?.exercise.name}
+                          </Text>
+                        </View>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.primary }}>↔</Text>
+                        <View style={{ flex: 1, alignItems: "flex-end" }}>
+                          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }} numberOfLines={1}>
+                            {exerciseStates[b]?.exercise.name}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      const pairs = suggestSupersetPairs(exerciseStates);
+                      pairs.forEach(([a, b]) => createSuperset(a, b));
+                      setSupersetIntroVisible(false);
+                    }}
+                    style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.8 : 1 })}
+                  >
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "white" }}>
+                      Apply {pairs.length} superset{pairs.length > 1 ? "s" : ""} →
+                    </Text>
+                  </Pressable>
+                </>
+              );
+            })()}
 
-            {/* How to use */}
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center", lineHeight: 18 }}>
-              Tap the icon on any exercise, then tap a second exercise to pair them. Sets alternate automatically.
-            </Text>
-
-            <Pressable
-              onPress={() => setSupersetIntroVisible(false)}
-              style={{ backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: "center" }}
-            >
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "white" }}>Got it — pair exercises →</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => setSupersetIntroVisible(false)}
-              hitSlop={8}
-            >
+            <Pressable onPress={() => setSupersetIntroVisible(false)} hitSlop={8}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center" }}>
                 Skip — standard sets
               </Text>
@@ -2750,15 +2830,6 @@ export default function WorkoutScreen() {
         </View>
       </Modal>
 
-      {/* Inline video player */}
-      {currentEx?.exercise.defaultVideoUrl && (
-        <ExerciseVideoPlayer
-          visible={videoPlayerVisible}
-          onClose={() => setVideoPlayerVisible(false)}
-          videoUrl={currentEx.exercise.defaultVideoUrl}
-          exerciseName={currentEx.exercise.name}
-        />
-      )}
 
       {/* ── Plate Calculator Modal ── */}
       <Modal

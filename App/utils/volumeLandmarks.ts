@@ -192,6 +192,20 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
     citation:
       "Hirono T et al. (2022). Acute changes in muscle thickness predict long-term hypertrophy. Scientific Reports. Schoenfeld & Contreras (2014). The Pump: Transient Hypertrophy Mechanism or Training Aid? Strength & Conditioning Journal.",
   },
+  Accumulation: {
+    explanation:
+      "Week 1 of a training block — volume starts moderate and intensity is lower (RIR 3). The goal is to build your body's capacity to handle progressively heavier work over the coming weeks.",
+  },
+  Intensification: {
+    explanation:
+      "Week 2 of a training block — volume increases and intensity rises (RIR 2). You're building on Week 1's foundation, loading the muscle harder to drive further adaptation.",
+  },
+  Overreach: {
+    explanation:
+      "Week 3 of a training block — the highest-intensity week where volume and load peak (RIR 1). This purposefully accumulates fatigue to trigger maximum adaptation. The deload week that follows allows your body to supercompensate and express the strength gained.",
+    citation:
+      "Israetel et al. (2019). Mesocycle Progression in Hypertrophy. Strength & Conditioning Journal.",
+  },
   Mesocycle: {
     explanation:
       "A training block lasting 3–8 weeks with a defined goal and progressive structure. ARPO uses 4-week mesocycles: 3 accumulation weeks (increasing volume/intensity) followed by 1 deload week (reduced load to restore recovery capacity).",

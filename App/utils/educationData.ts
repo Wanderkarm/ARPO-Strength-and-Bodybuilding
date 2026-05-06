@@ -51,6 +51,18 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
     title: "Reps in Reserve (RIR)",
     definition: "A measure of intensity indicating how many more reps you could have completed before physical failure. 0 RIR means absolute failure. 2 RIR means you stopped exactly 2 reps short of failing. Optimal hypertrophy occurs between 1-3 RIR."
   },
+  "Deload": {
+    title: "Deload Week",
+    definition: "A planned recovery week with ~40–50% less volume and intensity. Deloads let accumulated fatigue dissipate so the fitness gains from the previous 3 weeks can fully express. Skipping deloads is the leading cause of overtraining and stalled progress."
+  },
+  "Pump": {
+    title: "Pump Rating (1–5)",
+    definition: "How engorged the target muscle felt during your sets. A pump of 3–4 indicates healthy mechanical tension and metabolic stress — the two main drivers of muscle growth. Too low (1–2) suggests under-stimulation; extremely high (5) may indicate excessive volume or poor recovery."
+  },
+  "Recovery": {
+    title: "Recovery / Soreness",
+    definition: "How recovered this muscle feels going into today's session. Logging soreness helps ARPO detect when accumulated fatigue is building too fast, and automatically adjusts next week's targets before overtraining sets in."
+  },
   "ROM": {
     title: "Range of Motion (ROM)",
     definition: "The full movement potential of a joint. While full ROM is the standard baseline, evidence strongly supports a 'lengthened bias'\u2014spending more time in the phase of the lift where the target muscle is fully stretched under load."
@@ -98,5 +110,21 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
   "1RM": {
     title: "One Rep Max (1RM)",
     definition: "The maximum weight you can lift for exactly one complete repetition with proper form. Your 1RM is a benchmark for relative strength and is used to calculate training percentages. ARPO estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas."
+  },
+  "RHR": {
+    title: "Resting Heart Rate (RHR)",
+    definition: "The number of times your heart beats per minute while fully at rest. A lower RHR generally indicates better cardiovascular fitness and recovery. ARPO flags RHR above 75 bpm as a sign of accumulated fatigue or under-recovery. Elite athletes typically sit below 50 bpm."
+  },
+  "HRV": {
+    title: "Heart Rate Variability (HRV)",
+    definition: "The variation in time between consecutive heartbeats, measured in milliseconds. Counterintuitively, more variability is better — it means your nervous system is adaptable and you are well-recovered. An HRV below 30 ms suggests high stress or poor recovery; above 60 ms is optimal for training."
+  },
+  "Sleep": {
+    title: "Sleep & Recovery",
+    definition: "The primary driver of muscle repair and hormonal recovery. Growth hormone is released almost exclusively during deep sleep. 7–9 hours is the evidence-based target — chronic under-sleeping (below 6 hours) suppresses testosterone, elevates cortisol, and directly limits hypertrophy regardless of training quality."
+  },
+  "Recovery": {
+    title: "Recovery Score",
+    definition: "ARPO's composite readiness signal, derived from your Resting Heart Rate (RHR), Heart Rate Variability (HRV), and sleep duration synced from Apple Health or Health Connect. Green = ready to train hard. Yellow = train, but consider reducing intensity. Red = prioritise recovery today."
   }
 };

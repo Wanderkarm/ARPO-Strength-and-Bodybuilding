@@ -682,6 +682,8 @@ export async function createUser(
     "HORIZONTAL PUSH", "INCLINE PUSH", "VERTICAL PUSH",
     "HORIZONTAL BACK", "VERTICAL BACK",
     "BICEPS", "TRICEPS",
+    "CALVES", "TRAPS", "REAR DELTS", "ABS",
+    "LATERAL DELTS", "FOREARMS",
   ];
 
   const baselines: { category: string; weight: number }[] = [];
@@ -717,6 +719,8 @@ export async function updateWeightBaselines(userId: string, weights: BaselineWei
     "HORIZONTAL PUSH", "INCLINE PUSH", "VERTICAL PUSH",
     "HORIZONTAL BACK", "VERTICAL BACK",
     "BICEPS", "TRICEPS",
+    "CALVES", "TRAPS", "REAR DELTS", "ABS",
+    "LATERAL DELTS", "FOREARMS",
   ];
   for (const cat of categories) {
     const weight = getCategoryWeight(cat, weights);
@@ -922,6 +926,17 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
     [planId]
   );
 
+  // Load user baselines once for runtime fallback (fixes 0 lbs for categories
+  // that were missing from older createUser / updateWeightBaselines calls).
+  const baselineRowsFallback = await db.getAllAsync<{ category: string; weight: number }>(
+    "SELECT category, weight FROM user_weight_baselines WHERE user_id = ?",
+    [plan.user_id]
+  );
+  const fallbackBaselineMap: Record<string, number> = {};
+  for (const b of baselineRowsFallback) fallbackBaselineMap[b.category] = b.weight;
+  const fallbackBaselines = baselineWeightsFromMap(fallbackBaselineMap);
+  const userUnit = await getUserUnit(plan.user_id);
+
   const logs: WorkoutLog[] = [];
   for (const log of logRows) {
     const exercise = await getExerciseById(log.exercise_id);
@@ -933,13 +948,30 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
       [log.id]
     );
 
+    // Runtime fix: if target_weight is 0 for a non-bodyweight exercise (legacy DB
+    // records created before all categories were stored), compute a sensible default.
+    let resolvedTargetWeight = log.target_weight;
+    const equipment = exercise?.equipment ?? "";
+    const isBodyweightEq = equipment === "BODYWEIGHT" || equipment === "WEIGHTED_BODYWEIGHT";
+    if (resolvedTargetWeight === 0 && !isBodyweightEq && exercise) {
+      const rawWeight = getCategoryWeight(exercise.category, fallbackBaselines);
+      if (equipment === "DUMBBELL") {
+        const factor = DUMBBELL_FACTOR[exercise.category] ?? 0.28;
+        resolvedTargetWeight = snapDumbbellWeight(rawWeight * factor);
+      } else if (equipment === "BARBELL") {
+        resolvedTargetWeight = snapBarbellWeight(rawWeight, userUnit);
+      } else {
+        resolvedTargetWeight = rawWeight || 50;
+      }
+    }
+
     logs.push({
       id: log.id,
       exerciseId: log.exercise_id,
       weekNumber: log.week_number,
       dayNumber: log.day_number,
       targetSets: log.target_sets,
-      targetWeight: log.target_weight,
+      targetWeight: resolvedTargetWeight,
       targetRIR: log.target_rir,
       sorenessRating: log.soreness_rating,
       pumpRating: log.pump_rating,
@@ -949,7 +981,8 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
       sets: setRows.map(s => ({
         id: s.id,
         setNumber: s.set_number,
-        targetWeight: s.target_weight,
+        // Apply same 0-weight fallback at the set level
+        targetWeight: (s.target_weight === 0 && !isBodyweightEq) ? resolvedTargetWeight : s.target_weight,
         targetReps: s.target_reps,
         repsCompleted: s.reps_completed,
         weightUsed: s.weight_used,
@@ -1992,7 +2025,7 @@ export async function getCalendarData(
     day_number: number;
     exercise_count: number;
   }>(
-    `SELECT DATE(MIN(wl.completed_at)) AS date,
+    `SELECT DATE(MIN(wl.completed_at), 'localtime') AS date,
             wp.id AS plan_id,
             wl.week_number,
             wl.day_number,
@@ -2002,7 +2035,7 @@ export async function getCalendarData(
      WHERE wp.user_id = ?
        AND wl.completed_at IS NOT NULL
        AND wl.is_skipped = 0
-       AND DATE(wl.completed_at) BETWEEN ? AND ?
+       AND DATE(wl.completed_at, 'localtime') BETWEEN ? AND ?
      GROUP BY wl.workout_plan_id, wl.week_number, wl.day_number`,
     [userId, startDate, endDate]
   );
@@ -2019,9 +2052,9 @@ export async function getCalendarData(
 
   // ── Weigh-ins (latest per day) ──────────────────────────────────────────────
   const weighIns = await db.getAllAsync<{ date: string; weight_kg: number }>(
-    `SELECT DATE(logged_at) AS date, weight_kg
+    `SELECT DATE(logged_at, 'localtime') AS date, weight_kg
      FROM body_weight_logs
-     WHERE user_id = ? AND DATE(logged_at) BETWEEN ? AND ?
+     WHERE user_id = ? AND DATE(logged_at, 'localtime') BETWEEN ? AND ?
      ORDER BY logged_at DESC`,
     [userId, startDate, endDate]
   );
@@ -2417,14 +2450,14 @@ export async function calculateAndUpdateStreak(userId: string): Promise<StreakIn
 
   // Collect all distinct ISO date strings where user was active
   const workoutDates = await db.getAllAsync<{ date: string }>(
-    `SELECT DISTINCT DATE(wl.completed_at) as date
+    `SELECT DISTINCT DATE(wl.completed_at, 'localtime') as date
      FROM workout_logs wl
      JOIN workout_plans wp ON wl.workout_plan_id = wp.id
      WHERE wp.user_id = ? AND wl.completed_at IS NOT NULL AND wl.is_skipped = 0`,
     [userId]
   );
   const weighInDates = await db.getAllAsync<{ date: string }>(
-    "SELECT DISTINCT DATE(logged_at) as date FROM body_weight_logs WHERE user_id = ?",
+    "SELECT DISTINCT DATE(logged_at, 'localtime') as date FROM body_weight_logs WHERE user_id = ?",
     [userId]
   );
   const stepDates = await db.getAllAsync<{ date: string }>(
