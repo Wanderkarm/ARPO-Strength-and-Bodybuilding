@@ -884,6 +884,9 @@ export default function WorkoutScreen() {
       }
     } catch (err) {
       console.error(err);
+      // Reset so the user can retry manually
+      autoFinishTriggeredRef.current = false;
+      Alert.alert("Save Failed", "Your workout couldn't be saved. Tap 'Save Workout' to try again.");
     } finally {
       setFinishing(false);
     }
@@ -1931,13 +1934,33 @@ export default function WorkoutScreen() {
           )}
 
           {allSessionComplete ? (
-            // Auto-finish is triggered by the useEffect — show saving state
-            <View style={{ flex: 2, backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10 }}>
-              <ActivityIndicator color={Colors.text} size="small" />
-              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Saving…
-              </Text>
-            </View>
+            // Auto-finish fires via useEffect; this button is always tappable as a fallback
+            <Pressable
+              onPress={finishing ? undefined : handleFinishWorkout}
+              style={({ pressed }) => ({
+                flex: 2,
+                backgroundColor: Colors.primary,
+                paddingVertical: 16,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                gap: 10,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              {finishing ? (
+                <>
+                  <ActivityIndicator color={Colors.text} size="small" />
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                    Saving…
+                  </Text>
+                </>
+              ) : (
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
+                  Save Workout
+                </Text>
+              )}
+            </Pressable>
           ) : (
             <Pressable
               onPress={handleNextExercise}
