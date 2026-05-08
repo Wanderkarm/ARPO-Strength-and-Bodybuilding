@@ -1332,6 +1332,55 @@ async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: strin
   );
 
   const exercise = await getExerciseById(newExerciseId);
+
+  // ── Recalculate target weight for the new exercise ─────────────────────────
+  // Look up the user's baselines and derive a sensible starting weight so the
+  // swapped exercise never shows "0 lbs" as its target.
+  if (exercise) {
+    const isBodyweightEq =
+      exercise.equipment === "BODYWEIGHT" || exercise.equipment === "WEIGHTED_BODYWEIGHT";
+
+    if (!isBodyweightEq) {
+      // Get the plan's user_id via the workout_log → workout_plan join
+      const planRow = await db.getFirstAsync<{ user_id: string; unit: string }>(
+        `SELECT wp.user_id, u.unit
+         FROM workout_logs wl
+         JOIN workout_plans wp ON wl.workout_plan_id = wp.id
+         JOIN users u ON wp.user_id = u.id
+         WHERE wl.id = ?`,
+        [logId]
+      );
+
+      if (planRow) {
+        const baselines = await getWeightBaselines(planRow.user_id);
+        if (baselines) {
+          const rawWeight = getCategoryWeight(exercise.category, baselines);
+          let computedWeight = rawWeight;
+          if (exercise.equipment === "DUMBBELL") {
+            const factor = DUMBBELL_FACTOR[exercise.category] ?? 0.28;
+            computedWeight = snapDumbbellWeight(rawWeight * factor);
+          } else if (exercise.equipment === "BARBELL") {
+            computedWeight = snapBarbellWeight(rawWeight, planRow.unit as "kg" | "lbs");
+          } else {
+            computedWeight = rawWeight || 50;
+          }
+
+          if (computedWeight > 0) {
+            await db.runAsync(
+              "UPDATE workout_logs SET target_weight = ? WHERE id = ?",
+              [computedWeight, logId]
+            );
+            await db.runAsync(
+              "UPDATE set_logs SET target_weight = ? WHERE workout_log_id = ?",
+              [computedWeight, logId]
+            );
+          }
+        }
+      }
+    }
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const setRows = await db.getAllAsync<{
     id: string; set_number: number; target_weight: number; target_reps: number;
     reps_completed: number | null; weight_used: number | null; completed_at: string | null;

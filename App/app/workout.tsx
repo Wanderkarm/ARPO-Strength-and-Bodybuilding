@@ -204,18 +204,34 @@ function getFeedback(
   targetReps: number,
   isBodyweight = false
 ): { text: string; color: string } {
-  const hitTarget = isBodyweight
-    ? repsCompleted >= targetReps
-    : repsCompleted >= targetReps && weightUsed >= targetWeight;
+  const weightOk = targetWeight === 0 || weightUsed >= targetWeight;
+  const repsOk   = repsCompleted >= targetReps;
+
+  const hitTarget = isBodyweight ? repsOk : repsOk && weightOk;
+
   if (hitTarget) {
     const exceeded = isBodyweight
       ? repsCompleted > targetReps
-      : repsCompleted > targetReps || weightUsed > targetWeight;
+      : repsCompleted > targetReps || (targetWeight > 0 && weightUsed > targetWeight);
     return {
       text: exceeded
         ? "Target exceeded. Progressive overload achieved."
         : "Target met. Progressive overload achieved.",
       color: Colors.success,
+    };
+  }
+
+  // Give a specific reason so the user understands what to fix
+  if (!isBodyweight && !weightOk && repsOk) {
+    return {
+      text: "Weight below target. Increase load next set.",
+      color: Colors.warning,
+    };
+  }
+  if (!repsOk && weightOk) {
+    return {
+      text: "Reps below target. Autoregulation will lower weight next week.",
+      color: Colors.warning,
     };
   }
   return {
