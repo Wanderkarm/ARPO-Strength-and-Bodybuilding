@@ -1935,6 +1935,14 @@ export async function getProgressData(planId: string): Promise<{
     [planId]
   );
 
+  // Find the most recent week that has actual completed sets — if the plan just
+  // advanced to a new week (currentWeek has no sets yet), show the previous
+  // week's data rather than an empty screen.
+  const weekSet = new Set(volumeRows.map(r => r.week_number));
+  const displayWeek = weekSet.has(currentWeek)
+    ? currentWeek
+    : Math.max(0, ...[...weekSet]);
+
   const muscleMap = new Map<string, MuscleVolumeData>();
   for (const row of volumeRows) {
     if (!muscleMap.has(row.category)) {
@@ -1942,13 +1950,13 @@ export async function getProgressData(planId: string): Promise<{
     }
     const entry = muscleMap.get(row.category)!;
     entry.setsMeso += row.set_count;
-    if (row.week_number === currentWeek) {
+    if (row.week_number === displayWeek) {
       entry.setsThisWeek += row.set_count;
     }
   }
   const muscleVolume = [...muscleMap.values()].sort((a, b) => b.setsMeso - a.setsMeso);
 
-  return { exerciseHistory, muscleVolume, currentWeek, goalType };
+  return { exerciseHistory, muscleVolume, currentWeek: displayWeek, goalType };
 }
 
 // ─── Body Weight Log ──────────────────────────────────────────────────────────
