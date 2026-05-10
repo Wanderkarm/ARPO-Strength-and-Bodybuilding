@@ -137,7 +137,7 @@ export default function OnboardingScreen() {
       ? 10 * bwKg + 6.25 * h - 5 * a + 5
       : 10 * bwKg + 6.25 * h - 5 * a - 161;
     return Math.round(bmr * (multipliers[activityLevel] ?? 1.55));
-  }, [gender, currentWeight, weightUnit, heightFt, heightIn, heightCm, age, activityLevel]);
+  }, [gender, currentWeight, bodyweight, weightUnit, heightFt, heightIn, heightCm, age, activityLevel]);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -169,12 +169,15 @@ export default function OnboardingScreen() {
     try {
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      // Use entered bodyweight, or fall back to a sensible gender-based default
-      const bw = bodyweight && parseFloat(bodyweight) > 0
-        ? parseFloat(bodyweight)
-        : gender === "MALE"
-          ? (weightUnit === "lbs" ? 165 : 75)
-          : (weightUnit === "lbs" ? 135 : 60);
+      // Use the most recently entered weight: currentWeight (target step) takes
+      // priority over bodyweight (physical step), then fall back to gender default.
+      const bw = currentWeight && parseFloat(currentWeight) > 0
+        ? parseFloat(currentWeight)
+        : bodyweight && parseFloat(bodyweight) > 0
+          ? parseFloat(bodyweight)
+          : gender === "MALE"
+            ? (weightUnit === "lbs" ? 165 : 75)
+            : (weightUnit === "lbs" ? 135 : 60);
 
       // 1. Estimate starting weights from profile
       const weights = estimateWeights({
@@ -769,7 +772,14 @@ export default function OnboardingScreen() {
           {continueBtn(
             () => {
               haptic();
-              setStep(bodyGoal === "recomp" ? "summary" : "target");
+              if (bodyGoal !== "recomp") {
+                // Pre-fill currentWeight from bodyweight so the user doesn't
+                // have to type their weight a second time on the target step
+                if (!currentWeight && bodyweight) setCurrentWeight(bodyweight);
+                setStep("target");
+              } else {
+                setStep("summary");
+              }
             },
           )}
         </>
