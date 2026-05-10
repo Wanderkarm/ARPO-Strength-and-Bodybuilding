@@ -1,6 +1,6 @@
 node_modules/
 *.log
 .DS_Store
-# Icon generator deps — not part of the app build
-package.json
-package-lock.json
+# Icon generator deps at repo root — not part of the app build
+/package.json
+/package-lock.json
