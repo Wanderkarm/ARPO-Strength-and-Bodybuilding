@@ -62,152 +62,148 @@ export async function initializeSchema() {
     `UPDATE body_measurements SET body_fat_pct = ROUND(body_fat_pct * 100, 1) WHERE body_fat_pct > 0 AND body_fat_pct < 1.0`
   );
 
-  await database.execAsync(`
-    CREATE TABLE IF NOT EXISTS workout_sessions (
-      id TEXT PRIMARY KEY,
-      workout_plan_id TEXT NOT NULL,
-      week_number INTEGER NOT NULL,
-      day_number INTEGER NOT NULL,
-      started_at TEXT NOT NULL,
-      completed_at TEXT,
-      duration_seconds INTEGER,
-      session_notes TEXT,
-      FOREIGN KEY (workout_plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE,
-      UNIQUE(workout_plan_id, week_number, day_number)
-    );
+  // Each table gets its own call so one failure never prevents others from being created
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    gender TEXT NOT NULL DEFAULT 'MALE',
+    bodyweight REAL,
+    experience TEXT NOT NULL DEFAULT 'BEGINNER',
+    weight_unit TEXT NOT NULL DEFAULT 'lbs'
+  );`).catch(e => console.error("[DB] users:", e));
 
-    CREATE TABLE IF NOT EXISTS daily_steps (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      date TEXT NOT NULL,
-      steps INTEGER NOT NULL DEFAULT 0,
-      goal INTEGER NOT NULL DEFAULT 8000,
-      source TEXT NOT NULL DEFAULT 'manual',
-      synced_at TEXT,
-      FOREIGN KEY (user_id) REFERENCES users(id),
-      UNIQUE(user_id, date)
-    );
-  `).catch(() => {});
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS user_weight_baselines (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    category TEXT NOT NULL,
+    weight REAL NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(user_id, category)
+  );`).catch(e => console.error("[DB] user_weight_baselines:", e));
 
-  await database.execAsync(`
-    CREATE TABLE IF NOT EXISTS body_weight_logs (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      weight_kg REAL NOT NULL,
-      logged_at TEXT NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS exercises (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL,
+    equipment TEXT NOT NULL DEFAULT 'BARBELL',
+    default_video_url TEXT
+  );`).catch(e => console.error("[DB] exercises:", e));
 
-    CREATE TABLE IF NOT EXISTS body_measurements (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      chest_cm REAL,
-      waist_cm REAL,
-      hips_cm REAL,
-      left_arm_cm REAL,
-      right_arm_cm REAL,
-      left_thigh_cm REAL,
-      neck_cm REAL,
-      notes TEXT,
-      logged_at TEXT NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-  `).catch(() => {});
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS templates (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    meso_type INTEGER NOT NULL,
+    is_custom INTEGER NOT NULL DEFAULT 0,
+    user_id TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );`).catch(e => console.error("[DB] templates:", e));
 
-  await database.execAsync(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      gender TEXT NOT NULL DEFAULT 'MALE',
-      bodyweight REAL,
-      experience TEXT NOT NULL DEFAULT 'BEGINNER',
-      weight_unit TEXT NOT NULL DEFAULT 'lbs'
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS template_days (
+    id TEXT PRIMARY KEY,
+    template_id TEXT NOT NULL,
+    day_number INTEGER NOT NULL,
+    FOREIGN KEY (template_id) REFERENCES templates(id)
+  );`).catch(e => console.error("[DB] template_days:", e));
 
-    CREATE TABLE IF NOT EXISTS user_weight_baselines (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      category TEXT NOT NULL,
-      weight REAL NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users(id),
-      UNIQUE(user_id, category)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS template_exercises (
+    id TEXT PRIMARY KEY,
+    template_day_id TEXT NOT NULL,
+    exercise_id TEXT NOT NULL,
+    sort_order INTEGER NOT NULL,
+    FOREIGN KEY (template_day_id) REFERENCES template_days(id),
+    FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+  );`).catch(e => console.error("[DB] template_exercises:", e));
 
-    CREATE TABLE IF NOT EXISTS exercises (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
-      category TEXT NOT NULL,
-      equipment TEXT NOT NULL DEFAULT 'BARBELL',
-      default_video_url TEXT
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS workout_plans (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    template_id TEXT NOT NULL,
+    current_week INTEGER NOT NULL DEFAULT 1,
+    current_day INTEGER NOT NULL DEFAULT 1,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    goal_type TEXT NOT NULL DEFAULT 'hypertrophy',
+    gym_type TEXT NOT NULL DEFAULT 'GYM',
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (template_id) REFERENCES templates(id)
+  );`).catch(e => console.error("[DB] workout_plans:", e));
 
-    CREATE TABLE IF NOT EXISTS templates (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      meso_type INTEGER NOT NULL,
-      is_custom INTEGER NOT NULL DEFAULT 0,
-      user_id TEXT,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS workout_logs (
+    id TEXT PRIMARY KEY,
+    workout_plan_id TEXT NOT NULL,
+    exercise_id TEXT NOT NULL,
+    original_exercise_id TEXT,
+    is_permanent_swap INTEGER NOT NULL DEFAULT 0,
+    week_number INTEGER NOT NULL,
+    day_number INTEGER NOT NULL DEFAULT 1,
+    target_sets INTEGER NOT NULL,
+    target_weight REAL NOT NULL,
+    target_rir TEXT NOT NULL,
+    soreness_rating INTEGER,
+    pump_rating INTEGER,
+    completed_at TEXT,
+    is_skipped INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (workout_plan_id) REFERENCES workout_plans(id),
+    FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+  );`).catch(e => console.error("[DB] workout_logs:", e));
 
-    CREATE TABLE IF NOT EXISTS template_days (
-      id TEXT PRIMARY KEY,
-      template_id TEXT NOT NULL,
-      day_number INTEGER NOT NULL,
-      FOREIGN KEY (template_id) REFERENCES templates(id)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS set_logs (
+    id TEXT PRIMARY KEY,
+    workout_log_id TEXT NOT NULL,
+    set_number INTEGER NOT NULL,
+    target_weight REAL NOT NULL,
+    target_reps INTEGER NOT NULL DEFAULT 10,
+    reps_completed INTEGER,
+    weight_used REAL,
+    completed_at TEXT,
+    FOREIGN KEY (workout_log_id) REFERENCES workout_logs(id) ON DELETE CASCADE,
+    UNIQUE(workout_log_id, set_number)
+  );`).catch(e => console.error("[DB] set_logs:", e));
 
-    CREATE TABLE IF NOT EXISTS template_exercises (
-      id TEXT PRIMARY KEY,
-      template_day_id TEXT NOT NULL,
-      exercise_id TEXT NOT NULL,
-      sort_order INTEGER NOT NULL,
-      FOREIGN KEY (template_day_id) REFERENCES template_days(id),
-      FOREIGN KEY (exercise_id) REFERENCES exercises(id)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS body_weight_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    weight_kg REAL NOT NULL,
+    logged_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );`).catch(e => console.error("[DB] body_weight_logs:", e));
 
-    CREATE TABLE IF NOT EXISTS workout_plans (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      template_id TEXT NOT NULL,
-      current_week INTEGER NOT NULL DEFAULT 1,
-      current_day INTEGER NOT NULL DEFAULT 1,
-      is_active INTEGER NOT NULL DEFAULT 1,
-      goal_type TEXT NOT NULL DEFAULT 'hypertrophy',
-      gym_type TEXT NOT NULL DEFAULT 'GYM',
-      FOREIGN KEY (user_id) REFERENCES users(id),
-      FOREIGN KEY (template_id) REFERENCES templates(id)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS body_measurements (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    chest_cm REAL,
+    waist_cm REAL,
+    hips_cm REAL,
+    left_arm_cm REAL,
+    right_arm_cm REAL,
+    left_thigh_cm REAL,
+    right_thigh_cm REAL,
+    neck_cm REAL,
+    notes TEXT,
+    logged_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );`).catch(e => console.error("[DB] body_measurements:", e));
 
-    CREATE TABLE IF NOT EXISTS workout_logs (
-      id TEXT PRIMARY KEY,
-      workout_plan_id TEXT NOT NULL,
-      exercise_id TEXT NOT NULL,
-      original_exercise_id TEXT,
-      is_permanent_swap INTEGER NOT NULL DEFAULT 0,
-      week_number INTEGER NOT NULL,
-      day_number INTEGER NOT NULL DEFAULT 1,
-      target_sets INTEGER NOT NULL,
-      target_weight REAL NOT NULL,
-      target_rir TEXT NOT NULL,
-      soreness_rating INTEGER,
-      pump_rating INTEGER,
-      completed_at TEXT,
-      is_skipped INTEGER NOT NULL DEFAULT 0,
-      FOREIGN KEY (workout_plan_id) REFERENCES workout_plans(id),
-      FOREIGN KEY (exercise_id) REFERENCES exercises(id)
-    );
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS workout_sessions (
+    id TEXT PRIMARY KEY,
+    workout_plan_id TEXT NOT NULL,
+    week_number INTEGER NOT NULL,
+    day_number INTEGER NOT NULL,
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    duration_seconds INTEGER,
+    session_notes TEXT,
+    FOREIGN KEY (workout_plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE,
+    UNIQUE(workout_plan_id, week_number, day_number)
+  );`).catch(e => console.error("[DB] workout_sessions:", e));
 
-    CREATE TABLE IF NOT EXISTS set_logs (
-      id TEXT PRIMARY KEY,
-      workout_log_id TEXT NOT NULL,
-      set_number INTEGER NOT NULL,
-      target_weight REAL NOT NULL,
-      target_reps INTEGER NOT NULL DEFAULT 10,
-      reps_completed INTEGER,
-      weight_used REAL,
-      completed_at TEXT,
-      FOREIGN KEY (workout_log_id) REFERENCES workout_logs(id) ON DELETE CASCADE,
-      UNIQUE(workout_log_id, set_number)
-    );
-  `);
+  await database.execAsync(`CREATE TABLE IF NOT EXISTS daily_steps (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    date TEXT NOT NULL,
+    steps INTEGER NOT NULL DEFAULT 0,
+    goal INTEGER NOT NULL DEFAULT 8000,
+    source TEXT NOT NULL DEFAULT 'manual',
+    synced_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(user_id, date)
+  );`).catch(e => console.error("[DB] daily_steps:", e));
 }

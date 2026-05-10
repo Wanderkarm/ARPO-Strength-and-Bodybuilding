@@ -91,7 +91,7 @@ export default function LandingScreen() {
         }}
       >
         <Image
-          source={require("@/assets/images/logo.png")}
+          source={require("@/assets/images/arpo-logo.png")}
           style={{ width: 100, height: 100, marginBottom: 32 }}
           resizeMode="contain"
         />

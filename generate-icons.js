@@ -6,25 +6,47 @@
 
 const sharp = require("sharp");
 const path  = require("path");
+const fs    = require("fs");
 
-const SRC = path.join(__dirname, "powrlog3.jpeg");
+// Full logo (barbell + text) — used for splash screen and in-app display
+const LOGO_JPEG = path.join(__dirname, "powrlog3.jpeg");
+
+// Bar chart SVG — used for the app icon (reads clean at small sizes)
+const ICON_SVG  = path.join(__dirname, "ARPO.svg");
 const OUT = path.join(__dirname, "App", "assets", "images");
 
-// Android adaptive background: solid black to match logo background
+const svgBuf = fs.readFileSync(ICON_SVG);
+
+// Android adaptive background: solid black
 const androidBgSvg = Buffer.from(
   `<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
     <rect width="1024" height="1024" fill="#000000"/>
   </svg>`
 );
 
+// Android monochrome: white bar chart on black
+const monoSvg = Buffer.from(
+  `<svg viewBox="0 0 1201.5 1210.5" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1201.5" height="1210.5" fill="black"/>
+    <rect x="120" y="478" width="147" height="116" rx="10" fill="white"/>
+    <rect x="306" y="362" width="138" height="232" rx="10" fill="white"/>
+    <rect x="470" y="150" width="130" height="444" rx="10" fill="white"/>
+    <rect x="640" y="48"  width="125" height="542" rx="10" fill="white"/>
+    <rect x="640" y="544" width="494" height="50"  rx="10" fill="white"/>
+  </svg>`
+);
+
 const jobs = [
-  // file                           source          size   mono?
-  { file: "icon.png",                    filePath: SRC,        size: 1024 },
-  { file: "splash-icon.png",             filePath: SRC,        size: 1024 },
-  { file: "android-icon-foreground.png", filePath: SRC,        size: 1024 },
-  { file: "android-icon-background.png", buf: androidBgSvg,    size: 1024 },
-  { file: "android-icon-monochrome.png", filePath: SRC,        size: 1024, mono: true },
-  { file: "favicon.png",                 filePath: SRC,        size: 196  },
+  // App icon — bar chart SVG (crisp at every size)
+  { file: "icon.png",                    buf: svgBuf,        size: 1024 },
+  // Splash — full barbell logo JPEG (shown large on launch screen)
+  { file: "splash-icon.png",             filePath: LOGO_JPEG, size: 1024 },
+  // Android adaptive
+  { file: "android-icon-foreground.png", buf: svgBuf,        size: 1024 },
+  { file: "android-icon-background.png", buf: androidBgSvg,  size: 1024 },
+  { file: "android-icon-monochrome.png", buf: monoSvg,       size: 1024 },
+  // Favicon — bar chart SVG
+  { file: "favicon.png",                 buf: svgBuf,        size: 196  },
 ];
 
 (async () => {
