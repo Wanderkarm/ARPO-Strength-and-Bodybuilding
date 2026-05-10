@@ -348,16 +348,27 @@ export default function OnboardingScreen() {
             {/* Logo */}
             <Image
               source={require("../assets/images/logo.png")}
-              style={{ width: "100%", aspectRatio: 1, marginBottom: 20 }}
+              style={{ width: "100%", height: 140, marginBottom: 16 }}
               resizeMode="contain"
             />
+            <View style={{ width: 40, height: 3, backgroundColor: Colors.primary, marginBottom: 16 }} />
+            <Text style={{
+              fontFamily: "Rubik_700Bold",
+              fontSize: 28,
+              color: Colors.text,
+              textTransform: "uppercase",
+              letterSpacing: 2,
+              marginBottom: 10,
+              lineHeight: 34,
+            }}>
+              Training that{"\n"}learns you.
+            </Text>
             <Text style={{
               fontFamily: "Rubik_400Regular",
               fontSize: 14,
               color: Colors.textSecondary,
               lineHeight: 22,
-              marginBottom: 32,
-              textAlign: "center",
+              marginBottom: 28,
             }}>
               Answer a few questions and POWRLOG builds a complete program around your body, experience, and goals — then adjusts it every single session.
             </Text>
