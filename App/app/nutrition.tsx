@@ -163,6 +163,14 @@ export default function NutritionScreen() {
       const goal = (nutrition.bodyGoal ?? "recomp") as BodyGoal;
       setBodyGoal(goal);
 
+      // Pre-select the pace tab the user chose during onboarding (if set)
+      if (goal !== "recomp") {
+        const savedPace = await AsyncStorage.getItem("nutritionPace");
+        if (savedPace === "slow" || savedPace === "conservative") setActiveTab("conservative");
+        else if (savedPace === "aggressive") setActiveTab("aggressive");
+        else setActiveTab("moderate");
+      }
+
       const calculated = calculateNutritionPlan({
         gender: profile.gender as "MALE" | "FEMALE",
         weightKg: bwKg,

@@ -1,57 +1,51 @@
 /**
- * ARPO Icon Generator
- * Uses the official ARPO (1).svg source file
+ * POWRLOG Icon Generator
+ * Source: powrlog3.jpeg (4000×4000, black background)
  * Run: node generate-icons.js
  */
 
 const sharp = require("sharp");
-const path = require("path");
-const fs = require("fs");
+const path  = require("path");
 
-const SVG_SRC = path.join(__dirname, "ARPO.svg");
-const OUT     = path.join(__dirname, "App", "assets", "images");
+const SRC = path.join(__dirname, "powrlog3.jpeg");
+const OUT = path.join(__dirname, "App", "assets", "images");
 
-const svgBuf = fs.readFileSync(SVG_SRC);
-
-// Android background: solid red square (no artwork — system composites foreground on top)
+// Android adaptive background: solid black to match logo background
 const androidBgSvg = Buffer.from(
   `<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1024" height="1024" fill="#DC2626"/>
-  </svg>`
-);
-
-// Android monochrome: white bars on black (for themed/tinted icons)
-// Re-uses the main SVG but tinted — sharp can't do this easily, so use a
-// hand-coded minimal SVG that mirrors the bar layout from the source.
-const monoSvg = Buffer.from(
-  `<svg viewBox="0 0 1201.5 1210.5" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1201.5" height="1210.5" fill="black"/>
-    <!-- white bars (approx positions from source SVG) -->
-    <rect x="120" y="478" width="147" height="116" rx="10" fill="white"/>
-    <rect x="306" y="362" width="138" height="232" rx="10" fill="white"/>
-    <rect x="470" y="150" width="130" height="444" rx="10" fill="white"/>
-    <rect x="640" y="48"  width="125" height="542" rx="10" fill="white"/>
-    <!-- crossbar -->
-    <rect x="640" y="544" width="494" height="50"  rx="10" fill="white"/>
+    <rect width="1024" height="1024" fill="#000000"/>
   </svg>`
 );
 
 const jobs = [
-  { file: "icon.png",                    buf: svgBuf,      size: 1024 },
-  { file: "splash-icon.png",             buf: svgBuf,      size: 1024 },
-  { file: "android-icon-foreground.png", buf: svgBuf,      size: 1024 },
-  { file: "android-icon-background.png", buf: androidBgSvg, size: 1024 },
-  { file: "android-icon-monochrome.png", buf: monoSvg,     size: 1024 },
-  { file: "favicon.png",                 buf: svgBuf,      size: 196  },
+  // file                           source          size   mono?
+  { file: "icon.png",                    filePath: SRC,        size: 1024 },
+  { file: "splash-icon.png",             filePath: SRC,        size: 1024 },
+  { file: "android-icon-foreground.png", filePath: SRC,        size: 1024 },
+  { file: "android-icon-background.png", buf: androidBgSvg,    size: 1024 },
+  { file: "android-icon-monochrome.png", filePath: SRC,        size: 1024, mono: true },
+  { file: "favicon.png",                 filePath: SRC,        size: 196  },
 ];
 
 (async () => {
-  for (const { file, buf, size } of jobs) {
+  for (const { file, filePath, buf, size, mono } of jobs) {
     const dest = path.join(OUT, file);
-    await sharp(buf)
-      .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .png()
-      .toFile(dest);
+
+    // Source is either a Buffer (inline SVG) or a file path
+    let pipeline = buf ? sharp(buf) : sharp(filePath);
+
+    // Resize — source is already square so "contain" = straight downscale
+    pipeline = pipeline.resize(size, size, {
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0 },
+    });
+
+    // Monochrome: greyscale + threshold → pure white/black for themed Android icons
+    if (mono) {
+      pipeline = pipeline.greyscale().threshold(80);
+    }
+
+    await pipeline.png().toFile(dest);
     console.log(`✓  ${file}  (${size}×${size})`);
   }
   console.log("\nAll icons written to App/assets/images/");
