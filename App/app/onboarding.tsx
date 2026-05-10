@@ -126,7 +126,9 @@ export default function OnboardingScreen() {
     };
     const bwKg = currentWeight && parseFloat(currentWeight) > 0
       ? (weightUnit === "lbs" ? lbsToKg(parseFloat(currentWeight)) : parseFloat(currentWeight))
-      : gender === "MALE" ? 75 : 60;
+      : bodyweight && parseFloat(bodyweight) > 0
+        ? (weightUnit === "lbs" ? lbsToKg(parseFloat(bodyweight)) : parseFloat(bodyweight))
+        : gender === "MALE" ? 75 : 60;
     const h = weightUnit === "lbs"
       ? ftInToCm(parseInt(heightFt) || 5, parseInt(heightIn) || 10)
       : parseFloat(heightCm) || 178;
@@ -897,11 +899,12 @@ export default function OnboardingScreen() {
                   >
                     {/* Title row */}
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1, marginRight: 8 }}>
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: isSelected ? Colors.primary : Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
                           {opt.label}
                         </Text>
-                        {opt.recommended && (
+                        {isSelected && <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />}
+                        {!isSelected && opt.recommended && (
                           <View style={{ borderWidth: 1, borderColor: Colors.primary + "55", backgroundColor: Colors.primary + "15", paddingHorizontal: 7, paddingVertical: 2 }}>
                             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
                               Recommended
@@ -922,11 +925,6 @@ export default function OnboardingScreen() {
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 17 }}>
                       {opt.detail}
                     </Text>
-                    {isSelected && (
-                      <View style={{ position: "absolute", top: 10, right: 10 }}>
-                        <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
-                      </View>
-                    )}
                   </Pressable>
                 );
               })}
@@ -978,7 +976,7 @@ export default function OnboardingScreen() {
             ? [{ label: "Target", value: [currentWeight ? `${currentWeight} ${weightUnit} now` : null, targetWeight ? `→ ${targetWeight} ${weightUnit}` : null].filter(Boolean).join("  ") }]
             : []),
           ...(bodyGoal !== "recomp"
-            ? [{ label: "Pace", value: `${deficitPace.charAt(0).toUpperCase() + deficitPace.slice(1)} — ${paceDeficit < 0 ? Math.abs(paceDeficit) + " kcal deficit" : "+" + paceSurplus + " kcal surplus"}` }]
+            ? [{ label: "Pace", value: `${deficitPace.charAt(0).toUpperCase() + deficitPace.slice(1)} — ${bodyGoal === "cut" ? Math.abs(paceDeficit) + " kcal deficit" : "+" + paceSurplus + " kcal surplus"}` }]
             : []),
         ];
 
