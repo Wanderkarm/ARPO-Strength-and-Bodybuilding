@@ -21,6 +21,7 @@ import * as Haptics from "expo-haptics";
 import { useFocusEffect, router } from "expo-router";
 import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
+import { usePurchase, TRIAL_DAYS, UNLOCK_PRICE_LABEL } from "@/contexts/PurchaseContext";
 import { GOAL_META } from "@/utils/volumeLandmarks";
 import {
   getUserProfile,
@@ -134,6 +135,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit, refreshUnit } = useUnit();
+  const { isPurchased, trialDaysRemaining } = usePurchase();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1150,6 +1152,38 @@ export default function SettingsScreen() {
             </Pressable>
           </>
         )}
+
+        {/* ── Purchase / Trial status ── */}
+        {isPurchased ? (
+          <View style={{ borderWidth: 1, borderColor: Colors.primary + "44", borderLeftWidth: 3, borderLeftColor: Colors.primary, backgroundColor: Colors.primary + "0A", padding: 14, marginBottom: 24 }}>
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 2 }}>
+              ✓ Full Access
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+              POWRLOG unlocked — thanks for your support.
+            </Text>
+          </View>
+        ) : trialDaysRemaining > 0 ? (
+          <Pressable
+            onPress={() => router.push("/paywall")}
+            style={({ pressed }) => ({
+              borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3,
+              borderLeftColor: "#F59E0B", backgroundColor: "#F59E0B0A",
+              padding: 14, marginBottom: 24, opacity: pressed ? 0.8 : 1,
+              flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+            })}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 2 }}>
+                Free Trial — {trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} remaining
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
+                Unlock for {UNLOCK_PRICE_LABEL} — one-time, no subscription.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#F59E0B" />
+          </Pressable>
+        ) : null}
 
         {/* ── Legal ── */}
         <SectionHeader title="Legal" />

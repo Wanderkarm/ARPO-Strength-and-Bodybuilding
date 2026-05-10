@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Colors from "@/constants/colors";
 import { getWorkoutPlan, getActivePlanForUser } from "@/lib/local-db";
+import { usePurchase } from "@/contexts/PurchaseContext";
 
 const CRIMSON = "#C62828";
 
@@ -28,15 +29,22 @@ export default function LandingScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
+  const { isPurchased, isTrialExpired, isLoading: purchaseLoading } = usePurchase();
 
   useEffect(() => {
-    checkExistingUser();
-  }, []);
+    if (!purchaseLoading) checkExistingUser();
+  }, [purchaseLoading]);
 
   async function checkExistingUser() {
     try {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) return; // New user — stay on landing page
+
+      // Trial gate: existing user whose trial has expired and hasn't purchased
+      if (isTrialExpired && !isPurchased) {
+        router.replace("/paywall");
+        return;
+      }
 
       let planId = await AsyncStorage.getItem("activePlanId");
 
@@ -83,7 +91,7 @@ export default function LandingScreen() {
         }}
       >
         <Image
-          source={require("@/assets/images/arpo-logo.png")}
+          source={require("@/assets/images/logo.png")}
           style={{ width: 100, height: 100, marginBottom: 32 }}
           resizeMode="contain"
         />

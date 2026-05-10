@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UnitProvider } from "@/contexts/UnitContext";
+import { PurchaseProvider } from "@/contexts/PurchaseContext";
 import { initializeDatabase } from "@/lib/local-db";
 import React, { useEffect, useState } from "react";
 import {
@@ -60,6 +61,10 @@ function RootLayoutNav() {
         name="summary"
         options={{ animation: "fade", gestureEnabled: false }}
       />
+      <Stack.Screen
+        name="paywall"
+        options={{ animation: "fade", gestureEnabled: false }}
+      />
     </Stack>
   );
 }
@@ -95,14 +100,16 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <UnitProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <KeyboardProvider>
-            <StatusBar style="light" />
-            <RootLayoutNav />
-          </KeyboardProvider>
-        </GestureHandlerRootView>
-      </UnitProvider>
+      <PurchaseProvider>
+        <UnitProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <StatusBar style="light" />
+              <RootLayoutNav />
+            </KeyboardProvider>
+          </GestureHandlerRootView>
+        </UnitProvider>
+      </PurchaseProvider>
     </ErrorBoundary>
   );
 }

@@ -188,6 +188,11 @@ export default function OnboardingScreen() {
       if (bodyGoal !== "recomp") {
         await AsyncStorage.setItem("nutritionPace", deficitPace);
       }
+      // Start the 7-day trial clock from the moment onboarding completes
+      const existingLaunch = await AsyncStorage.getItem("firstLaunchDate");
+      if (!existingLaunch) {
+        await AsyncStorage.setItem("firstLaunchDate", new Date().toISOString());
+      }
       await refreshUnit();
 
       // 3. Save nutrition profile (goal + height + age + activity + optional target)
