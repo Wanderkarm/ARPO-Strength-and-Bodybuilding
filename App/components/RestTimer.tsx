@@ -174,9 +174,9 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
       )}
 
       {!isFinished && (() => {
-        // Parse "POWRLOG Brief: [text]" into label + body
+        // Parse "POWR Brief: [text]" into label + body
         const colonIdx = fact.excerpt.indexOf(": ");
-        const briefLabel = colonIdx !== -1 ? fact.excerpt.slice(0, colonIdx) : "POWRLOG Brief";
+        const briefLabel = colonIdx !== -1 ? fact.excerpt.slice(0, colonIdx) : "POWR Brief";
         const briefText  = colonIdx !== -1 ? fact.excerpt.slice(colonIdx + 2) : fact.excerpt;
         return (
           <View style={styles.factContainer}>

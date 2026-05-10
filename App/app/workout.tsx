@@ -1401,7 +1401,7 @@ export default function WorkoutScreen() {
           </View>
         )}
 
-        {/* ARPO Brief — science tip, rotates per exercise, hidden once all sets are done */}
+        {/* POWR Brief — science tip, rotates per exercise, hidden once all sets are done */}
         {!isExerciseComplete(currentEx) && (() => {
           const tip = SCIENCE_TIPS[currentExerciseIndex % SCIENCE_TIPS.length];
           return (
@@ -1413,7 +1413,7 @@ export default function WorkoutScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
                 <Ionicons name={tip.icon as any} size={11} color={Colors.primary} />
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, letterSpacing: 2, textTransform: "uppercase" }}>
-                  ARPO Brief
+                  POWR Brief
                 </Text>
               </View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 17 }}>

@@ -409,7 +409,7 @@ export default function DashboardScreen() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Hypertrophy Hub
+                POWR Hub
               </Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>

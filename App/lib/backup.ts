@@ -1,5 +1,5 @@
 /**
- * ARPO Backup & Restore
+ * POWRLOG Backup & Restore
  *
  * Export: queries every user-owned table → JSON → device file → native share sheet
  * Restore: document picker → parse + validate → wipe user data → re-insert
