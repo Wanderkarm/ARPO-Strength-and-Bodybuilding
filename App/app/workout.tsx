@@ -634,7 +634,8 @@ export default function WorkoutScreen() {
         updated[exIndex] = updatedEx;
 
         const isLastSet = setIndex === updatedEx.sets.length - 1;
-        if (!isLastSet) {
+        const jumpingToPartner = hasActiveSupersertPartner(exIndex);
+        if (!isLastSet && !jumpingToPartner) {
           const category = updatedEx.exercise.category;
           const restSeconds = calculateRestTime(category);
           setRestTimerSeconds(restSeconds);
@@ -647,7 +648,24 @@ export default function WorkoutScreen() {
 
         return updated;
       });
+      // Jump to superset partner after field blur too
+      if (hasActiveSupersertPartner(exIndex)) {
+        setTimeout(() => tryJumpToSupersetPartner(exIndex), 550);
+      }
     }, 150);
+  }
+
+  /**
+   * Returns true if this exercise is in a superset AND the partner still has
+   * unlogged sets — meaning we should skip the rest timer and jump instead.
+   */
+  function hasActiveSupersertPartner(exIndex: number): boolean {
+    const states = exerciseStatesRef.current;
+    const groupId = states[exIndex].supersetGroup;
+    if (groupId === null) return false;
+    return states.some(
+      (ex, i) => i !== exIndex && ex.supersetGroup === groupId && ex.sets.some((s) => !s.feedback)
+    );
   }
 
   function autoLogSet(exIndex: number, setIndex: number, reps: number, weight: number) {
@@ -663,7 +681,10 @@ export default function WorkoutScreen() {
     updateSet(exIndex, setIndex, "feedback", feedback);
 
     const isLastSet = setIndex === ex.sets.length - 1;
-    if (!isLastSet) {
+    // Don't start the rest timer if we're about to jump to a superset partner.
+    // The timer fires after the partner set instead (end of the superset round).
+    const jumpingToPartner = hasActiveSupersertPartner(exIndex);
+    if (!isLastSet && !jumpingToPartner) {
       const category = ex.exercise.category;
       const restSeconds = calculateRestTime(category);
       setRestTimerSeconds(restSeconds);
