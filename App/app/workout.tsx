@@ -191,7 +191,7 @@ const TOUR_STEPS = [
   },
   {
     title: "The Algorithm",
-    text: "After finishing all exercises, rate your effort here. Be honest — this dictates how ARPO adjusts your weight next session.",
+    text: "After finishing all exercises, rate your effort here. Be honest — this dictates how POWRLOG adjusts your weight next session.",
   },
 ];
 

@@ -151,7 +151,7 @@ export default function HealthPermissions() {
             fontFamily: "Rubik_400Regular", fontSize: 14,
             color: Colors.textSecondary, textAlign: "center", lineHeight: 22,
           }}>
-            ARPO reads the following from{" "}
+            POWRLOG reads the following from{" "}
             <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>
               {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}
             </Text>{" "}
@@ -209,7 +209,7 @@ export default function HealthPermissions() {
           }}>
             All health data stays on your device and in{" "}
             {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}.
-            ARPO only reads — it never uploads or shares your health data.
+            POWRLOG only reads — it never uploads or shares your health data.
           </Text>
         </View>
       </ScrollView>

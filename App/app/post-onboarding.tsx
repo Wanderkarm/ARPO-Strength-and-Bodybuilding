@@ -255,7 +255,7 @@ export default function PostOnboardingScreen() {
               }}>
                 <Ionicons name="information-circle-outline" size={16} color={Colors.primary} style={{ marginTop: 2 }} />
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
-                  These <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>6 key lifts</Text> tell ARPO how strong you are — it estimates starting weights for every other exercise from them.{" "}
+                  These 6 key lifts tell POWRLOG how strong you are — it estimates starting weights for every other exercise from them.{" "}
                   <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>Not sure what to enter?</Text> Tap a range on each card. You can fine-tune after your first session.
                 </Text>
               </View>
@@ -382,11 +382,11 @@ export default function PostOnboardingScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                Skip — Use ARPO's Estimates
+                Skip — Use POWRLOG's Estimates
               </Text>
             </Pressable>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textAlign: "center", lineHeight: 17 }}>
-              Not sure of your numbers? ARPO estimates all starting weights.{"\n"}Fine-tune any lift after your first session.
+              Not sure of your numbers? POWRLOG estimates all starting weights.{"\n"}Fine-tune any lift after your first session.
             </Text>
           </View>
         </ScrollView>

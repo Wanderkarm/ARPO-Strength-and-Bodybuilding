@@ -1,7 +1,7 @@
 export const restFacts = [
   {
     id: "rest-1",
-    excerpt: "ARPO Brief: A 3-minute rest between heavy sets allows local force output to recover, sustaining your volume of hard sets.",
+    excerpt: "POWRLOG Brief: A 3-minute rest between heavy sets allows local force output to recover, sustaining your volume of hard sets.",
     citation: "Singer et al., 2024",
     paperTitle: "Give it a Rest: A systematic review with Bayesian meta-analysis on the effect of inter-set rest interval duration on muscle hypertrophy.",
     sampleSize: "Meta-analysis (Synthesis of multiple Randomized Controlled Trials)",
@@ -10,7 +10,7 @@ export const restFacts = [
   },
   {
     id: "rom-1",
-    excerpt: "ARPO Brief: Training at long muscle lengths (the stretched position) provides a distinct hypertrophic advantage, often rivaling or exceeding standard range of motion.",
+    excerpt: "POWRLOG Brief: Training at long muscle lengths (the stretched position) provides a distinct hypertrophic advantage, often rivaling or exceeding standard range of motion.",
     citation: "Wolf et al., 2023",
     paperTitle: "Partial Vs Full Range of Motion Resistance Training: A Systematic Review and Meta-Analysis.",
     sampleSize: "Meta-analysis of 24 structured studies",
@@ -19,7 +19,7 @@ export const restFacts = [
   },
   {
     id: "rir-1",
-    excerpt: "ARPO Brief: Absolute failure is not required. Terminating sets 1-2 reps shy of failure yields equivalent muscle growth with a manageable recovery cost.",
+    excerpt: "POWRLOG Brief: Absolute failure is not required. Terminating sets 1-2 reps shy of failure yields equivalent muscle growth with a manageable recovery cost.",
     citation: "Refalo et al., 2023",
     paperTitle: "Influence of Resistance Training Proximity-to-Failure on Skeletal Muscle Hypertrophy.",
     sampleSize: "Systematic Review with Meta-analysis",
@@ -28,7 +28,7 @@ export const restFacts = [
   },
   {
     id: "vol-1",
-    excerpt: "ARPO Brief: The number of 'hard sets' taken close to failure is the primary metric for volume, not just total weight moved.",
+    excerpt: "POWRLOG Brief: The number of 'hard sets' taken close to failure is the primary metric for volume, not just total weight moved.",
     citation: "Schoenfeld et al., 2017",
     paperTitle: "Dose-response relationship between weekly resistance training volume and increases in muscle mass.",
     sampleSize: "Meta-analysis of 15 clinical studies",
@@ -37,7 +37,7 @@ export const restFacts = [
   },
   {
     id: "pro-1",
-    excerpt: "ARPO Brief: Muscle protein synthesis optimally plateaus between 0.75g and 1g of protein per pound of body weight daily.",
+    excerpt: "POWRLOG Brief: Muscle protein synthesis optimally plateaus between 0.75g and 1g of protein per pound of body weight daily.",
     citation: "Morton et al., 2018",
     paperTitle: "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains.",
     sampleSize: "49 studies comprising 1,863 participants",
@@ -61,7 +61,7 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
   },
   "Recovery": {
     title: "Recovery / Soreness",
-    definition: "How recovered this muscle feels going into today's session. Logging soreness helps ARPO detect when accumulated fatigue is building too fast, and automatically adjusts next week's targets before overtraining sets in."
+    definition: "How recovered this muscle feels going into today's session. Logging soreness helps POWRLOG detect when accumulated fatigue is building too fast, and automatically adjusts next week's targets before overtraining sets in."
   },
   "ROM": {
     title: "Range of Motion (ROM)",
@@ -83,8 +83,8 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
     title: "Muscular Failure",
     definition: "The point during a set where you physically cannot complete another concentric (lifting) repetition with proper form. A powerful stimulus, but highly taxing on systemic recovery."
   },
-  "ARPO": {
-    title: "Auto-Regulated Progressive Overload",
+  "POWRLOG": {
+    title: "Progressive Overload: Weights & Reps Log",
     definition: "A dynamic programming method where your daily performance automatically dictates the precise load required in your next session to force continuous adaptation."
   },
   "MEV": {
@@ -109,11 +109,11 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
   },
   "1RM": {
     title: "One Rep Max (1RM)",
-    definition: "The maximum weight you can lift for exactly one complete repetition with proper form. Your 1RM is a benchmark for relative strength and is used to calculate training percentages. ARPO estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas."
+    definition: "The maximum weight you can lift for exactly one complete repetition with proper form. Your 1RM is a benchmark for relative strength and is used to calculate training percentages. POWRLOG estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas."
   },
   "RHR": {
     title: "Resting Heart Rate (RHR)",
-    definition: "The number of times your heart beats per minute while fully at rest. A lower RHR generally indicates better cardiovascular fitness and recovery. ARPO flags RHR above 75 bpm as a sign of accumulated fatigue or under-recovery. Elite athletes typically sit below 50 bpm."
+    definition: "The number of times your heart beats per minute while fully at rest. A lower RHR generally indicates better cardiovascular fitness and recovery. POWRLOG flags RHR above 75 bpm as a sign of accumulated fatigue or under-recovery. Elite athletes typically sit below 50 bpm."
   },
   "HRV": {
     title: "Heart Rate Variability (HRV)",
@@ -125,6 +125,6 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
   },
   "Recovery": {
     title: "Recovery Score",
-    definition: "ARPO's composite readiness signal, derived from your Resting Heart Rate (RHR), Heart Rate Variability (HRV), and sleep duration synced from Apple Health or Health Connect. Green = ready to train hard. Yellow = train, but consider reducing intensity. Red = prioritise recovery today."
+    definition: "POWRLOG's composite readiness signal, derived from your Resting Heart Rate (RHR), Heart Rate Variability (HRV), and sleep duration synced from Apple Health or Health Connect. Green = ready to train hard. Yellow = train, but consider reducing intensity. Red = prioritise recovery today."
   }
 };

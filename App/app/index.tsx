@@ -98,7 +98,7 @@ export default function LandingScreen() {
             textTransform: "uppercase",
           }}
         >
-          ARPO
+          POWRLOG
         </Text>
 
         <View

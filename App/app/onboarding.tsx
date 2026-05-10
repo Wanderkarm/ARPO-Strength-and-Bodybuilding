@@ -341,7 +341,7 @@ export default function OnboardingScreen() {
               lineHeight: 22,
               marginBottom: 32,
             }}>
-              Answer a few questions and ARPO builds a complete program around your body, experience, and goals — then adjusts it every single session.
+              Answer a few questions and POWRLOG builds a complete program around your body, experience, and goals — then adjusts it every single session.
             </Text>
 
             {[
@@ -415,7 +415,7 @@ export default function OnboardingScreen() {
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
             <Text style={titleStyle}>Pounds or Kilograms?</Text>
             <Text style={subtitleStyle}>
-              Every weight in ARPO — your lifts, targets, and bodyweight — uses this unit throughout the app.
+              Every weight in POWRLOG — your lifts, targets, and bodyweight — uses this unit throughout the app.
             </Text>
 
             {(["lbs", "kg"] as WeightUnit[]).map(u => (
@@ -789,7 +789,7 @@ export default function OnboardingScreen() {
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>{weightUnit}</Text>
             </View>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 8 }}>
-              ARPO uses this to calculate your calorie deficit/surplus and tracks your progress over time.
+              POWRLOG uses this to calculate your calorie deficit/surplus and tracks your progress over time.
             </Text>
           </ScrollView>
 

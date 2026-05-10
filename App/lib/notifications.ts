@@ -234,7 +234,7 @@ export async function firePRNotification(
 }
 
 const PR_KUDOS = [
-  "That's what ARPO is built for.",
+  "That's what POWRLOG is built for.",
   "You're stronger than last week. Keep going.",
   "Numbers don't lie — you're making progress.",
   "Progression is the point. You're living it.",

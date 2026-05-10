@@ -379,7 +379,7 @@ export default function TemplatesScreen() {
             marginTop: 4,
           }}
         >
-          {isOnboarding ? "Pick a training block (mesocycle) — ARPO will set your Week 1 targets." : "Select a training block"}
+          {isOnboarding ? "Pick a training block (mesocycle) — POWRLOG will set your Week 1 targets." : "Select a training block"}
         </Text>
       </View>
 
@@ -602,7 +602,7 @@ export default function TemplatesScreen() {
               lineHeight: 19,
               marginBottom: 24,
             }}>
-              This sets your rep targets, weekly volume range, and how aggressively ARPO progresses your weights.
+              This sets your rep targets, weekly volume range, and how aggressively POWRLOG progresses your weights.
             </Text>
 
             {GOAL_META.map((goal) => (

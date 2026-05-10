@@ -208,7 +208,7 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
   },
   Mesocycle: {
     explanation:
-      "A training block lasting 3–8 weeks with a defined goal and progressive structure. ARPO uses 4-week mesocycles: 3 accumulation weeks (increasing volume/intensity) followed by 1 deload week (reduced load to restore recovery capacity).",
+      "A training block lasting 3–8 weeks with a defined goal and progressive structure. POWRLOG uses 4-week mesocycles: 3 accumulation weeks (increasing volume/intensity) followed by 1 deload week (reduced load to restore recovery capacity).",
     citation:
       "Issurin VB. (2010). New Horizons for the Methodology and Physiology of Training Periodization. Sports Medicine.",
   },
@@ -218,9 +218,9 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
     citation:
       "Zourdos MC et al. (2021). Efficacy of Daily 1RM Training and Deload in Competitive Powerlifters. Journal of Strength & Conditioning Research.",
   },
-  ARPO: {
+  POWRLOG: {
     explanation:
-      "Auto-Regulated Progressive Overload — ARPO adjusts your weights and sets each week based on how you actually performed, your recovery, and pump quality. Unlike fixed programs, ARPO responds to your biology rather than a spreadsheet.",
+      "Progressive Overload: Weights & Reps Log — POWRLOG adjusts your weights and sets each week based on how you actually performed, your recovery, and pump quality. Unlike fixed programs, POWRLOG responds to your biology rather than a spreadsheet.",
   },
   TDEE: {
     explanation:
@@ -230,7 +230,7 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
   },
   BMR: {
     explanation:
-      "Basal Metabolic Rate — the calories your body burns at complete rest to sustain basic functions: breathing, circulation, organ function, and cell repair. ARPO calculates your BMR using the Mifflin-St Jeor equation, which is the most validated formula for estimating resting energy needs.",
+      "Basal Metabolic Rate — the calories your body burns at complete rest to sustain basic functions: breathing, circulation, organ function, and cell repair. POWRLOG calculates your BMR using the Mifflin-St Jeor equation, which is the most validated formula for estimating resting energy needs.",
     citation:
       "Mifflin MD et al. (1990). A new predictive equation for resting energy expenditure in healthy individuals. The American Journal of Clinical Nutrition.",
   },
@@ -240,7 +240,7 @@ export const GLOSSARY: Record<string, { explanation: string; citation?: string }
   },
   "1RM": {
     explanation:
-      "One Rep Max — the maximum weight you can lift for exactly one complete repetition. ARPO estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas, then averages them for accuracy. Used to calculate training percentages and track strength progress.",
+      "One Rep Max — the maximum weight you can lift for exactly one complete repetition. POWRLOG estimates your 1RM from your logged sets using the Epley, Brzycki, and Lander formulas, then averages them for accuracy. Used to calculate training percentages and track strength progress.",
     citation:
       "Epley B. (1985). Poundage Chart. Boyd Epley Workout. University of Nebraska. / Brzycki M. (1993). Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue. Journal of Physical Education, Recreation & Dance.",
   },

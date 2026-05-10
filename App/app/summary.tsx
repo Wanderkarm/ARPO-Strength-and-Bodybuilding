@@ -457,7 +457,7 @@ export default function SummaryScreen() {
               </Pressable>
             </View>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 20 }}>
-              Great first session. The athletes who make the best progress show up consistently — want ARPO to remind you?
+              Great first session. The athletes who make the best progress show up consistently — want POWRLOG to remind you?
             </Text>
 
             {/* Workout reminder toggle */}

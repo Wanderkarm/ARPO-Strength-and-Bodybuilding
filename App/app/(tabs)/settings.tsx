@@ -56,7 +56,7 @@ import {
   pickAndPreviewBackup,
   restoreBackup,
   type RestorePreview,
-  type ARPOBackup,
+  type POWRLOGBackup,
 } from "@/lib/backup";
 
 // ─── Small reusable section header ──────────────────────────────────────────
@@ -163,7 +163,7 @@ export default function SettingsScreen() {
 
   // Backup / restore
   const [exportingBackup, setExportingBackup] = useState(false);
-  const [restorePreview, setRestorePreview] = useState<{ backup: ARPOBackup; preview: RestorePreview } | null>(null);
+  const [restorePreview, setRestorePreview] = useState<{ backup: POWRLOGBackup; preview: RestorePreview } | null>(null);
   const [restoring, setRestoring] = useState(false);
 
   // Streak + Steps
@@ -1174,7 +1174,7 @@ export default function SettingsScreen() {
           ))}
         </View>
         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 24, paddingHorizontal: 4 }}>
-          ARPO is not a medical app. Always consult a physician before beginning any exercise program.
+          POWRLOG is not a medical app. Always consult a physician before beginning any exercise program.
         </Text>
 
         {/* ── Danger Zone ── */}

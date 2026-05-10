@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "ARPO - Auto-Regulated Progressive Overload",
-    "slug": "arpoautoregulatedprogressiveoverload",
+    "name": "POWRLOG - Progressive Overload: Weights & Reps",
+    "slug": "powrlog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "arpoautoregulatedprogressiveoverload",
+    "scheme": "powrlog",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.arpoautoregulatedprogressiveoverload.app",
+      "bundleIdentifier": "com.powrlog.app",
       "buildNumber": "17",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
@@ -49,7 +49,7 @@
       }
     },
     "android": {
-      "package": "com.arpoautoregulatedprogressiveoverload.app",
+      "package": "com.powrlog.app",
       "adaptiveIcon": {
         "backgroundColor": "#000000",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -81,8 +81,8 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "ARPO reads your body weight and body fat percentage from Apple Health to keep your composition metrics up to date. Smart scale data synced to Apple Health will appear automatically.",
-          "NSHealthUpdateUsageDescription": "ARPO saves your workout sessions to Apple Health."
+          "NSHealthShareUsageDescription": "POWRLOG reads your body weight and body fat percentage from Apple Health to keep your composition metrics up to date. Smart scale data synced to Apple Health will appear automatically.",
+          "NSHealthUpdateUsageDescription": "POWRLOG saves your workout sessions to Apple Health."
         }
       ],
       "react-native-health-connect"

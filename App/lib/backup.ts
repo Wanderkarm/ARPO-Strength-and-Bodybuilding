@@ -32,7 +32,7 @@ const BACKUP_VERSION = 3;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface ARPOBackup {
+export interface POWRLOGBackup {
   version: number;
   exportedAt: string;         // ISO 8601
   userId: string;
@@ -204,7 +204,7 @@ export async function exportBackup(): Promise<{ success: boolean; error?: string
       "SELECT * FROM daily_steps WHERE user_id = ? ORDER BY date ASC", [userId]
     ).catch(() => []);
 
-    const backup: ARPOBackup = {
+    const backup: POWRLOGBackup = {
       version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
       userId,
@@ -226,7 +226,7 @@ export async function exportBackup(): Promise<{ success: boolean; error?: string
 
     // Write to cache directory
     const dateStr = new Date().toISOString().slice(0, 10);
-    const fileName = `ARPO_backup_${dateStr}.json`;
+    const fileName = `POWRLOG_backup_${dateStr}.json`;
     const filePath = `${FileSystem.cacheDirectory}${fileName}`;
 
     await FileSystem.writeAsStringAsync(filePath, JSON.stringify(backup, null, 2), {
@@ -241,7 +241,7 @@ export async function exportBackup(): Promise<{ success: boolean; error?: string
 
     await Sharing.shareAsync(filePath, {
       mimeType: "application/json",
-      dialogTitle: "Save your ARPO backup",
+      dialogTitle: "Save your POWRLOG backup",
       UTI: "public.json",
     });
 
@@ -264,7 +264,7 @@ export interface RestorePreview {
 }
 
 export async function pickAndPreviewBackup(): Promise<
-  { success: true; backup: ARPOBackup; preview: RestorePreview } |
+  { success: true; backup: POWRLOGBackup; preview: RestorePreview } |
   { success: false; error: string }
 > {
   try {
@@ -282,13 +282,13 @@ export async function pickAndPreviewBackup(): Promise<
       encoding: FileSystem.EncodingType.UTF8,
     });
 
-    const backup: ARPOBackup = JSON.parse(raw);
+    const backup: POWRLOGBackup = JSON.parse(raw);
 
     if (!backup.version || !backup.userId || !backup.exportedAt) {
-      return { success: false, error: "This doesn't look like a valid ARPO backup file." };
+      return { success: false, error: "This doesn't look like a valid POWRLOG backup file." };
     }
     if (backup.version > BACKUP_VERSION) {
-      return { success: false, error: `This backup was made with a newer version of ARPO. Please update the app first.` };
+      return { success: false, error: `This backup was made with a newer version of POWRLOG. Please update the app first.` };
     }
 
     const preview: RestorePreview = {
@@ -304,13 +304,13 @@ export async function pickAndPreviewBackup(): Promise<
   } catch (err: any) {
     console.error("Backup preview error:", err);
     if (err?.message?.includes("JSON")) {
-      return { success: false, error: "The file could not be read. Make sure it's an ARPO backup (.json) file." };
+      return { success: false, error: "The file could not be read. Make sure it's an POWRLOG backup (.json) file." };
     }
     return { success: false, error: err?.message ?? "Failed to read backup file." };
   }
 }
 
-export async function restoreBackup(backup: ARPOBackup): Promise<{ success: boolean; error?: string }> {
+export async function restoreBackup(backup: POWRLOGBackup): Promise<{ success: boolean; error?: string }> {
   const db = getDb();
   try {
     // ── Delete existing user data (cascade order) ──────────────────────────
