@@ -60,7 +60,7 @@ export async function initializeSchema() {
   // Any value < 1.0 is a fraction (real body fat is always >= 3%) — multiply by 100.
   await database.execAsync(
     `UPDATE body_measurements SET body_fat_pct = ROUND(body_fat_pct * 100, 1) WHERE body_fat_pct > 0 AND body_fat_pct < 1.0`
-  );
+  ).catch(() => {}); // table may not exist yet on fresh install — safe to skip
 
   // Each table gets its own call so one failure never prevents others from being created
   await database.execAsync(`CREATE TABLE IF NOT EXISTS users (
