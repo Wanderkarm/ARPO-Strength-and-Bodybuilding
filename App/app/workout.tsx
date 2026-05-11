@@ -841,6 +841,7 @@ export default function WorkoutScreen() {
   }
 
   function isExerciseComplete(ex: ExerciseState): boolean {
+    if (ex.sets.length === 0) return false; // guard: [].every() is vacuously true
     const bw = ex.exercise.equipment === "BODYWEIGHT";
     return ex.sets.every((s) => bw ? s.repsCompleted !== "" : s.repsCompleted !== "" && s.weightUsed !== "");
   }
@@ -2263,7 +2264,18 @@ export default function WorkoutScreen() {
                   <Pressable
                     onPress={() => {
                       const pairs = suggestSupersetPairs(exerciseStates);
-                      pairs.forEach(([a, b]) => createSuperset(a, b));
+                      // Apply all pairs in a single state update to avoid
+                      // triggering the auto-finish useEffect once per pair
+                      setExerciseStates((prev) => {
+                        let next = [...prev];
+                        pairs.forEach(([a, b]) => {
+                          const groupId = supersetGroupCounterRef.current++;
+                          next = next.map((ex, i) =>
+                            i === a || i === b ? { ...ex, supersetGroup: groupId } : ex
+                          );
+                        });
+                        return next;
+                      });
                       setSupersetIntroVisible(false);
                     }}
                     style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.8 : 1 })}
