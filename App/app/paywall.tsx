@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -30,11 +30,10 @@ export default function PaywallScreen() {
   const [purchasing, setPurchasing] = useState(false);
   const [restoring,  setRestoring]  = useState(false);
 
-  // Redirect once purchased
-  if (isPurchased) {
-    router.replace("/(tabs)");
-    return null;
-  }
+  // Redirect once purchased (inside useEffect — never during render)
+  useEffect(() => {
+    if (isPurchased) router.replace("/(tabs)");
+  }, [isPurchased]);
 
   async function handlePurchase() {
     setPurchasing(true);

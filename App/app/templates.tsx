@@ -982,7 +982,7 @@ export default function TemplatesScreen() {
                   This is your current plan. Continue where you left off, or start a fresh training block from Week 1.
                 </Text>
                 <Pressable
-                  onPress={() => { setShowSwitchConfirm(false); router.replace("/(tabs)"); }}
+                  onPress={() => { setShowSwitchConfirm(false); router.replace(isOnboarding ? "/post-onboarding" : "/(tabs)"); }}
                   style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 14, alignItems: "center", marginBottom: 10, opacity: pressed ? 0.8 : 1 })}
                 >
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>

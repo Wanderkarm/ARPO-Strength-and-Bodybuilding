@@ -240,7 +240,7 @@ export default function SettingsScreen() {
         ]);
         setStreak(s);
         setTodaySteps(steps);
-        setStepGoalInput(String(steps.goal));
+        if (steps) setStepGoalInput(String(steps.goal));
       }
     } catch (err) {
       console.error(err);

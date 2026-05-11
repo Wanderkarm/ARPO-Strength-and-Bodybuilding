@@ -287,6 +287,7 @@ export default function WorkoutScreen() {
   const restTimerY = useRef<number>(0);
   const exerciseStatesRef = useRef<ExerciseState[]>([]);
   const autoFinishTriggeredRef = useRef(false);
+  const finishingRef = useRef(false); // guards against double-complete (manual + auto-finish race)
   const { height: screenHeight } = useWindowDimensions();
 
   const [tourVisible, setTourVisible] = useState(false);
@@ -341,10 +342,16 @@ export default function WorkoutScreen() {
 
   async function loadPlan() {
     const planId = await AsyncStorage.getItem("activePlanId");
-    if (planId) {
-      const p = await getWorkoutPlan(planId);
-      setPlan(p);
+    if (!planId) {
+      router.replace("/(tabs)");
+      return;
     }
+    const p = await getWorkoutPlan(planId);
+    if (!p) {
+      router.replace("/(tabs)");
+      return;
+    }
+    setPlan(p);
     setIsLoading(false);
   }
 
@@ -596,7 +603,7 @@ export default function WorkoutScreen() {
   useEffect(() => {
     if (exerciseStates.length === 0) return;
     if (autoFinishTriggeredRef.current) return;
-    if (finishing) return;
+    if (finishingRef.current) return;
     const allDone = exerciseStates.every(isExerciseComplete);
     if (allDone) {
       autoFinishTriggeredRef.current = true;
@@ -857,8 +864,12 @@ export default function WorkoutScreen() {
   }
 
   async function handleConfirmRecovery() {
+    // Prevent double-complete: manual "Finish" tap and auto-finish timer can both
+    // fire within the same render cycle — the ref guard blocks the second call.
+    if (finishingRef.current) return;
+    finishingRef.current = true;
     const planId = await AsyncStorage.getItem("activePlanId");
-    if (!planId) return;
+    if (!planId) { finishingRef.current = false; return; }
     setFinishing(true);
     try {
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -881,9 +892,9 @@ export default function WorkoutScreen() {
         })),
       }));
 
-      // Save per-exercise notes
+      // Save per-exercise notes — use ref to avoid stale closure capture
       await Promise.all(
-        exerciseStates
+        exerciseStatesRef.current
           .filter((ex) => ex.exerciseNotes.trim())
           .map((ex) => updateExerciseNotes(ex.logId, ex.exerciseNotes))
       );
@@ -921,8 +932,9 @@ export default function WorkoutScreen() {
       }
     } catch (err) {
       console.error(err);
-      // Reset so the user can retry manually
+      // Reset guards so the user can retry manually
       autoFinishTriggeredRef.current = false;
+      finishingRef.current = false;
       Alert.alert("Save Failed", "Your workout couldn't be saved. Tap 'Save Workout' to try again.");
     } finally {
       setFinishing(false);

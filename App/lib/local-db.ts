@@ -1343,7 +1343,7 @@ async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: strin
     if (!isBodyweightEq) {
       // Get the plan's user_id via the workout_log → workout_plan join
       const planRow = await db.getFirstAsync<{ user_id: string; unit: string }>(
-        `SELECT wp.user_id, u.unit
+        `SELECT wp.user_id, u.weight_unit AS unit
          FROM workout_logs wl
          JOIN workout_plans wp ON wl.workout_plan_id = wp.id
          JOIN users u ON wp.user_id = u.id
