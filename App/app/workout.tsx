@@ -655,9 +655,18 @@ export default function WorkoutScreen() {
 
         return updated;
       });
-      // Jump to superset partner after field blur too
-      if (hasActiveSupersertPartner(exIndex)) {
-        setTimeout(() => tryJumpToSupersetPartner(exIndex), 550);
+      // Jump to superset partner only if this blur actually completed the set
+      // (same gate as the setExerciseStates updater above — no jump on empty fields)
+      const snapEx = exerciseStatesRef.current[exIndex];
+      const snapSet = snapEx?.sets[setIndex];
+      if (snapSet && !snapSet.feedback) {
+        const bw = snapEx.exercise.equipment === "BODYWEIGHT";
+        const reps = parseInt(snapSet.repsCompleted);
+        const weight = parseFloat(snapSet.weightUsed) || 0;
+        const setIsDone = !isNaN(reps) && reps > 0 && (bw || (!isNaN(weight) && weight > 0));
+        if (setIsDone && hasActiveSupersertPartner(exIndex)) {
+          setTimeout(() => tryJumpToSupersetPartner(exIndex), 550);
+        }
       }
     }, 150);
   }
@@ -2224,8 +2233,8 @@ export default function WorkoutScreen() {
                 Superset suggestions
               </Text>
               {supersetIntroIsFirstTime && (
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center", lineHeight: 18 }}>
-                  Supersets alternate two exercises back-to-back with no rest between them — saves ~30% time and boosts intensity.
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 }}>
+                  Supersets alternate two exercises back-to-back with no rest — saves ~30% time and boosts intensity.
                 </Text>
               )}
             </View>
@@ -2241,23 +2250,23 @@ export default function WorkoutScreen() {
               );
               return (
                 <>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
                     Suggested pairs for today
                   </Text>
                   <View style={{ gap: 8 }}>
                     {pairs.map(([a, b]) => (
-                      <View key={`${a}-${b}`} style={{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border, padding: 10, gap: 8 }}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }} numberOfLines={1}>
-                            {exerciseStates[a]?.exercise.name}
-                          </Text>
+                      <View key={`${a}-${b}`} style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border, paddingVertical: 10, paddingHorizontal: 14, gap: 6 }}>
+                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                          {exerciseStates[a]?.exercise.name}
+                        </Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
+                          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.primary }}>↔</Text>
+                          <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
                         </View>
-                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.primary }}>↔</Text>
-                        <View style={{ flex: 1, alignItems: "flex-end" }}>
-                          <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }} numberOfLines={1}>
-                            {exerciseStates[b]?.exercise.name}
-                          </Text>
-                        </View>
+                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+                          {exerciseStates[b]?.exercise.name}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -2289,7 +2298,7 @@ export default function WorkoutScreen() {
             })()}
 
             <Pressable onPress={() => setSupersetIntroVisible(false)} hitSlop={8}>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center" }}>
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textSecondary, textAlign: "center" }}>
                 Skip — standard sets
               </Text>
             </Pressable>

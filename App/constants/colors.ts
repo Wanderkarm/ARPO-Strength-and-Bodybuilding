@@ -7,7 +7,7 @@ const Colors = {
   primaryDark: "#991B1B",
   text: "#FFFFFF",
   textSecondary: "#999999",
-  textMuted: "#555555",
+  textMuted: "#777777",
   border: "#222222",
   success: "#22C55E",
   warning: "#F59E0B",

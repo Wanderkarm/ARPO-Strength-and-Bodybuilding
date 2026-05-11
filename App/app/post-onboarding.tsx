@@ -227,7 +227,7 @@ export default function PostOnboardingScreen() {
 
             {/* Step label + substep dots */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 2 }}>
                 Step {currentStep} of {TOTAL_FLOW_STEPS}
               </Text>
               <View style={{ flexDirection: "row", gap: 6 }}>
@@ -254,9 +254,9 @@ export default function PostOnboardingScreen() {
                 flexDirection: "row", alignItems: "flex-start", gap: 10,
               }}>
                 <Ionicons name="information-circle-outline" size={16} color={Colors.primary} style={{ marginTop: 2 }} />
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, flex: 1 }}>
-                  These 6 key lifts tell POWRLOG how strong you are — it estimates starting weights for every other exercise from them.{" "}
-                  <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>Not sure what to enter?</Text> Tap a range on each card. You can fine-tune after your first session.
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, flex: 1 }}>
+                  These 6 lifts tell POWRLOG how strong you are — it estimates starting weights for every other exercise from them.{" "}
+                  <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>Not sure?</Text> Tap a range below. Fine-tune after your first session.
                 </Text>
               </View>
             )}
@@ -278,7 +278,7 @@ export default function PostOnboardingScreen() {
                         <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 15, color: Colors.text }}>
                           {lift.label}
                         </Text>
-                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, marginTop: 2 }}>
                           {lift.category}
                         </Text>
                       </View>
@@ -298,7 +298,7 @@ export default function PostOnboardingScreen() {
                             paddingBottom: 2,
                           }}
                         />
-                        <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>
+                        <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textSecondary }}>
                           {unit}
                         </Text>
                       </View>
@@ -330,9 +330,9 @@ export default function PostOnboardingScreen() {
                               {tiers[i]}
                             </Text>
                             <Text style={{
-                              fontFamily: "Rubik_400Regular",
-                              fontSize: 9,
-                              color: isSelected ? Colors.primary : Colors.textMuted,
+                              fontFamily: "Rubik_500Medium",
+                              fontSize: 11,
+                              color: isSelected ? Colors.primary : Colors.textSecondary,
                               textTransform: "uppercase",
                               letterSpacing: 0.5,
                               marginTop: 2,
@@ -385,8 +385,8 @@ export default function PostOnboardingScreen() {
                 Skip — Use POWRLOG's Estimates
               </Text>
             </Pressable>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textAlign: "center", lineHeight: 17 }}>
-              Not sure of your numbers? POWRLOG estimates all starting weights.{"\n"}Fine-tune any lift after your first session.
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 19 }}>
+              Not sure? POWRLOG estimates all starting weights.{"\n"}Fine-tune any lift after your first session.
             </Text>
           </View>
         </ScrollView>
