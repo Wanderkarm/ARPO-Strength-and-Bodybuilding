@@ -62,13 +62,28 @@ export async function initializeSchema() {
     `UPDATE body_measurements SET body_fat_pct = ROUND(body_fat_pct * 100, 1) WHERE body_fat_pct > 0 AND body_fat_pct < 1.0`
   ).catch(() => {}); // table may not exist yet on fresh install — safe to skip
 
-  // Each table gets its own call so one failure never prevents others from being created
+  // Each table gets its own call so one failure never prevents others from being created.
+  // IMPORTANT: every column ever added via ALTER TABLE must also appear here so that
+  // fresh installs get the full schema without relying on the migration path.
   await database.execAsync(`CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     gender TEXT NOT NULL DEFAULT 'MALE',
     bodyweight REAL,
     experience TEXT NOT NULL DEFAULT 'BEGINNER',
-    weight_unit TEXT NOT NULL DEFAULT 'lbs'
+    weight_unit TEXT NOT NULL DEFAULT 'lbs',
+    current_streak INTEGER NOT NULL DEFAULT 0,
+    longest_streak INTEGER NOT NULL DEFAULT 0,
+    last_streak_date TEXT,
+    step_goal INTEGER NOT NULL DEFAULT 8000,
+    streak_notif_enabled INTEGER NOT NULL DEFAULT 0,
+    streak_notif_time TEXT NOT NULL DEFAULT '20:00',
+    streak_notif_days TEXT NOT NULL DEFAULT '"daily"',
+    height_cm REAL,
+    age INTEGER,
+    activity_level TEXT NOT NULL DEFAULT 'moderate',
+    body_goal TEXT NOT NULL DEFAULT 'recomp',
+    target_weight_kg REAL,
+    weeks_to_goal INTEGER
   );`).catch(e => console.error("[DB] users:", e));
 
   await database.execAsync(`CREATE TABLE IF NOT EXISTS user_weight_baselines (
@@ -85,7 +100,8 @@ export async function initializeSchema() {
     name TEXT NOT NULL UNIQUE,
     category TEXT NOT NULL,
     equipment TEXT NOT NULL DEFAULT 'BARBELL',
-    default_video_url TEXT
+    default_video_url TEXT,
+    is_custom INTEGER NOT NULL DEFAULT 0
   );`).catch(e => console.error("[DB] exercises:", e));
 
   await database.execAsync(`CREATE TABLE IF NOT EXISTS templates (
@@ -122,6 +138,7 @@ export async function initializeSchema() {
     is_active INTEGER NOT NULL DEFAULT 1,
     goal_type TEXT NOT NULL DEFAULT 'hypertrophy',
     gym_type TEXT NOT NULL DEFAULT 'GYM',
+    training_days TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (template_id) REFERENCES templates(id)
   );`).catch(e => console.error("[DB] workout_plans:", e));
@@ -141,6 +158,7 @@ export async function initializeSchema() {
     pump_rating INTEGER,
     completed_at TEXT,
     is_skipped INTEGER NOT NULL DEFAULT 0,
+    exercise_notes TEXT,
     FOREIGN KEY (workout_plan_id) REFERENCES workout_plans(id),
     FOREIGN KEY (exercise_id) REFERENCES exercises(id)
   );`).catch(e => console.error("[DB] workout_logs:", e));
@@ -179,6 +197,8 @@ export async function initializeSchema() {
     neck_cm REAL,
     notes TEXT,
     logged_at TEXT NOT NULL,
+    body_fat_pct REAL,
+    source TEXT NOT NULL DEFAULT 'manual',
     FOREIGN KEY (user_id) REFERENCES users(id)
   );`).catch(e => console.error("[DB] body_measurements:", e));
 

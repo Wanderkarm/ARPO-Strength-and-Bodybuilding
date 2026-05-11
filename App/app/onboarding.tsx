@@ -624,32 +624,8 @@ export default function OnboardingScreen() {
               />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>yrs</Text>
             </View>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 32 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 8 }}>
               Metabolism slows ~1–2% per decade after 25 — age adjusts your TDEE accordingly.
-            </Text>
-
-            {/* ── Current Weight (optional) ── */}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                Current Weight
-              </Text>
-              <View style={{ borderWidth: 1, borderColor: Colors.primary + "44", backgroundColor: Colors.primary + "11", paddingHorizontal: 8, paddingVertical: 2 }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Optional</Text>
-              </View>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <TextInput
-                value={bodyweight}
-                onChangeText={setBodyweight}
-                keyboardType="decimal-pad"
-                placeholder={weightUnit === "lbs" ? "e.g. 185" : "e.g. 84"}
-                placeholderTextColor={Colors.textMuted}
-                style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
-              />
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>{weightUnit}</Text>
-            </View>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
-              Used to estimate your starting lift targets and daily calorie needs.
             </Text>
           </ScrollView>
 
