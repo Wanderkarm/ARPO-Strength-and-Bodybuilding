@@ -38,7 +38,9 @@ import Purchases, { LOG_LEVEL } from "react-native-purchases";
 const REVENUECAT_IOS_KEY    = "YOUR_REVENUECAT_IOS_API_KEY"; // ← paste here
 const ENTITLEMENT_ID        = "pro";
 export const TRIAL_WORKOUTS = 3;
-export const UNLOCK_PRICE_LABEL = "$9.95"; // founder's price — update to $29.95 after 1,000 sales
+export const UNLOCK_PRICE_LABEL   = "$9.95";  // founder's price — raise to REGULAR_PRICE_LABEL after 500 sales
+export const REGULAR_PRICE_LABEL  = "$29.95"; // standard price shown as "Regular price" on paywall
+export const FOUNDING_TIER_COUNT  = 500;      // number of founding-member slots
 
 /** Set true to skip all paywall logic during local dev / simulator testing */
 const BYPASS_PAYWALL_IN_DEV = false;

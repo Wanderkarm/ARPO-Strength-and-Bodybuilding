@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
-import { usePurchase, UNLOCK_PRICE_LABEL } from "@/contexts/PurchaseContext";
+import { usePurchase, UNLOCK_PRICE_LABEL, REGULAR_PRICE_LABEL, FOUNDING_TIER_COUNT } from "@/contexts/PurchaseContext";
 
 const FEATURES = [
   { icon: "trending-up",        text: "ARPO auto-progression — weights adjust every session" },
@@ -96,7 +96,7 @@ export default function PaywallScreen() {
             fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary,
             textTransform: "uppercase", letterSpacing: 1, marginBottom: 4,
           }}>
-            Founder's price — first 1,000 only
+            Founding member price — first {FOUNDING_TIER_COUNT} only
           </Text>
           <Text style={{
             fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18,
@@ -105,7 +105,7 @@ export default function PaywallScreen() {
             <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>$10–15/month</Text>.
             {" "}POWRLOG is{" "}
             <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>{UNLOCK_PRICE_LABEL} once</Text>
-            {" "}— less than a single month of any competitor. Price increases after the founding tier sells out.
+            {" "}for founding members — less than a single month elsewhere. Regular price is {REGULAR_PRICE_LABEL} once the founding batch is gone.
           </Text>
         </View>
 
@@ -141,12 +141,27 @@ export default function PaywallScreen() {
         backgroundColor: Colors.bg,
       }}>
         {/* Price badge */}
-        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
-          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 40, color: Colors.text, letterSpacing: -1 }}>
-            {UNLOCK_PRICE_LABEL}
+        <View style={{ alignItems: "center", marginBottom: 14 }}>
+          <Text style={{
+            fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted,
+            marginBottom: 2,
+          }}>
+            Regular price{" "}
+            <Text style={{ textDecorationLine: "line-through" }}>{REGULAR_PRICE_LABEL}</Text>
           </Text>
-          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>
-            one-time · yours forever
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
+            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 40, color: Colors.text, letterSpacing: -1 }}>
+              {UNLOCK_PRICE_LABEL}
+            </Text>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>
+              one-time · yours forever
+            </Text>
+          </View>
+          <Text style={{
+            fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.primary,
+            marginTop: 3, letterSpacing: 0.5,
+          }}>
+            Founding member price · First {FOUNDING_TIER_COUNT} only
           </Text>
         </View>
 
