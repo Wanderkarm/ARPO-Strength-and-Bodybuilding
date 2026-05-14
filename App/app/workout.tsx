@@ -66,20 +66,22 @@ import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/
 
 const SCIENCE_TIPS: { icon: string; text: string }[] = [
   { icon: "flask-outline",       text: "RIR 3 is the hypertrophy sweet spot — hard enough to grow, controlled enough for clean technique." },
-  { icon: "time-outline",        text: "Rest 2-3 min between compound sets. ATP restores in ~90 sec, but neural fatigue takes longer." },
+  { icon: "time-outline",        text: "Heavy compounds need 3–4 min rest. ATP restores in ~90 sec but CNS recovery takes longer — skimping costs reps and volume." },
   { icon: "trending-up-outline", text: "Progressive overload = more weight OR more reps at the same load. Both drive muscle growth equally." },
   { icon: "moon-outline",        text: "Growth hormone peaks during deep sleep. 7-9 hours isn't optional — it's part of the program." },
   { icon: "body-outline",        text: "Controlled negatives (3-4 sec) increase mechanical tension — the primary driver of hypertrophy." },
   { icon: "fitness-outline",     text: "Focusing on the working muscle can raise activation by up to 35% in isolation exercises." },
   { icon: "refresh-outline",     text: "Deload weeks aren't lost training — they're when adaptations consolidate and performance rebounds." },
   { icon: "nutrition-outline",   text: "20-40 g protein within 2 hours post-workout maximizes muscle protein synthesis." },
-  { icon: "stats-chart-outline", text: "Volume (sets × reps × load) is the #1 driver of hypertrophy. RIR keeps set quality high." },
+  { icon: "stats-chart-outline", text: "Volume-load (weight × reps × sets) is the #1 hypertrophy driver. Short rests reduce it by forcing weight drops — rest longer to grow more." },
   { icon: "water-outline",       text: "Even 2% dehydration drops strength output 5-8%. Sip 500 ml before you start." },
   { icon: "thunderstorm-outline",text: "Antagonist supersets (chest + back) let one muscle recover while the other works — no strength loss." },
   { icon: "layers-outline",      text: "Accumulated fatigue masks fitness gains. Deloads reveal how much stronger you've actually become." },
-  { icon: "pulse-outline",       text: "Compound lifts first, isolation after. Spend your best energy where it moves the most load." },
+  { icon: "pulse-outline",       text: "Myo-reps: one activation set near failure + 15 sec rests + mini-sets of 3–5. More effective reps in half the time — best saved for isolation finishers." },
   { icon: "flame-outline",       text: "Muscle soreness ≠ effective training. DOMS is inflammation, not a growth signal." },
   { icon: "cellular-outline",    text: "Each muscle needs 10-20 hard sets per week to grow. This program keeps you in that optimal range." },
+  { icon: "barbell-outline",     text: "The 'short rest = growth hormone spike' is a myth. 2024 meta-analyses confirm these spikes don't meaningfully drive muscle protein synthesis." },
+  { icon: "git-branch-outline",  text: "Double Progression: hold weight and chase the top of your rep range. Once every set hits the ceiling, increase load and reset. Simple and battle-tested." },
 ];
 
 /**
@@ -681,7 +683,7 @@ export default function WorkoutScreen() {
         const isMyo = updatedSets[setIndex]?.setType === 'myo_activation' || updatedSets[setIndex]?.setType === 'myo_mini';
         if (!isLastSet && !jumpingToPartner && !isMyo) {
           const category = updatedEx.exercise.category;
-          const restSeconds = calculateRestTime(category);
+          const restSeconds = calculateRestTime(category, (plan?.goalType ?? "hypertrophy") as any);
           setRestTimerSeconds(restSeconds);
           setRestTimerKey((prev) => prev + 1);
           setRestTimerVisible(true);
@@ -740,7 +742,7 @@ export default function WorkoutScreen() {
     const isMyo = ex.sets[setIndex]?.setType === 'myo_activation' || ex.sets[setIndex]?.setType === 'myo_mini';
     if (!isLastSet && !jumpingToPartner && !isMyo) {
       const category = ex.exercise.category;
-      const restSeconds = calculateRestTime(category);
+      const restSeconds = calculateRestTime(category, (plan?.goalType ?? "hypertrophy") as any);
       setRestTimerSeconds(restSeconds);
       setRestTimerKey((prev) => prev + 1);
       setRestTimerVisible(true);

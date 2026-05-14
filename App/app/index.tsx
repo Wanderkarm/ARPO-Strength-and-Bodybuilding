@@ -10,18 +10,35 @@ import { usePurchase } from "@/contexts/PurchaseContext";
 
 const CRIMSON = "#C62828";
 
-const FEATURES = [
+const FEATURES: {
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  label: string;
+  detail: string;
+}[] = [
   {
-    icon: "dumbbell" as const,
-    text: "EVIDENCE-BASED HYPERTROPHY",
+    icon: "brain",
+    label: "ARPO — Auto-Regulated Overload",
+    detail: "Pump & soreness signals adjust your volume every session. No guesswork.",
   },
   {
-    icon: "arm-flex" as const,
-    text: "STRENGTH & MUSCLE PERIODIZATION",
+    icon: "repeat-variant",
+    label: "Double Progression",
+    detail: "Chase reps to your ceiling, then increase load and reset. Proven for strength.",
   },
   {
-    icon: "timer-sand" as const,
-    text: "OPTIMAL VOLUME & REST PERIODS",
+    icon: "timer-outline",
+    label: "Smart Rest Periods",
+    detail: "3–4 min for heavy compounds, 2 min secondary, 90 s isolation — calibrated per set.",
+  },
+  {
+    icon: "lightning-bolt",
+    label: "Myo-Reps",
+    detail: "Activation set + 15 s rest clusters. More effective reps, less time.",
+  },
+  {
+    icon: "chart-timeline-variant",
+    label: "Mesocycle Periodization",
+    detail: "4-week blocks with a built-in deload. Fatigue managed so you peak, not plateau.",
   },
 ];
 
@@ -146,33 +163,48 @@ export default function LandingScreen() {
           The Science of Hypertrophy &amp; Strength
         </Text>
 
-        <View style={{ marginTop: 40, width: "100%", gap: 10 }}>
-          {FEATURES.map(({ icon, text }) => (
+        <View style={{ marginTop: 32, width: "100%", gap: 8 }}>
+          {FEATURES.map(({ icon, label, detail }) => (
             <View
-              key={text}
+              key={label}
               style={{
                 borderWidth: 1,
                 borderColor: Colors.border,
-                paddingVertical: 14,
-                paddingHorizontal: 16,
+                borderLeftWidth: 3,
+                borderLeftColor: CRIMSON,
+                paddingVertical: 11,
+                paddingHorizontal: 14,
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 14,
+                gap: 12,
+                backgroundColor: Colors.bgAccent,
               }}
             >
-              <MaterialCommunityIcons name={icon} size={22} color={CRIMSON} />
-              <Text
-                style={{
-                  fontFamily: "Rubik_500Medium",
-                  fontSize: 12,
-                  color: Colors.text,
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
-                  flex: 1,
-                }}
-              >
-                {text}
-              </Text>
+              <MaterialCommunityIcons name={icon} size={20} color={CRIMSON} />
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontFamily: "Rubik_600SemiBold",
+                    fontSize: 11,
+                    color: Colors.text,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  {label}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Rubik_400Regular",
+                    fontSize: 11,
+                    color: Colors.textSecondary,
+                    marginTop: 2,
+                    lineHeight: 15,
+                  }}
+                >
+                  {detail}
+                </Text>
+              </View>
             </View>
           ))}
         </View>
