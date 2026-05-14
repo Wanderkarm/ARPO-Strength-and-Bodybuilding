@@ -24,6 +24,8 @@ import {
 } from "@/lib/notifications";
 import { getCompletedWorkoutHistory } from "@/lib/local-db";
 import SessionEditSheet from "@/components/SessionEditSheet";
+import { getCachedRecoveryMetrics } from "@/lib/healthSync";
+import { getRecoveryHistory, computeBaseline, classifyRecovery, type RecoveryIntelligence } from "@/utils/recoveryBaseline";
 
 interface NextWeekTarget {
   exerciseId: string;
@@ -52,6 +54,28 @@ export default function SummaryScreen() {
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { unit } = useUnit();
 
+  const params = useLocalSearchParams<{
+    planId: string;
+    totalVolume: string;
+    weekNumber: string;
+    dayNumber: string;
+    exerciseCount: string;
+    nextWeekTargets: string;
+    currentRIR: string;
+    prs: string;
+    completedAt: string;
+  }>();
+
+  const planId        = params.planId || "";
+  const totalVolume   = parseFloat(params.totalVolume || "0");
+  const weekNumber    = parseInt(params.weekNumber || "1");
+  const dayNumber     = parseInt(params.dayNumber || "1");
+  const exerciseCount = parseInt(params.exerciseCount || "0");
+  const currentRIR    = params.currentRIR || "";
+  const completedAt   = params.completedAt || new Date().toISOString();
+
+  const mesoWeekSummary = ((weekNumber - 1) % 4) + 1;
+
   // ── Notifications prompt (shown after first ever workout) ──────────────────
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const [workoutEnabled, setWorkoutEnabled] = useState(false);
@@ -62,10 +86,23 @@ export default function SummaryScreen() {
   const [weighinMinute, setWeighinMinute] = useState(0);
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [showWeighinPicker, setShowWeighinPicker] = useState(false);
+  const [editSheetVisible, setEditSheetVisible] = useState(false);
+  const [recoveryIntelligence, setRecoveryIntelligence] = useState<RecoveryIntelligence | null>(null);
 
   useEffect(() => {
     checkFirstWorkout();
+    loadRecoveryIntelligence();
   }, []);
+
+  async function loadRecoveryIntelligence() {
+    try {
+      const cached = await getCachedRecoveryMetrics();
+      if (!cached) return;
+      const history = await getRecoveryHistory();
+      const baseline = computeBaseline(history);
+      setRecoveryIntelligence(classifyRecovery(cached, baseline, mesoWeekSummary));
+    } catch { /* silent */ }
+  }
 
   async function checkFirstWorkout() {
     // Only show if notifications prompt hasn't been dismissed before
@@ -96,28 +133,6 @@ export default function SummaryScreen() {
   workoutPickerDate.setHours(workoutHour, workoutMinute, 0, 0);
   const weighinPickerDate = new Date();
   weighinPickerDate.setHours(weighinHour, weighinMinute, 0, 0);
-
-  const [editSheetVisible, setEditSheetVisible] = useState(false);
-
-  const params = useLocalSearchParams<{
-    planId: string;
-    totalVolume: string;
-    weekNumber: string;
-    dayNumber: string;
-    exerciseCount: string;
-    nextWeekTargets: string;
-    currentRIR: string;
-    prs: string;
-    completedAt: string;
-  }>();
-
-  const planId        = params.planId || "";
-  const totalVolume   = parseFloat(params.totalVolume || "0");
-  const weekNumber    = parseInt(params.weekNumber || "1");
-  const dayNumber     = parseInt(params.dayNumber || "1");
-  const exerciseCount = parseInt(params.exerciseCount || "0");
-  const currentRIR    = params.currentRIR || "";
-  const completedAt   = params.completedAt || new Date().toISOString();
 
   let nextWeekTargets: NextWeekTarget[] = [];
   try { nextWeekTargets = JSON.parse(params.nextWeekTargets || "[]"); } catch {}
@@ -312,6 +327,83 @@ export default function SummaryScreen() {
                 </View>
               );
             })}
+          </View>
+        )}
+
+        {/* ── Recovery Intelligence feedback sandwich ── */}
+        {recoveryIntelligence && Platform.OS !== "web" && (
+          <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
+            <View style={{
+              borderWidth: 1,
+              borderColor: recoveryIntelligence.statusColor + "44",
+              borderLeftWidth: 3,
+              borderLeftColor: recoveryIntelligence.statusColor,
+              backgroundColor: recoveryIntelligence.statusColor + "0A",
+            }}>
+              {/* Header */}
+              <View style={{
+                flexDirection: "row", alignItems: "center", gap: 8,
+                paddingHorizontal: 14, paddingTop: 12, paddingBottom: 8,
+                borderBottomWidth: 1, borderBottomColor: recoveryIntelligence.statusColor + "22",
+              }}>
+                <Ionicons name="pulse-outline" size={14} color={recoveryIntelligence.statusColor} />
+                <Text style={{
+                  fontFamily: "Rubik_700Bold", fontSize: 10,
+                  color: recoveryIntelligence.statusColor,
+                  textTransform: "uppercase", letterSpacing: 1.5, flex: 1,
+                }}>
+                  Recovery Intelligence
+                </Text>
+                <View style={{
+                  backgroundColor: recoveryIntelligence.statusColor + "22",
+                  borderWidth: 1, borderColor: recoveryIntelligence.statusColor + "55",
+                  paddingHorizontal: 7, paddingVertical: 2,
+                }}>
+                  <Text style={{
+                    fontFamily: "Rubik_700Bold", fontSize: 9,
+                    color: recoveryIntelligence.statusColor,
+                    textTransform: "uppercase", letterSpacing: 0.8,
+                  }}>
+                    {recoveryIntelligence.statusLabel}
+                    {recoveryIntelligence.overallDeviationPct !== undefined
+                      ? `  ${recoveryIntelligence.overallDeviationPct >= 0 ? "+" : ""}${recoveryIntelligence.overallDeviationPct}%`
+                      : ""}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Trend — the data signal */}
+              <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
+                <Text style={{
+                  fontFamily: "Rubik_600SemiBold", fontSize: 12, color: "#FFFFFF", marginBottom: 3,
+                }}>
+                  {recoveryIntelligence.trendCopy}
+                </Text>
+
+                {/* Context — mesocycle framing */}
+                <Text style={{
+                  fontFamily: "Rubik_400Regular", fontSize: 11,
+                  color: Colors.textSecondary, lineHeight: 16, marginBottom: 10,
+                }}>
+                  {recoveryIntelligence.contextCopy}
+                </Text>
+              </View>
+
+              {/* Action — single prioritised recommendation */}
+              <View style={{
+                borderTopWidth: 1, borderTopColor: recoveryIntelligence.statusColor + "22",
+                flexDirection: "row", alignItems: "flex-start", gap: 8,
+                paddingHorizontal: 14, paddingVertical: 10,
+              }}>
+                <Ionicons name="flash-outline" size={13} color={recoveryIntelligence.statusColor} style={{ marginTop: 1 }} />
+                <Text style={{
+                  fontFamily: "Rubik_500Medium", fontSize: 11,
+                  color: Colors.textSecondary, lineHeight: 16, flex: 1,
+                }}>
+                  {recoveryIntelligence.actionCopy}
+                </Text>
+              </View>
+            </View>
           </View>
         )}
 

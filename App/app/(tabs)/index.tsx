@@ -32,6 +32,7 @@ import {
   type CalendarData, type CalendarDayData,
 } from "@/lib/local-db";
 import { syncFromHealth, silentDailySync, syncRecoveryMetrics, getCachedRecoveryMetrics, type RecoveryMetrics } from "@/lib/healthSync";
+import { getRecoveryHistory, computeBaseline, classifyRecovery, type RecoveryIntelligence } from "@/utils/recoveryBaseline";
 import { refreshReminderIfNeeded } from "@/lib/notifications";
 import DayDetailSheet from "@/components/DayDetailSheet";
 import { weekStartDate, weekEndDate, getOrderedDays, DAY_LETTERS } from "@/utils/weekStart";
@@ -92,6 +93,7 @@ export default function DashboardScreen() {
   // Recovery metrics
   const [recovery, setRecovery] = useState<RecoveryMetrics | null>(null);
   const [syncingRecovery, setSyncingRecovery] = useState(false);
+  const [recoveryIntelligence, setRecoveryIntelligence] = useState<RecoveryIntelligence | null>(null);
 
   // Body comp nudge
   const [bodyCompPromptDismissed, setBodyCompPromptDismissed] = useState(true); // start hidden, load below
@@ -134,7 +136,14 @@ export default function DashboardScreen() {
       setStreak(s);
       setTodaySteps(steps);
     }
-    getCachedRecoveryMetrics().then(setRecovery);
+    getCachedRecoveryMetrics().then(async (cached) => {
+      setRecovery(cached);
+      if (cached) {
+        const history = await getRecoveryHistory();
+        const baseline = computeBaseline(history);
+        setRecoveryIntelligence(classifyRecovery(cached, baseline, mesoWeekOf(plan?.currentWeek ?? 1)));
+      }
+    });
 
     // Body comp nudge
     AsyncStorage.getItem("bodyCompPromptDismissed").then((val) => {
@@ -677,13 +686,26 @@ export default function DashboardScreen() {
                 })}
               </View>
 
-              {/* ── Recovery warning ── */}
-              {hasRecovery && overallStatus === "poor" && !todayComplete && (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingBottom: 12, paddingTop: 4 }}>
-                  <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STATUS_COLOR.poor }} />
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: STATUS_COLOR.poor, flex: 1 }}>
-                    Recovery is low — consider reducing volume today.
-                  </Text>
+              {/* ── Recovery context strip ── */}
+              {hasRecovery && !todayComplete && recoveryIntelligence && recoveryIntelligence.status !== "insufficient_data" && (
+                <View style={{
+                  flexDirection: "row", alignItems: "flex-start", gap: 8,
+                  paddingHorizontal: 16, paddingBottom: 12, paddingTop: 4,
+                  borderTopWidth: (recoveryIntelligence.status === "fatigued" || recoveryIntelligence.status === "accumulating") ? 1 : 0,
+                  borderTopColor: recoveryIntelligence.statusColor + "33",
+                }}>
+                  <View style={{ width: 4, borderRadius: 2, alignSelf: "stretch", backgroundColor: recoveryIntelligence.statusColor + "80", marginTop: 1 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: recoveryIntelligence.statusColor, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 1 }}>
+                      {recoveryIntelligence.statusLabel}
+                      {recoveryIntelligence.overallDeviationPct !== undefined
+                        ? `  ${recoveryIntelligence.overallDeviationPct >= 0 ? "+" : ""}${recoveryIntelligence.overallDeviationPct}% vs baseline`
+                        : ""}
+                    </Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textSecondary, lineHeight: 14 }}>
+                      {recoveryIntelligence.actionCopy}
+                    </Text>
+                  </View>
                 </View>
               )}
 
@@ -1006,6 +1028,10 @@ export default function DashboardScreen() {
                     setSyncingRecovery(true);
                     const result = await syncRecoveryMetrics();
                     setRecovery(result);
+                    // Recompute intelligence with updated history
+                    const history = await getRecoveryHistory();
+                    const baseline = computeBaseline(history);
+                    setRecoveryIntelligence(classifyRecovery(result, baseline, mesoWeek));
                     setSyncingRecovery(false);
                     const gotData = result.rhr !== undefined || result.hrv !== undefined || result.sleepHours !== undefined;
                     if (Platform.OS !== "web") {
@@ -1033,35 +1059,69 @@ export default function DashboardScreen() {
 
               {hasRecovery ? (
                 <>
-                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[overallStatus], textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                    {STATUS_LABEL[overallStatus]}
-                  </Text>
-                  <View style={{ gap: 6 }}>
+                  {/* Status label + deviation badge */}
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <Text style={{
+                      fontFamily: "Rubik_700Bold", fontSize: 13,
+                      color: recoveryIntelligence?.statusColor ?? STATUS_COLOR[overallStatus],
+                      textTransform: "uppercase", letterSpacing: 1,
+                    }}>
+                      {recoveryIntelligence?.statusLabel ?? STATUS_LABEL[overallStatus]}
+                    </Text>
+                    {recoveryIntelligence?.hasBaseline && recoveryIntelligence.overallDeviationPct !== undefined && (
+                      <View style={{
+                        backgroundColor: (recoveryIntelligence.overallDeviationPct >= 0 ? "#43A047" : "#E53935") + "22",
+                        borderWidth: 1,
+                        borderColor: (recoveryIntelligence.overallDeviationPct >= 0 ? "#43A047" : "#E53935") + "55",
+                        paddingHorizontal: 5, paddingVertical: 1,
+                      }}>
+                        <Text style={{
+                          fontFamily: "Rubik_700Bold", fontSize: 9,
+                          color: recoveryIntelligence.overallDeviationPct >= 0 ? "#43A047" : "#E53935",
+                        }}>
+                          {recoveryIntelligence.overallDeviationPct >= 0 ? "+" : ""}{recoveryIntelligence.overallDeviationPct}%
+                        </Text>
+                      </View>
+                    )}
+                    {recoveryIntelligence && !recoveryIntelligence.hasBaseline && (
+                      <View style={{
+                        backgroundColor: Colors.bgAccent,
+                        borderWidth: 1, borderColor: Colors.border,
+                        paddingHorizontal: 5, paddingVertical: 1,
+                      }}>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted }}>
+                          {recoveryIntelligence.snapshotCount}/3
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  {/* Absolute values row */}
+                  <View style={{ gap: 5 }}>
                     {recovery?.sleepHours !== undefined && (
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                          <Ionicons name="moon-outline" size={11} color={STATUS_COLOR[sleepStatus]} />
+                          <Ionicons name="moon-outline" size={10} color={STATUS_COLOR[sleepStatus]} />
                           <GlossaryTerm text="Sleep" termKey="Sleep" style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }} />
                         </View>
-                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[sleepStatus] }}>{recovery.sleepHours}h</Text>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: STATUS_COLOR[sleepStatus] }}>{recovery.sleepHours}h</Text>
                       </View>
                     )}
                     {recovery?.rhr !== undefined && (
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                          <Ionicons name="heart-outline" size={11} color={STATUS_COLOR[rhrStatus]} />
+                          <Ionicons name="heart-outline" size={10} color={STATUS_COLOR[rhrStatus]} />
                           <GlossaryTerm text="RHR" termKey="RHR" style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }} />
                         </View>
-                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[rhrStatus] }}>{recovery.rhr} bpm</Text>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: STATUS_COLOR[rhrStatus] }}>{recovery.rhr} bpm</Text>
                       </View>
                     )}
                     {recovery?.hrv !== undefined && (
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                          <Ionicons name="pulse-outline" size={11} color={STATUS_COLOR[hrvStatus]} />
+                          <Ionicons name="pulse-outline" size={10} color={STATUS_COLOR[hrvStatus]} />
                           <GlossaryTerm text="HRV" termKey="HRV" style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }} />
                         </View>
-                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: STATUS_COLOR[hrvStatus] }}>{recovery.hrv} ms</Text>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: STATUS_COLOR[hrvStatus] }}>{recovery.hrv} ms</Text>
                       </View>
                     )}
                   </View>

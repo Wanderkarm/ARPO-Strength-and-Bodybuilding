@@ -15,6 +15,7 @@
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logBodyWeight, logBodyMeasurements, updateDailySteps, hasTodayWeightLog } from "@/lib/local-db";
+import { addRecoverySnapshot } from "@/utils/recoveryBaseline";
 
 export interface SyncResult {
   weightSynced: boolean;
@@ -128,6 +129,7 @@ async function _syncRecoveryAppleHealth(): Promise<RecoveryMetrics> {
 
     const metrics: RecoveryMetrics = { rhr, hrv, sleepHours, syncedAt };
     await AsyncStorage.setItem(RECOVERY_CACHE_KEY, JSON.stringify(metrics));
+    addRecoverySnapshot(metrics); // fire-and-forget — persist to rolling history
     return metrics;
   } catch {
     return { syncedAt };
@@ -194,6 +196,7 @@ async function _syncRecoveryHealthConnect(): Promise<RecoveryMetrics> {
 
     const metrics: RecoveryMetrics = { rhr, hrv, sleepHours, syncedAt };
     await AsyncStorage.setItem(RECOVERY_CACHE_KEY, JSON.stringify(metrics));
+    addRecoverySnapshot(metrics); // fire-and-forget — persist to rolling history
     return metrics;
   } catch {
     return { syncedAt };
