@@ -431,7 +431,7 @@ export default function TemplatesScreen() {
               >
                 <Ionicons name="sparkles" size={22} color={Colors.primary} />
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  Generate{"\n"}with ARPO
+                  POWR{"\n"}Auto-Build
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
                   Set priorities,{"\n"}we build it
