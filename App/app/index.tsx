@@ -108,46 +108,19 @@ export default function LandingScreen() {
         }}
       >
         <Image
-          source={require("@/assets/images/arpo-logo.png")}
-          style={{ width: 100, height: 100, marginBottom: 32 }}
+          source={require("@/assets/images/logo-hero.png")}
+          style={{ width: "92%", aspectRatio: 1, marginBottom: 8 }}
           resizeMode="contain"
         />
-
-        <Text
-          style={{
-            fontFamily: "Rubik_700Bold",
-            fontSize: 36,
-            color: Colors.text,
-            textAlign: "center",
-            letterSpacing: 8,
-            textTransform: "uppercase",
-          }}
-        >
-          POWRLOG
-        </Text>
 
         <View
           style={{
             width: 40,
             height: 2,
             backgroundColor: Colors.primary,
-            marginTop: 16,
-            marginBottom: 16,
+            marginBottom: 14,
           }}
         />
-
-        <Text
-          style={{
-            fontFamily: "Rubik_500Medium",
-            fontSize: 12,
-            color: Colors.textSecondary,
-            textAlign: "center",
-            letterSpacing: 2,
-            textTransform: "uppercase",
-          }}
-        >
-          Auto-Regulated Progressive Overload
-        </Text>
 
         <Text
           style={{
@@ -157,7 +130,7 @@ export default function LandingScreen() {
             textAlign: "center",
             letterSpacing: 1.5,
             textTransform: "uppercase",
-            marginTop: 6,
+            marginBottom: 4,
           }}
         >
           The Science of Hypertrophy &amp; Strength

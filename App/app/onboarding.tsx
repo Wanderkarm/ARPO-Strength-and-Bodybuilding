@@ -360,8 +360,8 @@ export default function OnboardingScreen() {
           <View style={{ flex: 1, justifyContent: "center" }}>
             {/* Logo */}
             <Image
-              source={require("../assets/images/logo.png")}
-              style={{ width: "100%", height: 140, marginBottom: 16 }}
+              source={require("../assets/images/logo-mark.png")}
+              style={{ width: "55%", aspectRatio: 0.7, alignSelf: "center", marginBottom: 16 }}
               resizeMode="contain"
             />
             <View style={{ width: 40, height: 3, backgroundColor: Colors.primary, marginBottom: 16 }} />
