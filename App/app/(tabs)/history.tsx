@@ -12,11 +12,12 @@ import Colors from "@/constants/colors";
 import { useUnit } from "@/contexts/UnitContext";
 import {
   getCompletedWorkoutHistory, getCalendarData, getTrainingSchedule,
+  unSkipSession,
   type HistoryEntry, type CalendarData, type CalendarDayData,
 } from "@/lib/local-db";
 import MonthCalendar from "@/components/MonthCalendar";
 import DayDetailSheet from "@/components/DayDetailSheet";
-import { unSkipSession } from "@/lib/local-db";
+import SessionEditSheet from "@/components/SessionEditSheet";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ export default function HistoryScreen() {
   const [listLoading, setListLoading] = useState(true);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [undoingSkip, setUndoingSkip] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<HistoryEntry | null>(null);
 
   // ── Load ───────────────────────────────────────────────────────────────────
 
@@ -202,6 +204,25 @@ export default function HistoryScreen() {
 
         {isExpanded && !item.isSkipped && (
           <View style={{ marginTop: 16 }}>
+            {/* Edit button — only within 24hr window */}
+            {Date.now() - new Date(item.date).getTime() < 24 * 60 * 60 * 1000 && (
+              <Pressable
+                onPress={(e) => { e.stopPropagation?.(); setEditTarget(item); }}
+                style={({ pressed }) => ({
+                  flexDirection: "row", alignItems: "center", gap: 6,
+                  alignSelf: "flex-start",
+                  borderWidth: 1, borderColor: Colors.border,
+                  paddingHorizontal: 10, paddingVertical: 5,
+                  marginBottom: 14,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Ionicons name="create-outline" size={13} color={Colors.textSecondary} />
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Edit Sets
+                </Text>
+              </Pressable>
+            )}
             {item.exercises.map((ex, exIdx) => (
               <View key={exIdx} style={{ marginBottom: exIdx < item.exercises.length - 1 ? 12 : 0 }}>
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text, marginBottom: 6 }}>
@@ -347,6 +368,20 @@ export default function HistoryScreen() {
         weightUnit={unit}
         onClose={() => { setSheetDate(null); setSheetData(null); }}
       />
+
+      {/* Edit session sheet */}
+      {editTarget && (
+        <SessionEditSheet
+          visible={editTarget !== null}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { setEditTarget(null); loadAll(); }}
+          planId={editTarget.planId}
+          weekNumber={editTarget.weekNumber}
+          dayNumber={editTarget.dayNumber}
+          completedAt={editTarget.date}
+          unit={unit}
+        />
+      )}
     </View>
   );
 }

@@ -930,6 +930,7 @@ export default function WorkoutScreen() {
         router.replace({
           pathname: "/summary",
           params: {
+            planId,
             totalVolume: String(result.totalVolume),
             weekNumber: String(result.weekNumber),
             dayNumber: String(result.dayNumber),
@@ -937,6 +938,7 @@ export default function WorkoutScreen() {
             nextWeekTargets: JSON.stringify(result.nextWeekTargets),
             currentRIR,
             prs: JSON.stringify(result.prs),
+            completedAt: new Date().toISOString(),
           },
         });
       }

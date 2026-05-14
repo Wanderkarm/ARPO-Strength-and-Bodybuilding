@@ -23,6 +23,7 @@ import {
   formatTime,
 } from "@/lib/notifications";
 import { getCompletedWorkoutHistory } from "@/lib/local-db";
+import SessionEditSheet from "@/components/SessionEditSheet";
 
 interface NextWeekTarget {
   exerciseId: string;
@@ -96,7 +97,10 @@ export default function SummaryScreen() {
   const weighinPickerDate = new Date();
   weighinPickerDate.setHours(weighinHour, weighinMinute, 0, 0);
 
+  const [editSheetVisible, setEditSheetVisible] = useState(false);
+
   const params = useLocalSearchParams<{
+    planId: string;
     totalVolume: string;
     weekNumber: string;
     dayNumber: string;
@@ -104,13 +108,16 @@ export default function SummaryScreen() {
     nextWeekTargets: string;
     currentRIR: string;
     prs: string;
+    completedAt: string;
   }>();
 
-  const totalVolume  = parseFloat(params.totalVolume || "0");
-  const weekNumber   = parseInt(params.weekNumber || "1");
-  const dayNumber    = parseInt(params.dayNumber || "1");
+  const planId        = params.planId || "";
+  const totalVolume   = parseFloat(params.totalVolume || "0");
+  const weekNumber    = parseInt(params.weekNumber || "1");
+  const dayNumber     = parseInt(params.dayNumber || "1");
   const exerciseCount = parseInt(params.exerciseCount || "0");
-  const currentRIR   = params.currentRIR || "";
+  const currentRIR    = params.currentRIR || "";
+  const completedAt   = params.completedAt || new Date().toISOString();
 
   let nextWeekTargets: NextWeekTarget[] = [];
   try { nextWeekTargets = JSON.parse(params.nextWeekTargets || "[]"); } catch {}
@@ -418,8 +425,8 @@ export default function SummaryScreen() {
           </View>
         )}
 
-        {/* ── Return button ── */}
-        <View style={{ paddingHorizontal: 24, marginTop: 32 }}>
+        {/* ── Actions ── */}
+        <View style={{ paddingHorizontal: 24, marginTop: 32, gap: 10 }}>
           <Pressable
             onPress={handleReturnToDashboard}
             style={({ pressed }) => ({
@@ -439,9 +446,40 @@ export default function SummaryScreen() {
               Return to Dashboard
             </Text>
           </Pressable>
+
+          {planId ? (
+            <Pressable
+              onPress={() => setEditSheetVisible(true)}
+              style={({ pressed }) => ({
+                borderWidth: 1, borderColor: Colors.border,
+                paddingVertical: 14,
+                flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Ionicons name="create-outline" size={16} color={Colors.textSecondary} />
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                Edit Sets
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
 
       </ScrollView>
+
+      {/* ── Edit session sheet ── */}
+      {planId ? (
+        <SessionEditSheet
+          visible={editSheetVisible}
+          onClose={() => setEditSheetVisible(false)}
+          onSaved={() => { /* stats on this screen are param-based; changes flow to next session */ }}
+          planId={planId}
+          weekNumber={weekNumber}
+          dayNumber={dayNumber}
+          completedAt={completedAt}
+          unit={unit}
+        />
+      ) : null}
 
       {/* ── First-workout notifications prompt ── */}
       <Modal visible={showNotifPrompt} transparent animationType="slide" onRequestClose={() => { AsyncStorage.setItem("notifPromptDismissed", "1"); setShowNotifPrompt(false); }}>

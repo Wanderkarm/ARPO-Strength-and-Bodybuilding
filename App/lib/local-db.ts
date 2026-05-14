@@ -1220,9 +1220,71 @@ export interface HistoryEntry {
   totalTonnage: number;
   isSkipped: boolean;
   exercises: {
+    logId: string;
     exerciseName: string;
     sets: { setNumber: number; weight: number; reps: number }[];
   }[];
+}
+
+// ─── Session editing ──────────────────────────────────────────────────────────
+
+export interface EditableExercise {
+  logId: string;
+  exerciseName: string;
+  sets: { setNumber: number; weight: number; reps: number }[];
+}
+
+/** Load all logged sets for a completed session, structured for inline editing. */
+export async function getSessionForEdit(
+  planId: string,
+  weekNumber: number,
+  dayNumber: number
+): Promise<EditableExercise[]> {
+  const db = getDb();
+  const rows = await db.getAllAsync<{
+    log_id: string;
+    exercise_name: string;
+    set_number: number;
+    weight_used: number | null;
+    reps_completed: number | null;
+  }>(
+    `SELECT wl.id AS log_id, e.name AS exercise_name,
+            sl.set_number, sl.weight_used, sl.reps_completed
+     FROM workout_logs wl
+     JOIN exercises e ON wl.exercise_id = e.id
+     JOIN set_logs sl ON sl.workout_log_id = wl.id
+     WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.day_number = ?
+       AND wl.completed_at IS NOT NULL AND wl.is_skipped = 0
+     ORDER BY wl.rowid ASC, sl.set_number ASC`,
+    [planId, weekNumber, dayNumber]
+  );
+
+  // Group by logId
+  const map = new Map<string, EditableExercise>();
+  for (const row of rows) {
+    if (!map.has(row.log_id)) {
+      map.set(row.log_id, { logId: row.log_id, exerciseName: row.exercise_name, sets: [] });
+    }
+    map.get(row.log_id)!.sets.push({
+      setNumber: row.set_number,
+      weight: row.weight_used ?? 0,
+      reps: row.reps_completed ?? 0,
+    });
+  }
+  return Array.from(map.values());
+}
+
+/** Persist edited set values back to set_logs. */
+export async function updateSessionSets(
+  edits: { workoutLogId: string; setNumber: number; weight: number; reps: number }[]
+): Promise<void> {
+  const db = getDb();
+  for (const e of edits) {
+    await db.runAsync(
+      "UPDATE set_logs SET weight_used = ?, reps_completed = ? WHERE workout_log_id = ? AND set_number = ?",
+      [e.weight, e.reps, e.workoutLogId, e.setNumber]
+    );
+  }
 }
 
 /**
@@ -1280,7 +1342,7 @@ export async function getCompletedWorkoutHistory(): Promise<HistoryEntry[]> {
        FROM workout_logs wl
        JOIN exercises e ON wl.exercise_id = e.id
        WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.day_number = ? AND wl.completed_at IS NOT NULL
-       ORDER BY wl.id`,
+       ORDER BY wl.rowid`,
       [session.workout_plan_id, session.week_number, session.day_number]
     );
 
@@ -1304,7 +1366,7 @@ export async function getCompletedWorkoutHistory(): Promise<HistoryEntry[]> {
         return { setNumber: s.set_number, weight: w, reps: r };
       });
 
-      exercises.push({ exerciseName: ex.exercise_name, sets });
+      exercises.push({ logId: ex.log_id, exerciseName: ex.exercise_name, sets });
     }
 
     const allSkipped = exerciseLogs.every(e => e.is_skipped === 1);
