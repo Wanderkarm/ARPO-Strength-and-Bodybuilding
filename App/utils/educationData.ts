@@ -65,7 +65,7 @@ export const glossaryTerms: Record<string, { title: string; definition: string; 
     title: "Pump Rating (1–5)",
     definition: "How engorged the target muscle felt during your sets. A pump of 3–4 indicates healthy mechanical tension and metabolic stress — the two main drivers of muscle growth. Too low (1–2) suggests under-stimulation; extremely high (5) may indicate excessive volume or poor recovery."
   },
-  "Recovery": {
+  "Soreness": {
     title: "Recovery / Soreness",
     definition: "How recovered this muscle feels going into today's session. Logging soreness helps POWRLOG detect when accumulated fatigue is building too fast, and automatically adjusts next week's targets before overtraining sets in."
   },

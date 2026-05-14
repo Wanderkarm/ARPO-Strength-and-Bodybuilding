@@ -1468,6 +1468,7 @@ async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: strin
   const setRows = await db.getAllAsync<{
     id: string; set_number: number; target_weight: number; target_reps: number;
     reps_completed: number | null; weight_used: number | null; completed_at: string | null;
+    set_type: string | null; myo_group_id: string | null;
   }>("SELECT * FROM set_logs WHERE workout_log_id = ? ORDER BY set_number ASC", [logId]);
 
   const updatedLog = await db.getFirstAsync<{
@@ -1500,6 +1501,8 @@ async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: strin
       repsCompleted: s.reps_completed,
       weightUsed: s.weight_used,
       completedAt: s.completed_at,
+      setType: (s.set_type as SetType) ?? 'normal',
+      myoGroupId: s.myo_group_id ?? null,
     })),
   };
 }

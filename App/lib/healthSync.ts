@@ -269,7 +269,7 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
       bodyFatPct = Math.round(bodyFatSample.quantity * 100 * 10) / 10;
       await logBodyMeasurements(userId, {
         chestCm: null, waistCm: null, hipsCm: null,
-        leftArmCm: null, rightArmCm: null, leftThighCm: null, neckCm: null,
+        leftArmCm: null, rightArmCm: null, leftThighCm: null, rightThighCm: null, neckCm: null,
         notes: null,
         bodyFatPct,
         source: "apple_health",
@@ -365,7 +365,7 @@ export async function syncFromHealthConnect(userId: string): Promise<SyncResult>
       bodyFatPct = Math.round(latestBodyFat.percentage * 10) / 10;
       await logBodyMeasurements(userId, {
         chestCm: null, waistCm: null, hipsCm: null,
-        leftArmCm: null, rightArmCm: null, leftThighCm: null, neckCm: null,
+        leftArmCm: null, rightArmCm: null, leftThighCm: null, rightThighCm: null, neckCm: null,
         notes: null,
         bodyFatPct,
         source: "google_fit",

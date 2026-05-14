@@ -1084,6 +1084,8 @@ export default function WorkoutScreen() {
               repsCompleted: "",
               weightUsed: "",
               feedback: null,
+              setType: s.setType ?? 'normal',
+              myoGroupId: s.myoGroupId ?? null,
             })),
             sorenessRating: null,
             pumpRating: null,
@@ -1122,6 +1124,8 @@ export default function WorkoutScreen() {
               repsCompleted: s.repsCompleted !== null ? String(s.repsCompleted) : "",
               weightUsed: s.weightUsed !== null ? String(s.weightUsed) : "",
               feedback: null,
+              setType: s.setType ?? 'normal',
+              myoGroupId: s.myoGroupId ?? null,
             })),
           };
           return next;
