@@ -11,6 +11,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import GlossaryTerm from "@/components/GlossaryTerm";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
@@ -26,6 +27,7 @@ import { getCompletedWorkoutHistory } from "@/lib/local-db";
 import SessionEditSheet from "@/components/SessionEditSheet";
 import { getCachedRecoveryMetrics } from "@/lib/healthSync";
 import { getRecoveryHistory, computeBaseline, classifyRecovery, type RecoveryIntelligence } from "@/utils/recoveryBaseline";
+import RecoveryGuideModal from "@/components/RecoveryGuideModal";
 
 interface NextWeekTarget {
   exerciseId: string;
@@ -88,6 +90,7 @@ export default function SummaryScreen() {
   const [showWeighinPicker, setShowWeighinPicker] = useState(false);
   const [editSheetVisible, setEditSheetVisible] = useState(false);
   const [recoveryIntelligence, setRecoveryIntelligence] = useState<RecoveryIntelligence | null>(null);
+  const [recoveryGuideVisible, setRecoveryGuideVisible] = useState(false);
 
   useEffect(() => {
     checkFirstWorkout();
@@ -358,17 +361,13 @@ export default function SummaryScreen() {
                   backgroundColor: recoveryIntelligence.statusColor + "22",
                   borderWidth: 1, borderColor: recoveryIntelligence.statusColor + "55",
                   paddingHorizontal: 7, paddingVertical: 2,
+                  flexDirection: "row", alignItems: "center", gap: 4,
                 }}>
-                  <Text style={{
-                    fontFamily: "Rubik_700Bold", fontSize: 9,
-                    color: recoveryIntelligence.statusColor,
-                    textTransform: "uppercase", letterSpacing: 0.8,
-                  }}>
-                    {recoveryIntelligence.statusLabel}
-                    {recoveryIntelligence.overallDeviationPct !== undefined
-                      ? `  ${recoveryIntelligence.overallDeviationPct >= 0 ? "+" : ""}${recoveryIntelligence.overallDeviationPct}%`
-                      : ""}
-                  </Text>
+                  <GlossaryTerm
+                    text={recoveryIntelligence.statusLabel + (recoveryIntelligence.overallDeviationPct !== undefined ? `  ${recoveryIntelligence.overallDeviationPct >= 0 ? "+" : ""}${recoveryIntelligence.overallDeviationPct}%` : "")}
+                    termKey={recoveryIntelligence.status === "primed" ? "Primed" : recoveryIntelligence.status === "fatigued" ? "Fatigued" : recoveryIntelligence.status === "accumulating" ? "Accumulating" : "Recovery"}
+                    style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: recoveryIntelligence.statusColor, textTransform: "uppercase", letterSpacing: 0.8 }}
+                  />
                 </View>
               </View>
 
@@ -389,7 +388,7 @@ export default function SummaryScreen() {
                 </Text>
               </View>
 
-              {/* Action — single prioritised recommendation */}
+              {/* Action — single prioritised recommendation + Learn More */}
               <View style={{
                 borderTopWidth: 1, borderTopColor: recoveryIntelligence.statusColor + "22",
                 flexDirection: "row", alignItems: "flex-start", gap: 8,
@@ -403,6 +402,25 @@ export default function SummaryScreen() {
                   {recoveryIntelligence.actionCopy}
                 </Text>
               </View>
+
+              {/* Learn More footer */}
+              <Pressable
+                onPress={() => setRecoveryGuideVisible(true)}
+                style={({ pressed }) => ({
+                  borderTopWidth: 1, borderTopColor: recoveryIntelligence.statusColor + "22",
+                  paddingHorizontal: 14, paddingVertical: 9,
+                  flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4,
+                  opacity: pressed ? 0.6 : 1,
+                })}
+              >
+                <Text style={{
+                  fontFamily: "Rubik_500Medium", fontSize: 10,
+                  color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1,
+                }}>
+                  How is this calculated?
+                </Text>
+                <Ionicons name="information-circle-outline" size={13} color={Colors.textMuted} />
+              </Pressable>
             </View>
           </View>
         )}
@@ -558,6 +576,12 @@ export default function SummaryScreen() {
         </View>
 
       </ScrollView>
+
+      {/* ── Recovery Guide Modal ── */}
+      <RecoveryGuideModal
+        visible={recoveryGuideVisible}
+        onClose={() => setRecoveryGuideVisible(false)}
+      />
 
       {/* ── Edit session sheet ── */}
       {planId ? (

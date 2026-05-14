@@ -35,6 +35,7 @@ import { syncFromHealth, silentDailySync, syncRecoveryMetrics, getCachedRecovery
 import { getRecoveryHistory, computeBaseline, classifyRecovery, type RecoveryIntelligence } from "@/utils/recoveryBaseline";
 import { refreshReminderIfNeeded } from "@/lib/notifications";
 import DayDetailSheet from "@/components/DayDetailSheet";
+import RecoveryGuideModal from "@/components/RecoveryGuideModal";
 import { weekStartDate, weekEndDate, getOrderedDays, DAY_LETTERS } from "@/utils/weekStart";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -94,6 +95,7 @@ export default function DashboardScreen() {
   const [recovery, setRecovery] = useState<RecoveryMetrics | null>(null);
   const [syncingRecovery, setSyncingRecovery] = useState(false);
   const [recoveryIntelligence, setRecoveryIntelligence] = useState<RecoveryIntelligence | null>(null);
+  const [recoveryGuideVisible, setRecoveryGuideVisible] = useState(false);
 
   // Body comp nudge
   const [bodyCompPromptDismissed, setBodyCompPromptDismissed] = useState(true); // start hidden, load below
@@ -1125,6 +1127,16 @@ export default function DashboardScreen() {
                       </View>
                     )}
                   </View>
+                  {/* Learn More link */}
+                  <Pressable
+                    onPress={() => setRecoveryGuideVisible(true)}
+                    hitSlop={8}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, marginTop: 8 })}
+                  >
+                    <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
+                      How is this calculated? →
+                    </Text>
+                  </Pressable>
                 </>
               ) : (
                 <View>
@@ -1229,6 +1241,12 @@ export default function DashboardScreen() {
         )}
 
       </ScrollView>
+
+      {/* ── Recovery Guide Modal ── */}
+      <RecoveryGuideModal
+        visible={recoveryGuideVisible}
+        onClose={() => setRecoveryGuideVisible(false)}
+      />
 
       {/* ── Calendar Strip Day Detail Sheet ── */}
       <DayDetailSheet

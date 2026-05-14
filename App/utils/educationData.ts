@@ -46,7 +46,13 @@ export const restFacts = [
   }
 ];
 
-export const glossaryTerms: Record<string, { title: string; definition: string }> = {
+/**
+ * Glossary entries may optionally include a `learnMore` string.
+ * When present, GlossaryTerm renders it as an "In Practice" section
+ * below the main definition, giving users deeper context without
+ * cluttering the primary one-liner.
+ */
+export const glossaryTerms: Record<string, { title: string; definition: string; learnMore?: string }> = {
   "RIR": {
     title: "Reps in Reserve (RIR)",
     definition: "A measure of intensity indicating how many more reps you could have completed before physical failure. 0 RIR means absolute failure. 2 RIR means you stopped exactly 2 reps short of failing. Optimal hypertrophy occurs between 1-3 RIR."
@@ -113,18 +119,42 @@ export const glossaryTerms: Record<string, { title: string; definition: string }
   },
   "RHR": {
     title: "Resting Heart Rate (RHR)",
-    definition: "The number of times your heart beats per minute while fully at rest. A lower RHR generally indicates better cardiovascular fitness and recovery. POWRLOG flags RHR above 75 bpm as a sign of accumulated fatigue or under-recovery. Elite athletes typically sit below 50 bpm."
+    definition: "The number of times your heart beats per minute while fully at rest. Lower RHR generally means better cardiovascular fitness and recovery.",
+    learnMore: "What matters is not the absolute number but how your RHR compares to your own 7-day baseline. A reading 10% above your personal normal is a meaningful fatigue signal regardless of whether that is 55 bpm or 75 bpm. POWRLOG tracks your deviation from baseline rather than applying fixed thresholds that don't account for individual variation."
   },
   "HRV": {
     title: "Heart Rate Variability (HRV)",
-    definition: "The variation in time between consecutive heartbeats, measured in milliseconds. Counterintuitively, more variability is better — it means your nervous system is adaptable and you are well-recovered. An HRV below 30 ms suggests high stress or poor recovery; above 60 ms is optimal for training."
+    definition: "The variation in time between consecutive heartbeats, measured in milliseconds (ms). Counterintuitively, more variability is better — it signals your autonomic nervous system is responsive and you are well-recovered.",
+    learnMore: "HRV is the most sensitive early indicator of accumulated fatigue, often declining 1–2 days before you consciously feel tired. POWRLOG uses your personal 7-day rolling average as the baseline and weights HRV at 60% of your composite Recovery score (versus 40% for RHR) because it responds faster to both overtraining and genuine recovery. A single reading is rarely meaningful — trends over several days tell the story."
   },
   "Sleep": {
     title: "Sleep & Recovery",
-    definition: "The primary driver of muscle repair and hormonal recovery. Growth hormone is released almost exclusively during deep sleep. 7–9 hours is the evidence-based target — chronic under-sleeping (below 6 hours) suppresses testosterone, elevates cortisol, and directly limits hypertrophy regardless of training quality."
+    definition: "The primary driver of muscle repair and hormonal recovery. Growth hormone is released almost exclusively during deep sleep. 7–9 hours is the evidence-based target.",
+    learnMore: "Chronic under-sleeping (below 6 hours) suppresses testosterone, elevates cortisol, and directly limits muscle growth regardless of training quality. Even a single night of poor sleep measurably reduces next-day strength output by 2–8%. Sleep debt is cumulative — it cannot be fully repaid in one night."
   },
   "Recovery": {
     title: "Recovery Score",
-    definition: "POWRLOG's composite readiness signal, derived from your Resting Heart Rate (RHR), Heart Rate Variability (HRV), and sleep duration synced from Apple Health or Health Connect. Green = ready to train hard. Yellow = train, but consider reducing intensity. Red = prioritise recovery today."
+    definition: "POWRLOG's composite readiness signal, derived from your Resting Heart Rate (RHR), Heart Rate Variability (HRV), and sleep duration synced from Apple Health or Health Connect.",
+    learnMore: "The score compares each reading to your personal 7-day baseline rather than population averages — a 55 bpm RHR is great for one person and normal for another. Status levels: Primed (≥+10% composite) → push intensity today. Recovered (±10%) → train as planned. Fatigued (−10 to −20%) → reduce sets by 1. Accumulating (>−20%) → consider active recovery."
+  },
+  "RecoveryBaseline": {
+    title: "Recovery Baseline",
+    definition: "Your personal 7-day rolling average for HRV, RHR, and sleep. Each daily sync adds a data point; after 3 readings POWRLOG has enough context to grade your recovery against your own normal rather than a population average.",
+    learnMore: "Using a personal baseline matters because absolute values vary enormously between individuals. An HRV of 40 ms is excellent for a 45-year-old recreational lifter and a warning sign for a 25-year-old trained athlete. By learning your normal, POWRLOG can tell the difference between 'low for you' and 'just how your body works'."
+  },
+  "Primed": {
+    title: "Primed",
+    definition: "Your recovery metrics are ≥10% above your personal 7-day baseline. Your nervous system and cardiovascular system are both signalling high readiness.",
+    learnMore: "Primed days are ideal for pushing intensity — chasing rep ceilings, attempting personal records, or adding an extra working set. This state typically occurs after a rest day, a lighter training week, or a deload. It should not occur every session; if it does, you may be under-training."
+  },
+  "Fatigued": {
+    title: "Fatigued",
+    definition: "Your composite recovery score is 10–20% below your personal 7-day baseline. Accumulated training stress is exceeding your current recovery capacity.",
+    learnMore: "Fatigued does not mean you cannot train — it means you should train smart. Drop one working set per exercise, prioritise sleep (8+ hours), and keep protein intake high. In Week 3 of a mesocycle this is normal and expected; in Week 1 it is an early-warning signal worth taking seriously."
+  },
+  "Accumulating": {
+    title: "Accumulating (Deep Fatigue)",
+    definition: "Your composite recovery score is more than 20% below your personal 7-day baseline. Significant systemic fatigue is present.",
+    learnMore: "Accumulating fatigue during Week 3 (Overreach phase) is intentional — it is the stress stimulus that, once followed by a deload, produces your biggest strength and size gains. Outside of Week 3, this level of fatigue suggests inadequate sleep, nutrition, or recovery practices. An active recovery session (light walk, mobility work) is preferable to a full training session."
   }
 };
