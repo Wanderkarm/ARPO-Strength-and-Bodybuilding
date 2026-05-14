@@ -32,6 +32,7 @@ import {
   type CalendarData, type CalendarDayData,
 } from "@/lib/local-db";
 import { syncFromHealth, silentDailySync, syncRecoveryMetrics, getCachedRecoveryMetrics, type RecoveryMetrics } from "@/lib/healthSync";
+import { usePurchase, TRIAL_WORKOUTS } from "@/contexts/PurchaseContext";
 import { getRecoveryHistory, computeBaseline, classifyRecovery, type RecoveryIntelligence } from "@/utils/recoveryBaseline";
 import { refreshReminderIfNeeded } from "@/lib/notifications";
 import DayDetailSheet from "@/components/DayDetailSheet";
@@ -71,6 +72,7 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
+  const { isPurchased, trialWorkoutsRemaining } = usePurchase();
 
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -709,6 +711,39 @@ export default function DashboardScreen() {
                     </Text>
                   </View>
                 </View>
+              )}
+
+              {/* ── Trial countdown banner ── */}
+              {!isPurchased && trialWorkoutsRemaining > 0 && !todayComplete && (
+                <Pressable
+                  onPress={() => router.push("/paywall")}
+                  style={({ pressed }) => ({
+                    flexDirection: "row", alignItems: "center", justifyContent: "center",
+                    gap: 6,
+                    paddingVertical: 7,
+                    borderTopWidth: 1,
+                    borderTopColor: trialWorkoutsRemaining === 1 ? "#F59E0B44" : Colors.border,
+                    backgroundColor: trialWorkoutsRemaining === 1 ? "#F59E0B0A" : "transparent",
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Ionicons
+                    name={trialWorkoutsRemaining === 1 ? "lock-closed-outline" : "information-circle-outline"}
+                    size={11}
+                    color={trialWorkoutsRemaining === 1 ? "#F59E0B" : Colors.textMuted}
+                  />
+                  <Text style={{
+                    fontFamily: trialWorkoutsRemaining === 1 ? "Rubik_600SemiBold" : "Rubik_400Regular",
+                    fontSize: 10,
+                    color: trialWorkoutsRemaining === 1 ? "#F59E0B" : Colors.textMuted,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.8,
+                  }}>
+                    {trialWorkoutsRemaining === 1
+                      ? "Last free session — unlock to keep going"
+                      : `${trialWorkoutsRemaining} of ${TRIAL_WORKOUTS} free sessions remaining · Unlock →`}
+                  </Text>
+                </Pressable>
               )}
 
               {/* ── CTA ── */}

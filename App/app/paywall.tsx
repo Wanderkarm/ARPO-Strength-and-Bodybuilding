@@ -16,12 +16,14 @@ import Colors from "@/constants/colors";
 import { usePurchase, UNLOCK_PRICE_LABEL } from "@/contexts/PurchaseContext";
 
 const FEATURES = [
-  { icon: "trending-up",      text: "Auto-progressing weights every session" },
+  { icon: "trending-up",        text: "ARPO auto-progression — weights adjust every session" },
+  { icon: "repeat-variant",     text: "Double Progression mode for strength-focused blocks" },
+  { icon: "lightning-bolt",     text: "Myo-rep sets — more effective reps, less time" },
+  { icon: "timer-outline",      text: "Smart 3-tier rest timer calibrated per movement" },
   { icon: "restaurant-outline", text: "Personalised calories & macro targets" },
-  { icon: "body-outline",     text: "Body composition & FFMI tracking" },
-  { icon: "heart-outline",    text: "Recovery readiness from Apple Health" },
-  { icon: "bar-chart-outline", text: "Volume landmarks & muscle progress" },
-  { icon: "time-outline",     text: "Smart rest timer with science tips" },
+  { icon: "body-outline",       text: "Body composition & FFMI tracking" },
+  { icon: "heart-outline",      text: "Recovery Intelligence from Apple Health / Health Connect" },
+  { icon: "bar-chart-outline",  text: "Volume landmarks & muscle progress charts" },
 ];
 
 export default function PaywallScreen() {
@@ -66,36 +68,44 @@ export default function PaywallScreen() {
         {/* Logo */}
         <Image
           source={require("../assets/images/logo.png")}
-          style={{ width: "80%", aspectRatio: 1, alignSelf: "center", marginTop: 12, marginBottom: 4 }}
+          style={{ width: "70%", aspectRatio: 1, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
           resizeMode="contain"
         />
 
         {/* Headline */}
         <Text style={{
-          fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text,
+          fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text,
           textTransform: "uppercase", letterSpacing: 1.5, textAlign: "center", marginBottom: 6,
         }}>
-          Your free trial has ended
+          3 sessions done.{"\n"}Time to unlock.
         </Text>
         <Text style={{
           fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary,
           textAlign: "center", lineHeight: 20, marginBottom: 28,
         }}>
-          Unlock POWRLOG once and own it forever.{"\n"}No subscription. No recurring charge.
+          You've seen what POWRLOG does.{"\n"}Pay once. Own it. No subscription, ever.
         </Text>
 
-        {/* Competitor callout */}
+        {/* Value callout */}
         <View style={{
           borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3,
           borderLeftColor: Colors.primary, backgroundColor: Colors.bgAccent,
           padding: 14, marginBottom: 24,
         }}>
-          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-            Why pay once beats a subscription
+          <Text style={{
+            fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary,
+            textTransform: "uppercase", letterSpacing: 1, marginBottom: 4,
+          }}>
+            Founder's price — first 1,000 only
           </Text>
-          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18 }}>
-            Most fitness apps charge <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>$10–15/month</Text>. POWRLOG is{" "}
-            <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>{UNLOCK_PRICE_LABEL} once</Text> — cheaper than one month of any competitor.
+          <Text style={{
+            fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18,
+          }}>
+            Most fitness apps charge{" "}
+            <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>$10–15/month</Text>.
+            {" "}POWRLOG is{" "}
+            <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>{UNLOCK_PRICE_LABEL} once</Text>
+            {" "}— less than a single month of any competitor. Price increases after the founding tier sells out.
           </Text>
         </View>
 
@@ -123,7 +133,7 @@ export default function PaywallScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
-      {/* Bottom CTA */}
+      {/* ── Bottom CTA ── */}
       <View style={{
         paddingHorizontal: 24, paddingTop: 16,
         paddingBottom: 16 + insets.bottom,
@@ -132,7 +142,7 @@ export default function PaywallScreen() {
       }}>
         {/* Price badge */}
         <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
-          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 36, color: Colors.text, letterSpacing: -1 }}>
+          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 40, color: Colors.text, letterSpacing: -1 }}>
             {UNLOCK_PRICE_LABEL}
           </Text>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>
@@ -185,7 +195,8 @@ export default function PaywallScreen() {
           fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted,
           textAlign: "center", marginTop: 12, lineHeight: 15,
         }}>
-          Payment charged to your Apple ID. {Platform.OS === "ios" ? "Managed in Settings → Apple ID → Subscriptions." : ""}
+          Payment charged to your Apple ID at confirmation.{"\n"}
+          {Platform.OS === "ios" ? "Manage in Settings → [Your Name] → App Store." : ""}
         </Text>
       </View>
     </View>

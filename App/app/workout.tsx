@@ -61,6 +61,7 @@ import {
   MYO_MAX_MINI_SETS,
 } from "@/utils/myoReps";
 import { firePRNotification } from "@/lib/notifications";
+import { usePurchase } from "@/contexts/PurchaseContext";
 import * as Notifications from "expo-notifications";
 import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
 
@@ -260,6 +261,7 @@ export default function WorkoutScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { unit } = useUnit();
+  const { incrementTrialWorkout } = usePurchase();
 
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [progressionMode, setProgressionMode] = useState<ProgressionMode>("arpo");
@@ -963,6 +965,9 @@ export default function WorkoutScreen() {
           firePRNotification(pr.exerciseName, pr.newBest, pr.previousBest, unit).catch(() => {});
         }
       }
+
+      // Count this completed session toward the free trial
+      await incrementTrialWorkout();
 
       if (result.isMesoComplete) {
         router.replace({ pathname: "/meso-complete", params: { planId } });
