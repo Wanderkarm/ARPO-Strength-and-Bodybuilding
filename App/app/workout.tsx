@@ -46,9 +46,20 @@ import {
   addSetToLog,
   removeLastSetFromLog,
   propagateSetChangeToPlan,
+  getUserProfile,
+  convertSetToMyoActivation,
+  addMyoMiniSet,
   type WorkoutPlan,
   type Exercise,
+  type SetType,
 } from "@/lib/local-db";
+import { getDPRepRange, type ProgressionMode } from "@/utils/progressionAlgorithm";
+import {
+  isMyoEligible,
+  MYO_REST_SECONDS,
+  MYO_MIN_REPS,
+  MYO_MAX_MINI_SETS,
+} from "@/utils/myoReps";
 import { firePRNotification } from "@/lib/notifications";
 import * as Notifications from "expo-notifications";
 import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
@@ -137,6 +148,8 @@ interface SetState {
   repsCompleted: string;
   weightUsed: string;
   feedback: { text: string; color: string } | null;
+  setType: SetType;
+  myoGroupId: string | null;
 }
 
 interface PrevSet {
@@ -247,7 +260,19 @@ export default function WorkoutScreen() {
   const { unit } = useUnit();
 
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
+  const [progressionMode, setProgressionMode] = useState<ProgressionMode>("arpo");
   const [isLoading, setIsLoading] = useState(true);
+
+  // ── Myo-reps state ───────────────────────────────────────────────────────────
+  const [myoActive, setMyoActive] = useState(false);
+  const [myoGroupId, setMyoGroupId] = useState<string | null>(null);
+  const [myoMiniCount, setMyoMiniCount] = useState(0);
+  const myoMiniCountRef = useRef(0);
+  const [myoRestActive, setMyoRestActive] = useState(false);
+  const [myoRestSecsLeft, setMyoRestSecsLeft] = useState(MYO_REST_SECONDS);
+  const myoRestTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [myoRecommendVisible, setMyoRecommendVisible] = useState(false);
+  const myoUsedThisSessionRef = useRef(false);
   const [exerciseStates, setExerciseStates] = useState<ExerciseState[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [finishing, setFinishing] = useState(false);
@@ -332,9 +357,10 @@ export default function WorkoutScreen() {
     // Track keyboard so we can hide the exercise guide during set entry
     const kbShow = Keyboard.addListener("keyboardWillShow", () => setKeyboardVisible(true));
     const kbHide = Keyboard.addListener("keyboardWillHide", () => setKeyboardVisible(false));
-    // Cleanup timer on unmount
+    // Cleanup timers on unmount
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
       kbShow.remove();
       kbHide.remove();
     };
@@ -352,6 +378,14 @@ export default function WorkoutScreen() {
       return;
     }
     setPlan(p);
+
+    // Load user's progression mode preference
+    const userId = await AsyncStorage.getItem("userId");
+    if (userId) {
+      const profile = await getUserProfile(userId);
+      if (profile?.progressionMode) setProgressionMode(profile.progressionMode);
+    }
+
     setIsLoading(false);
   }
 
@@ -438,6 +472,8 @@ export default function WorkoutScreen() {
             feedback: hasData
               ? getFeedback(s.repsCompleted!, s.weightUsed!, s.targetWeight, s.targetReps)
               : null,
+            setType: s.setType ?? 'normal',
+            myoGroupId: s.myoGroupId ?? null,
           };
         }),
       }));
@@ -642,7 +678,8 @@ export default function WorkoutScreen() {
 
         const isLastSet = setIndex === updatedEx.sets.length - 1;
         const jumpingToPartner = hasActiveSupersertPartner(exIndex);
-        if (!isLastSet && !jumpingToPartner) {
+        const isMyo = updatedSets[setIndex]?.setType === 'myo_activation' || updatedSets[setIndex]?.setType === 'myo_mini';
+        if (!isLastSet && !jumpingToPartner && !isMyo) {
           const category = updatedEx.exercise.category;
           const restSeconds = calculateRestTime(category);
           setRestTimerSeconds(restSeconds);
@@ -700,7 +737,8 @@ export default function WorkoutScreen() {
     // Don't start the rest timer if we're about to jump to a superset partner.
     // The timer fires after the partner set instead (end of the superset round).
     const jumpingToPartner = hasActiveSupersertPartner(exIndex);
-    if (!isLastSet && !jumpingToPartner) {
+    const isMyo = ex.sets[setIndex]?.setType === 'myo_activation' || ex.sets[setIndex]?.setType === 'myo_mini';
+    if (!isLastSet && !jumpingToPartner && !isMyo) {
       const category = ex.exercise.category;
       const restSeconds = calculateRestTime(category);
       setRestTimerSeconds(restSeconds);
@@ -1140,6 +1178,8 @@ export default function WorkoutScreen() {
                 repsCompleted: "",
                 weightUsed:    "",
                 feedback:      null,
+                setType:       'normal' as SetType,
+                myoGroupId:    null,
               },
             ];
             ex.targetSets = ex.sets.length;
@@ -1179,6 +1219,149 @@ export default function WorkoutScreen() {
     }
   }
 
+  // ── Myo-rep functions ────────────────────────────────────────────────────────
+
+  async function activateMyoMode() {
+    const ex = exerciseStates[currentExerciseIndex];
+    if (!ex || myoActive) return;
+    // Find the last incomplete set
+    const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
+    if (!incompleteIdx) return;
+    const { s: targetSet, i: setIndex } = incompleteIdx;
+    const newGroupId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    await convertSetToMyoActivation(targetSet.setLogId, newGroupId);
+    setExerciseStates((prev) => {
+      const next = [...prev];
+      const exNext = { ...next[currentExerciseIndex] };
+      const setsNext = [...exNext.sets];
+      setsNext[setIndex] = { ...setsNext[setIndex], setType: 'myo_activation', myoGroupId: newGroupId };
+      exNext.sets = setsNext;
+      next[currentExerciseIndex] = exNext;
+      return next;
+    });
+    setMyoActive(true);
+    setMyoGroupId(newGroupId);
+    myoMiniCountRef.current = 0;
+    setMyoMiniCount(0);
+    setMyoRecommendVisible(false);
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+
+  function startMyoRestTimer() {
+    if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
+    setMyoRestSecsLeft(MYO_REST_SECONDS);
+    setMyoRestActive(true);
+    myoRestTimerRef.current = setInterval(() => {
+      setMyoRestSecsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(myoRestTimerRef.current!);
+          setMyoRestActive(false);
+          // Double haptic — distinct cue to start mini-set without looking
+          if (Platform.OS !== "web") {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 180);
+          }
+          appendMyoMiniSet();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  async function appendMyoMiniSet() {
+    const ex = exerciseStatesRef.current[currentExerciseIndex];
+    if (!ex || !myoGroupId) return;
+    const newMini = await addMyoMiniSet(ex.logId, ex.targetWeight, myoGroupId);
+    if (!newMini) return;
+    const newCount = myoMiniCountRef.current + 1;
+    myoMiniCountRef.current = newCount;
+    setMyoMiniCount(newCount);
+    setExerciseStates((prev) => {
+      const next = [...prev];
+      const exNext = { ...next[currentExerciseIndex] };
+      exNext.sets = [
+        ...exNext.sets,
+        {
+          setLogId:      newMini.id,
+          setNumber:     newMini.setNumber,
+          targetWeight:  newMini.targetWeight,
+          targetReps:    newMini.targetReps,
+          repsCompleted: "",
+          weightUsed:    String(ex.targetWeight), // pre-fill same weight
+          feedback:      null,
+          setType:       'myo_mini',
+          myoGroupId:    myoGroupId,
+        },
+      ];
+      next[currentExerciseIndex] = exNext;
+      return next;
+    });
+  }
+
+  function terminateMyoBlock() {
+    if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
+    setMyoRestActive(false);
+    setMyoActive(false);
+    myoUsedThisSessionRef.current = true;
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+
+  // Detect when a myo set gets feedback → drive the state machine
+  useEffect(() => {
+    if (!myoActive || !myoGroupId || myoRestActive) return;
+    const ex = exerciseStatesRef.current[currentExerciseIndex];
+    if (!ex) return;
+    const myoSets = ex.sets.filter((s) => s.myoGroupId === myoGroupId);
+    if (myoSets.length === 0) return;
+    const last = myoSets[myoSets.length - 1];
+    if (!last.feedback) return; // not completed yet
+    if (last.setType === 'myo_activation') {
+      startMyoRestTimer();
+    } else if (last.setType === 'myo_mini') {
+      const reps = parseInt(last.repsCompleted) || 0;
+      if (reps < MYO_MIN_REPS || myoMiniCountRef.current >= MYO_MAX_MINI_SETS) {
+        terminateMyoBlock();
+      } else {
+        startMyoRestTimer();
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseStates, myoActive, myoRestActive]);
+
+  // Reset active myo block when user navigates away from an exercise mid-block
+  useEffect(() => {
+    if (myoActive) {
+      if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
+      setMyoRestActive(false);
+      setMyoActive(false);
+      setMyoGroupId(null);
+      myoMiniCountRef.current = 0;
+      setMyoMiniCount(0);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentExerciseIndex]);
+
+  // Myo recommendation — check when current exercise changes
+  useEffect(() => {
+    setMyoRecommendVisible(false); // reset on every exercise change
+    if (exerciseStates.length === 0 || myoActive || myoUsedThisSessionRef.current) return;
+    const ex = exerciseStates[currentExerciseIndex];
+    if (!ex) return;
+    // Only recommend on the last exercise
+    if (currentExerciseIndex !== exerciseStates.length - 1) return;
+    // Eligibility
+    if (!isMyoEligible(ex.exercise.category, ex.exercise.name)) return;
+    // Skip on deload week
+    if (plan && ((plan.currentWeek - 1) % 4) + 1 === 4) return;
+    // Check skip count from AsyncStorage
+    AsyncStorage.getItem(`myo_skip_${ex.exerciseId}`).then((raw) => {
+      const count = parseInt(raw ?? "0");
+      if (count < 3) setMyoRecommendVisible(true);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentExerciseIndex, exerciseStates.length]);
+
   if (isLoading || exerciseStates.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: "center", alignItems: "center" }}>
@@ -1192,6 +1375,15 @@ export default function WorkoutScreen() {
   const allSessionComplete = exerciseStates.every(isExerciseComplete);
   const isBodyweight = currentEx.exercise.equipment === "BODYWEIGHT";
   const isWeightedBW = currentEx.exercise.equipment === "WEIGHTED_BODYWEIGHT";
+
+  // In DP mode show "min–max" rep range instead of a fixed target
+  function getRepDisplay(targetReps: number): string {
+    if (progressionMode === "double_progression" && plan) {
+      const [minR, maxR] = getDPRepRange(currentEx.exercise.category, plan.goalType as any);
+      return `${minR}–${maxR}`;
+    }
+    return String(targetReps);
+  }
   const allSetsLogged = currentEx.sets.every((s) =>
     isBodyweight ? s.repsCompleted !== "" : s.repsCompleted !== "" && s.weightUsed !== ""
   );
@@ -1383,7 +1575,7 @@ export default function WorkoutScreen() {
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
+        <View style={{ flexDirection: "row", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
             {currentEx.exercise.category}
           </Text>
@@ -1397,7 +1589,63 @@ export default function WorkoutScreen() {
             termKey="RIR"
             style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}
           />
+          {progressionMode === "double_progression" && (
+            <>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>|</Text>
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}>
+                DP
+              </Text>
+            </>
+          )}
         </View>
+
+        {/* ── Myo-rep Recommendation Card ── */}
+        {myoRecommendVisible && !myoActive && (
+          <View style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderWidth: 1,
+            borderColor: "#F59E0B55",
+            borderLeftWidth: 3,
+            borderLeftColor: "#F59E0B",
+            backgroundColor: "#F59E0B0D",
+          }}>
+            <Text style={{ fontSize: 16 }}>〰</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}>
+                Classic Myo-rep exercise
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 2 }}>
+                Finish strong — activation set + mini-sets for maximum effective reps.
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => { activateMyoMode(); }}
+              style={{ paddingHorizontal: 10, paddingVertical: 6, backgroundColor: "#F59E0B", marginLeft: 4 }}
+            >
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#000", textTransform: "uppercase", letterSpacing: 1 }}>
+                Try
+              </Text>
+            </Pressable>
+            <Pressable
+              hitSlop={10}
+              onPress={() => {
+                setMyoRecommendVisible(false);
+                const exId = currentEx.exerciseId;
+                AsyncStorage.getItem(`myo_skip_${exId}`).then((raw) => {
+                  const count = parseInt(raw ?? "0") + 1;
+                  AsyncStorage.setItem(`myo_skip_${exId}`, String(count));
+                });
+              }}
+            >
+              <Ionicons name="close" size={16} color={Colors.textMuted} />
+            </Pressable>
+          </View>
+        )}
 
         {/* ── Previous Session Banner ── */}
         {currentEx.prevSets && currentEx.prevSets.length > 0 && (
@@ -1512,29 +1760,96 @@ export default function WorkoutScreen() {
             const isSetDone = isBodyweight
               ? set.repsCompleted !== ""
               : set.repsCompleted !== "" && set.weightUsed !== "";
+            const isMyo = set.setType === 'myo_activation' || set.setType === 'myo_mini';
+            const myoAccent = "#F59E0B";
+            // Show myo rest timer between completed myo set and next pending mini-set
+            const isLastMyoCompletedBeforeRest =
+              myoRestActive &&
+              set.feedback !== null &&
+              isMyo &&
+              si === currentEx.sets.length - 1;
             return (
               <View key={set.setLogId}>
+                {/* Myo rest timer — inline amber countdown */}
+                {isLastMyoCompletedBeforeRest && (
+                  <View style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    backgroundColor: "#F59E0B11",
+                    borderLeftWidth: 3,
+                    borderLeftColor: myoAccent,
+                    marginBottom: 2,
+                  }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Text style={{ fontSize: 14 }}>〰</Text>
+                      <View>
+                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: myoAccent, textTransform: "uppercase", letterSpacing: 1 }}>
+                          Rest — breathe deep
+                        </Text>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textSecondary, marginTop: 1 }}>
+                          Mini-set incoming · aim for 3–5 reps
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: myoAccent, fontVariant: ["tabular-nums"] }}>
+                        {myoRestSecsLeft}s
+                      </Text>
+                      <Pressable
+                        hitSlop={10}
+                        onPress={() => {
+                          if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
+                          setMyoRestActive(false);
+                          appendMyoMiniSet();
+                        }}
+                      >
+                        <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: myoAccent, textTransform: "uppercase", letterSpacing: 1 }}>
+                          Skip
+                        </Text>
+                      </Pressable>
+                      <Pressable hitSlop={10} onPress={terminateMyoBlock}>
+                        <Ionicons name="stop-circle-outline" size={18} color={Colors.textMuted} />
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
                 <View
                   style={{
                     flexDirection: "row",
                     borderBottomWidth: si < currentEx.sets.length - 1 || set.feedback ? 1 : 0,
-                    borderBottomColor: Colors.border,
+                    borderBottomColor: isMyo ? myoAccent + "33" : Colors.border,
                     alignItems: "center",
+                    borderLeftWidth: set.setType === 'myo_activation' ? 3 : set.setType === 'myo_mini' ? 2 : 0,
+                    borderLeftColor: myoAccent,
+                    backgroundColor: isMyo ? "#F59E0B07" : "transparent",
                   }}
                 >
-                  <View style={{ width: 40, paddingVertical: 10, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
-                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: isSetDone ? Colors.success : Colors.text }}>
-                      {set.setNumber}
-                    </Text>
+                  <View style={{ width: 40, paddingVertical: 10, alignItems: "center", borderRightWidth: 1, borderRightColor: isMyo ? "#F59E0B33" : Colors.border }}>
+                    {set.setType === 'myo_activation' ? (
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center" }}>
+                        ACT
+                      </Text>
+                    ) : set.setType === 'myo_mini' ? (
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#F59E0B", textTransform: "uppercase" }}>
+                        {`M${currentEx.sets.slice(0, si + 1).filter(s => s.setType === 'myo_mini').length}`}
+                      </Text>
+                    ) : (
+                      <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: isSetDone ? Colors.success : Colors.text }}>
+                        {set.setNumber}
+                      </Text>
+                    )}
                   </View>
 
                   <View style={{ flex: 1, paddingVertical: 10, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
                       {isBodyweight
-                        ? `BW × ${set.targetReps}`
+                        ? `BW × ${getRepDisplay(set.targetReps)}`
                         : isWeightedBW
-                          ? (set.targetWeight > 0 ? `BW+${set.targetWeight} × ${set.targetReps}` : `BW × ${set.targetReps}`)
-                          : `${set.targetWeight} ${unit} × ${set.targetReps}`}
+                          ? (set.targetWeight > 0 ? `BW+${set.targetWeight} × ${getRepDisplay(set.targetReps)}` : `BW × ${getRepDisplay(set.targetReps)}`)
+                          : `${set.targetWeight} ${unit} × ${getRepDisplay(set.targetReps)}`}
                     </Text>
                   </View>
 
@@ -1718,28 +2033,69 @@ export default function WorkoutScreen() {
                 {currentEx.sets.length} {currentEx.sets.length === 1 ? "Set" : "Sets"}
               </Text>
 
-              {/* Add set */}
-              <Pressable
-                onPress={() => setSetManageModal('add')}
-                hitSlop={12}
-                style={({ pressed }) => ({
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 5,
-                  opacity: pressed ? 0.7 : 1,
-                })}
-              >
-                <Text style={{
-                  fontFamily: "Rubik_500Medium",
-                  fontSize: 10,
-                  color: Colors.primary,
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
-                }}>
-                  Add Set
-                </Text>
-                <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
-              </Pressable>
+              {/* Add set / Myo button */}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                {/* Myo-reps toggle */}
+                {!myoActive && isMyoEligible(currentEx.exercise.category, currentEx.exercise.name) ? (
+                  <Pressable
+                    onPress={activateMyoMode}
+                    hitSlop={12}
+                    style={({ pressed }) => ({
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderWidth: 1,
+                      borderColor: "#F59E0B55",
+                      backgroundColor: "#F59E0B0D",
+                      opacity: pressed ? 0.7 : 1,
+                    })}
+                  >
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#F59E0B", letterSpacing: 0.5 }}>〰 MYO</Text>
+                  </Pressable>
+                ) : myoActive ? (
+                  <Pressable
+                    onPress={terminateMyoBlock}
+                    hitSlop={12}
+                    style={({ pressed }) => ({
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderWidth: 1,
+                      borderColor: "#F59E0B",
+                      backgroundColor: "#F59E0B22",
+                      opacity: pressed ? 0.7 : 1,
+                    })}
+                  >
+                    <Ionicons name="stop-circle-outline" size={12} color="#F59E0B" />
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#F59E0B", letterSpacing: 0.5 }}>STOP MYO</Text>
+                  </Pressable>
+                ) : null}
+                <Pressable
+                  onPress={() => setSetManageModal('add')}
+                  hitSlop={12}
+                  style={({ pressed }) => ({
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text style={{
+                    fontFamily: "Rubik_500Medium",
+                    fontSize: 10,
+                    color: Colors.primary,
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                  }}>
+                    Add Set
+                  </Text>
+                  <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
+                </Pressable>
+              </View>
             </View>
           );
         })()}
