@@ -1471,8 +1471,8 @@ export default function WorkoutScreen() {
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
                     per DB
                   </Text>
-                ) : (
-                  /* Barbell / cable / machine — show plate calculator trigger */
+                ) : currentEx.exercise.equipment === "BARBELL" ? (
+                  /* Barbell only — show plate calculator trigger */
                   <Pressable
                     onPress={() => {
                       const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
@@ -1493,6 +1493,11 @@ export default function WorkoutScreen() {
                     </Text>
                     <Ionicons name="barbell-outline" size={10} color={Colors.primary} />
                   </Pressable>
+                ) : (
+                  /* Cable / machine / other — plain unit label */
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {unit}
+                  </Text>
                 )}
               </View>
             )}
@@ -1625,8 +1630,8 @@ export default function WorkoutScreen() {
           })}
         </View>
 
-        {/* Plate calculator shortcut — barbell/cable/machine only; not dumbbells or bodyweight */}
-        {!isBodyweight && !isWeightedBW && currentEx.exercise.equipment !== "DUMBBELL" && (
+        {/* Plate calculator shortcut — barbell only */}
+        {!isBodyweight && !isWeightedBW && currentEx.exercise.equipment === "BARBELL" && (
           <Pressable
             onPress={() => {
               const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";

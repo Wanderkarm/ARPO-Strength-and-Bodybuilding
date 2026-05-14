@@ -56,10 +56,10 @@ export const exercises: ExerciseSeed[] = [
   { name: "Standing Barbell Shoulder Press", category: "VERTICAL PUSH", equipment: "BARBELL", defaultVideoUrl: "https://youtu.be/GGpArq725ls" },
   { name: "Seated Barbell Shoulder Press", category: "VERTICAL PUSH", equipment: "BARBELL", defaultVideoUrl: "https://youtu.be/GGpArq725ls" },
   { name: "Machine Shoulder Press", category: "VERTICAL PUSH", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/Wqq43dKnIBs" },
-  { name: "Machine Lateral Raise", category: "VERTICAL PUSH", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/FeJP4E4Z-PY" },
-  { name: "Cable Lateral Raise", category: "VERTICAL PUSH", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/PPrzBWZDOhA" },
+  { name: "Machine Lateral Raise", category: "LATERAL DELTS", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/FeJP4E4Z-PY" },
+  { name: "Cable Lateral Raise", category: "LATERAL DELTS", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/PPrzBWZDOhA" },
   { name: "Dumbbell Shoulder Press", category: "VERTICAL PUSH", equipment: "DUMBBELL", defaultVideoUrl: "https://youtu.be/qEwKCR5JCog" },
-  { name: "Dumbbell Lateral Raise", category: "VERTICAL PUSH", equipment: "DUMBBELL", defaultVideoUrl: "https://youtu.be/OuG1smZTsQQ" },
+  { name: "Dumbbell Lateral Raise", category: "LATERAL DELTS", equipment: "DUMBBELL", defaultVideoUrl: "https://youtu.be/OuG1smZTsQQ" },
   { name: "Dumbbell Arnold Press", category: "VERTICAL PUSH", equipment: "DUMBBELL", defaultVideoUrl: "https://youtu.be/6Z15_WdXmVw" },
   { name: "Bodyweight Pike Push Up", category: "VERTICAL PUSH", equipment: "BODYWEIGHT", defaultVideoUrl: "https://youtu.be/sposDXWEB0A" },
   { name: "Barbell Bent Over Row", category: "HORIZONTAL BACK", equipment: "BARBELL", defaultVideoUrl: "https://youtu.be/G8lXvS0nUSQ" },
@@ -113,7 +113,7 @@ export const exercises: ExerciseSeed[] = [
   { name: "Barbell Walking Lunge", category: "QUADS", equipment: "BARBELL", defaultVideoUrl: "https://youtu.be/eFWCn5iEbTU" },
   { name: "45 Degree Back Raise", category: "HAMSTRINGS", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/5_ejbGfdAQE" },
   { name: "Underhand Pulldown", category: "VERTICAL BACK", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/VwtzEivlNwg" },
-  { name: "Cable Upright Row", category: "VERTICAL PUSH", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/um3VVzqunPU" },
+  { name: "Cable Upright Row", category: "LATERAL DELTS", equipment: "MACHINE", defaultVideoUrl: "https://youtu.be/um3VVzqunPU" },
   { name: "Dumbbell Twist Curl", category: "BICEPS", equipment: "DUMBBELL", defaultVideoUrl: "https://youtu.be/in7PaeYlhrM" },
 ];
 

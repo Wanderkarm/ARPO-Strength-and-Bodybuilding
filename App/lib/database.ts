@@ -55,6 +55,14 @@ export async function initializeSchema() {
   // ── v4: right thigh measurement ───────────────────────────────────────────────
   await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN right_thigh_cm REAL`).catch(() => {});
 
+  // ── v6: fix lateral raise exercises wrongly categorised as VERTICAL PUSH ────────
+  // Lateral raises use OHP × 0.35; VERTICAL PUSH used OHP × 1.0 → ~3× too heavy.
+  await database.execAsync(
+    `UPDATE exercises SET category = 'LATERAL DELTS'
+     WHERE name IN ('Machine Lateral Raise','Cable Lateral Raise','Dumbbell Lateral Raise','Cable Upright Row')
+       AND category = 'VERTICAL PUSH'`
+  ).catch(() => {});
+
   // ── v5: fix body_fat_pct values stored as decimal fraction instead of percentage ──
   // Apple Health syncs before the * 100 conversion was added stored 0.135 instead of 13.5.
   // Any value < 1.0 is a fraction (real body fat is always >= 3%) — multiply by 100.
