@@ -2,7 +2,7 @@ import * as Crypto from "expo-crypto";
 import { getDb, initializeSchema } from "./database";
 import { exercises as exerciseSeedData, templates as templateSeedData } from "./seed-data";
 import { getCategoryWeight, baselineWeightsFromMap, type BaselineWeights } from "@/utils/categoryWeightMap";
-import { calculateNextWeekTargets, getRepTarget, type GoalType } from "@/utils/progressionAlgorithm";
+import { calculateNextWeekTargets, getRepTarget, getDPRepRange, type GoalType, type ProgressionMode } from "@/utils/progressionAlgorithm";
 
 function generateId(): string {
   return Crypto.randomUUID();
@@ -226,6 +226,8 @@ export interface Template {
   days: TemplateDay[];
 }
 
+export type SetType = 'normal' | 'warmup' | 'drop_set' | 'myo_activation' | 'myo_mini';
+
 export interface SetLogData {
   id: string;
   setNumber: number;
@@ -234,6 +236,8 @@ export interface SetLogData {
   repsCompleted: number | null;
   weightUsed: number | null;
   completedAt: string | null;
+  setType: SetType;
+  myoGroupId: string | null;
 }
 
 export interface WorkoutLog {
@@ -485,18 +489,26 @@ export async function updateUserUnit(userId: string, unit: 'lbs' | 'kg'): Promis
 
 export async function getUserProfile(userId: string): Promise<{
   gender: string; bodyweight: number | null; experience: string; weightUnit: 'lbs' | 'kg';
+  progressionMode: ProgressionMode;
 } | null> {
   const db = getDb();
   const row = await db.getFirstAsync<{
     gender: string; bodyweight: number | null; experience: string; weight_unit: string;
-  }>("SELECT gender, bodyweight, experience, weight_unit FROM users WHERE id = ?", [userId]);
+    progression_mode: string | null;
+  }>("SELECT gender, bodyweight, experience, weight_unit, progression_mode FROM users WHERE id = ?", [userId]);
   if (!row) return null;
   return {
     gender: row.gender,
     bodyweight: row.bodyweight,
     experience: row.experience,
     weightUnit: (row.weight_unit as 'lbs' | 'kg') ?? 'lbs',
+    progressionMode: (row.progression_mode as ProgressionMode) ?? 'arpo',
   };
+}
+
+export async function updateUserProgressionMode(userId: string, mode: ProgressionMode): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE users SET progression_mode = ? WHERE id = ?", [mode, userId]);
 }
 
 export async function updateUserBodyweight(userId: string, bodyweight: number): Promise<void> {
@@ -943,6 +955,7 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
     const setRows = await db.getAllAsync<{
       id: string; set_number: number; target_weight: number; target_reps: number;
       reps_completed: number | null; weight_used: number | null; completed_at: string | null;
+      set_type: string | null; myo_group_id: string | null;
     }>(
       "SELECT * FROM set_logs WHERE workout_log_id = ? ORDER BY set_number ASC",
       [log.id]
@@ -987,6 +1000,8 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
         repsCompleted: s.reps_completed,
         weightUsed: s.weight_used,
         completedAt: s.completed_at,
+        setType: (s.set_type as SetType) ?? 'normal',
+        myoGroupId: s.myo_group_id ?? null,
       })),
     });
   }
@@ -1060,6 +1075,11 @@ export async function skipSession(
 
   const skipGoalType: GoalType = (plan.goal_type as GoalType) ?? "hypertrophy";
   const userUnit = await getUserUnit(plan.user_id);
+
+  const skipUserRow = await db.getFirstAsync<{ progression_mode: string | null }>(
+    "SELECT progression_mode FROM users WHERE id = ?", [plan.user_id]
+  );
+  const skipProgressionMode: ProgressionMode = (skipUserRow?.progression_mode as ProgressionMode) ?? "arpo";
 
   const totalDaysResult = await db.getFirstAsync<{ count: number }>(
     "SELECT COUNT(*) as count FROM template_days WHERE template_id = ?",
@@ -1173,7 +1193,7 @@ export async function skipSession(
           repGoal: repGoal1,
           sorenessRating: sorenessResult?.soreness_rating ?? 0,
           goalType: skipGoalType,
-        });
+        }, skipProgressionMode);
         nextSets = targets.targetSets;
         if (log.equipment === "DUMBBELL") {
           nextWeight = snapDumbbellWeight(targets.targetWeight);
@@ -1191,7 +1211,9 @@ export async function skipSession(
         [logId, workoutPlanId, log.exercise_id, nextWeek, log.day_number, nextSets, nextWeight, rir]
       );
 
-      const skipRepTarget = getRepTarget(exercise?.category || "HORIZONTAL PUSH", skipGoalType);
+      const skipRepTarget = skipProgressionMode === "double_progression"
+        ? getDPRepRange(exercise?.category || "HORIZONTAL PUSH", skipGoalType)[0]
+        : getRepTarget(exercise?.category || "HORIZONTAL PUSH", skipGoalType);
       for (let s = 1; s <= nextSets; s++) {
         const setId = generateId();
         await db.runAsync(
@@ -1567,6 +1589,11 @@ export async function completeWorkout(
   const planGoalType: GoalType = (plan.goal_type as GoalType) ?? "hypertrophy";
   const userUnit = await getUserUnit(plan.user_id);
 
+  const planUserRow = await db.getFirstAsync<{ progression_mode: string | null }>(
+    "SELECT progression_mode FROM users WHERE id = ?", [plan.user_id]
+  );
+  const planProgressionMode: ProgressionMode = (planUserRow?.progression_mode as ProgressionMode) ?? "arpo";
+
   const totalDaysResult = await db.getFirstAsync<{ count: number }>(
     "SELECT COUNT(*) as count FROM template_days WHERE template_id = ?",
     [plan.template_id]
@@ -1649,7 +1676,7 @@ export async function completeWorkout(
       sorenessRating: ex.sorenessRating,
       pumpRating: ex.pumpRating ?? null,
       goalType: planGoalType,
-    });
+    }, planProgressionMode);
     nextWeekTargets.push({
       ...nextTargets,
       exerciseName: ex.exerciseName ?? `Exercise ${i + 1}`,
@@ -1768,7 +1795,7 @@ export async function completeWorkout(
         sorenessRating: log.soreness_rating ?? 0,
         pumpRating: log.pump_rating ?? null,
         goalType: planGoalType,
-      });
+      }, planProgressionMode);
 
       // Snap targets to real loadable increments
       if (log.equipment === "DUMBBELL") {
@@ -2820,6 +2847,45 @@ export async function removeLastSetFromLog(workoutLogId: string): Promise<boolea
   await db.runAsync("DELETE FROM set_logs WHERE id = ?", [lastSet.id]);
   await db.runAsync("UPDATE workout_logs SET target_sets = target_sets - 1 WHERE id = ?", [workoutLogId]);
   return true;
+}
+
+/**
+ * Converts a normal set_log row to a myo-rep activation set in place.
+ * Called when the user taps 〰 Myo on an active set.
+ */
+export async function convertSetToMyoActivation(setLogId: string, myoGroupId: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync(
+    "UPDATE set_logs SET set_type = 'myo_activation', myo_group_id = ? WHERE id = ?",
+    [myoGroupId, setLogId]
+  );
+}
+
+/**
+ * Appends a myo mini-set row to a workout_log.
+ * Called automatically after each myo rest period expires.
+ */
+export async function addMyoMiniSet(
+  workoutLogId: string,
+  targetWeight: number,
+  myoGroupId: string,
+): Promise<{ id: string; setNumber: number; targetWeight: number; targetReps: number } | null> {
+  const db = getDb();
+  const lastSet = await db.getFirstAsync<{ set_number: number }>(
+    "SELECT set_number FROM set_logs WHERE workout_log_id = ? ORDER BY set_number DESC LIMIT 1",
+    [workoutLogId]
+  );
+  if (!lastSet) return null;
+
+  const newSetNumber = lastSet.set_number + 1;
+  const id = Crypto.randomUUID();
+  const targetReps = 5; // standard myo mini-set target
+  await db.runAsync(
+    `INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps, set_type, myo_group_id)
+     VALUES (?, ?, ?, ?, ?, 'myo_mini', ?)`,
+    [id, workoutLogId, newSetNumber, targetWeight, targetReps, myoGroupId]
+  );
+  return { id, setNumber: newSetNumber, targetWeight, targetReps };
 }
 
 /**

@@ -103,6 +103,9 @@ export default function OnboardingScreen() {
   // Step: goals — activity
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
 
+  // Step: goals — progression method
+  const [progressionMode, setProgressionMode] = useState<"arpo" | "double_progression">("arpo");
+
   // Step: pace — deficit/surplus aggressiveness (cut/bulk only)
   const [deficitPace, setDeficitPace] = useState<"slow" | "moderate" | "aggressive">("moderate");
 
@@ -189,6 +192,11 @@ export default function OnboardingScreen() {
       // 2. Create user record + weight baselines
       const user = await createUser(gender, bw, experience, weights, weightUnit);
       await AsyncStorage.setItem("userId", user.id);
+      // Save progression preference chosen during onboarding
+      if (progressionMode === "double_progression") {
+        const { updateUserProgressionMode } = await import("@/lib/local-db");
+        await updateUserProgressionMode(user.id, progressionMode);
+      }
       await AsyncStorage.setItem("userGender", gender);
       if (bodyGoal !== "recomp") {
         await AsyncStorage.setItem("nutritionPace", deficitPace);
@@ -741,6 +749,62 @@ export default function OnboardingScreen() {
                 </View>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: activityLevel === key ? Colors.primary : Colors.textMuted }}>
                   ×{val.multiplier}
+                </Text>
+              </Pressable>
+            ))}
+
+            <View style={{ height: 24 }} />
+
+            {/* ── Progression Method ── */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
+              Progression Method
+            </Text>
+
+            {([
+              {
+                key: "arpo" as const,
+                label: "ARPO",
+                subtitle: "Autoregulated Progressive Overload",
+                description: "Adjusts your volume each week based on pump quality and soreness — backed by research on fatigue management. Great default for most lifters.",
+                accentColor: Colors.primary,
+              },
+              {
+                key: "double_progression" as const,
+                label: "Double Progression",
+                subtitle: "Rep → Weight ladder",
+                description: "Hold the weight and chase the top rep of your range across all sets. Hit it → add weight, reset to the bottom. Simple and battle-tested for strength.",
+                accentColor: "#F59E0B",
+              },
+            ]).map((m) => (
+              <Pressable
+                key={m.key}
+                onPress={() => { haptic(); setProgressionMode(m.key); }}
+                style={({ pressed }) => ({
+                  borderWidth: 1,
+                  borderColor: progressionMode === m.key ? m.accentColor : Colors.border,
+                  borderLeftWidth: 3,
+                  borderLeftColor: m.accentColor,
+                  backgroundColor: progressionMode === m.key ? m.accentColor + "11" : Colors.bg,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  marginBottom: 10,
+                  gap: 4,
+                  opacity: pressed ? 0.8 : 1,
+                })}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View>
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: progressionMode === m.key ? m.accentColor : Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                      {m.label}
+                    </Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                      {m.subtitle}
+                    </Text>
+                  </View>
+                  {progressionMode === m.key && <Ionicons name="checkmark-circle" size={20} color={m.accentColor} />}
+                </View>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginTop: 6 }}>
+                  {m.description}
                 </Text>
               </Pressable>
             ))}

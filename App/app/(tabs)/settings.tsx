@@ -28,6 +28,7 @@ import {
   updateUserUnit,
   updateUserBodyweight,
   updatePlanGoalType,
+  updateUserProgressionMode,
   switchGymType,
   getAllExercises,
   getWorkoutPlan,
@@ -35,6 +36,7 @@ import {
   type GymType,
 } from "@/lib/local-db";
 import type { GoalType } from "@/utils/volumeLandmarks";
+import type { ProgressionMode } from "@/utils/progressionAlgorithm";
 import {
   loadNotificationPrefs,
   scheduleReminder,
@@ -148,6 +150,7 @@ export default function SettingsScreen() {
 
   // Plan settings
   const [goalType, setGoalType] = useState<GoalType>("hypertrophy");
+  const [progressionMode, setProgressionMode] = useState<ProgressionMode>("arpo");
   const [gymType, setGymType] = useState<GymType>("GYM");
   const [templateName, setTemplateName] = useState("");
   const [currentWeek, setCurrentWeek] = useState(1);
@@ -197,6 +200,7 @@ export default function SettingsScreen() {
         if (profile) {
           setGender(profile.gender);
           setExperience(profile.experience);
+          setProgressionMode(profile.progressionMode ?? "arpo");
           // Prefer most recent weigh-in log; fall back to onboarding profile value
           if (latestWeightKg !== null) {
             const displayWeight =
@@ -279,6 +283,35 @@ export default function SettingsScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  // ── Progression mode change ──────────────────────────────────────────────
+
+  async function handleProgressionModeChange(newMode: ProgressionMode) {
+    if (!userId || newMode === progressionMode) return;
+    const label = newMode === "double_progression" ? "Double Progression" : "ARPO (Autoregulation)";
+    Alert.alert(
+      "Change Progression Method?",
+      `Switching to ${label} will affect how targets are calculated from the next session onward.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Switch",
+          onPress: async () => {
+            setSaving(true);
+            try {
+              await updateUserProgressionMode(userId, newMode);
+              setProgressionMode(newMode);
+              if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (err) {
+              console.error(err);
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
   }
 
   // ── Goal type change ─────────────────────────────────────────────────────
@@ -599,6 +632,73 @@ export default function SettingsScreen() {
                     {goalType === g.key && (
                       <Ionicons name="checkmark-circle" size={18} color={g.accentColor} />
                     )}
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Progression Method */}
+            <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
+              <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2 }}>
+                Progression Method
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12 }}>
+                How your weights and reps advance each week
+              </Text>
+              <View style={{ gap: 6 }}>
+                {([
+                  {
+                    key: "arpo" as ProgressionMode,
+                    label: "ARPO",
+                    subtitle: "Autoregulated Progressive Overload",
+                    description: "Adjusts volume using pump & soreness signals. Backed by Schoenfeld 2010 and Helms et al. — ideal for hypertrophy and lifters who want built-in fatigue management.",
+                    accentColor: Colors.primary,
+                  },
+                  {
+                    key: "double_progression" as ProgressionMode,
+                    label: "Double Progression",
+                    subtitle: "Rep → Weight ladder",
+                    description: "Hold weight and chase the top of your rep range across all sets. Once you hit it, increase load and reset to the bottom. Simple, proven, and great for strength focus.",
+                    accentColor: "#F59E0B",
+                  },
+                ] as const).map((m) => (
+                  <Pressable
+                    key={m.key}
+                    onPress={() => handleProgressionModeChange(m.key)}
+                    style={({ pressed }) => ({
+                      borderWidth: 1,
+                      borderColor: progressionMode === m.key ? m.accentColor : Colors.border,
+                      borderLeftWidth: 3,
+                      borderLeftColor: m.accentColor,
+                      paddingHorizontal: 14,
+                      paddingVertical: 12,
+                      backgroundColor: progressionMode === m.key ? m.accentColor + "11" : Colors.bg,
+                      opacity: pressed ? 0.8 : 1,
+                      gap: 4,
+                    })}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <View>
+                        <Text style={{
+                          fontFamily: "Rubik_700Bold",
+                          fontSize: 12,
+                          color: progressionMode === m.key ? m.accentColor : Colors.text,
+                          textTransform: "uppercase",
+                          letterSpacing: 1,
+                        }}>
+                          {m.label}
+                        </Text>
+                        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 1 }}>
+                          {m.subtitle}
+                        </Text>
+                      </View>
+                      {progressionMode === m.key && (
+                        <Ionicons name="checkmark-circle" size={18} color={m.accentColor} />
+                      )}
+                    </View>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 16, marginTop: 4 }}>
+                      {m.description}
+                    </Text>
                   </Pressable>
                 ))}
               </View>

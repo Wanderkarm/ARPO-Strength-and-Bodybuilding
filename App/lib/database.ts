@@ -48,6 +48,13 @@ export async function initializeSchema() {
   // ── v3: training schedule ────────────────────────────────────────────────────
   await database.execAsync(`ALTER TABLE workout_plans ADD COLUMN training_days TEXT`).catch(() => {});
 
+  // ── v7: progression mode ──────────────────────────────────────────────────────
+  await database.execAsync(`ALTER TABLE users ADD COLUMN progression_mode TEXT NOT NULL DEFAULT 'arpo'`).catch(() => {});
+
+  // ── v8: myo-rep set types ─────────────────────────────────────────────────────
+  await database.execAsync(`ALTER TABLE set_logs ADD COLUMN set_type TEXT NOT NULL DEFAULT 'normal'`).catch(() => {});
+  await database.execAsync(`ALTER TABLE set_logs ADD COLUMN myo_group_id TEXT`).catch(() => {});
+
   // Body composition columns — source tracks data origin for future smart scale / Health sync
   await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN body_fat_pct REAL`).catch(() => {});
   await database.execAsync(`ALTER TABLE body_measurements ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'`).catch(() => {});
@@ -79,6 +86,7 @@ export async function initializeSchema() {
     bodyweight REAL,
     experience TEXT NOT NULL DEFAULT 'BEGINNER',
     weight_unit TEXT NOT NULL DEFAULT 'lbs',
+    progression_mode TEXT NOT NULL DEFAULT 'arpo',
     current_streak INTEGER NOT NULL DEFAULT 0,
     longest_streak INTEGER NOT NULL DEFAULT 0,
     last_streak_date TEXT,
@@ -180,6 +188,8 @@ export async function initializeSchema() {
     reps_completed INTEGER,
     weight_used REAL,
     completed_at TEXT,
+    set_type TEXT NOT NULL DEFAULT 'normal',
+    myo_group_id TEXT,
     FOREIGN KEY (workout_log_id) REFERENCES workout_logs(id) ON DELETE CASCADE,
     UNIQUE(workout_log_id, set_number)
   );`).catch(e => console.error("[DB] set_logs:", e));

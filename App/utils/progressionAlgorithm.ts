@@ -17,6 +17,21 @@ const ISOLATION_CATEGORIES = [
 ];
 
 export type GoalType = "strength" | "powerbuilding" | "hypertrophy";
+export type ProgressionMode = "arpo" | "double_progression";
+
+// ─── Double Progression rep ranges [min, max] ─────────────────────────────────
+// Compounds: squats, presses, rows, pulls  |  Isolation: curls, raises, etc.
+const DP_REP_RANGES: Record<GoalType, { compound: [number, number]; isolation: [number, number] }> = {
+  strength:      { compound: [3, 5],  isolation: [6, 8]  },
+  powerbuilding: { compound: [5, 8],  isolation: [8, 12] },
+  hypertrophy:   { compound: [6, 10], isolation: [10, 15] },
+};
+
+export function getDPRepRange(category: string, goal: GoalType): [number, number] {
+  const cat = category.toUpperCase();
+  const isCompound = COMPOUND_CATEGORIES.includes(cat);
+  return DP_REP_RANGES[goal][isCompound ? "compound" : "isolation"];
+}
 
 const RIR_SCHEDULE_HYPERTROPHY: Record<number, string> = {
   1: "3 RIR", 2: "2 RIR", 3: "1 RIR", 4: "Deload",
@@ -69,28 +84,72 @@ interface NextWeekTargets {
   targetRIR: string;
 }
 
-export function calculateNextWeekTargets(result: WorkoutResult): NextWeekTargets {
+export function calculateNextWeekTargets(
+  result: WorkoutResult,
+  progressionMode: ProgressionMode = "arpo"
+): NextWeekTargets {
   const goal: GoalType = result.goalType ?? "hypertrophy";
   const nextWeek = result.weekNumber + 1;
   const cat = result.category.toUpperCase();
   const isLowerBody = LOWER_BODY_CATEGORIES.includes(cat);
   const soreness = result.sorenessRating ?? 0;
   const rirSchedule = getRIRSchedule(goal);
-  const nextRepTarget = getRepTarget(cat, goal);
+  const mesoWeek = ((nextWeek - 1) % 4) + 1;
+  const nextRIR = rirSchedule[mesoWeek] || rirSchedule[1];
 
-  // Deload week
+  // Weight increment sizes
+  const increment = goal === "strength"
+    ? (isLowerBody ? 2.5 : 1.25)
+    : (isLowerBody ? 5 : 2.5);
+
+  // ── Deload week (same for both modes) ────────────────────────────────────────
   if (nextWeek === 5 || (nextWeek > 4 && nextWeek % 4 === 1)) {
+    const [deloadMinReps] = getDPRepRange(cat, goal);
     return {
       exerciseId: result.exerciseId,
       weekNumber: nextWeek,
       targetSets: Math.max(2, Math.ceil(result.targetSets / 2)),
       targetWeight: Math.round((result.actualWeight * 0.85) / 2.5) * 2.5,
-      targetReps: nextRepTarget,
+      targetReps: progressionMode === "double_progression" ? deloadMinReps : getRepTarget(cat, goal),
       targetRIR: "Deload",
     };
   }
 
-  // Base next weight = what they actually lifted
+  // ── Double Progression branch ─────────────────────────────────────────────────
+  // Logic: hold weight and chase reps within [minReps, maxReps].
+  // Once all sets hit maxReps → cash in: weight += increment, reset to minReps.
+  // Sets stay fixed — volume is determined by the template, not fatigue signals.
+  if (progressionMode === "double_progression") {
+    const [minReps, maxReps] = getDPRepRange(cat, goal);
+    const repsCompleted = result.repsCompleted ?? 0;
+    const hitMax = repsCompleted >= maxReps;
+
+    if (hitMax) {
+      // Earned: increase weight, reset to bottom of range
+      return {
+        exerciseId: result.exerciseId,
+        weekNumber: nextWeek,
+        targetSets: result.targetSets,
+        targetWeight: result.actualWeight + increment,
+        targetReps: minReps,
+        targetRIR: nextRIR,
+      };
+    } else {
+      // Not yet: hold weight, nudge reps toward max
+      const nextReps = Math.max(Math.min(repsCompleted + 1, maxReps), minReps);
+      return {
+        exerciseId: result.exerciseId,
+        weekNumber: nextWeek,
+        targetSets: result.targetSets,
+        targetWeight: result.actualWeight,
+        targetReps: nextReps,
+        targetRIR: nextRIR,
+      };
+    }
+  }
+
+  // ── ARPO branch (original autoregulation logic) ───────────────────────────────
+  const nextRepTarget = getRepTarget(cat, goal);
   let nextWeight = result.actualWeight;
   let nextSets = result.targetSets;
 
@@ -105,25 +164,19 @@ export function calculateNextWeekTargets(result: WorkoutResult): NextWeekTargets
   if (pump !== null) {
     // Pump-informed decision (backed by Hirono et al. 2022, Schoenfeld & Contreras 2014)
     if (pump <= 2 && soreness >= 0) {
-      // Under-stimulated + well-recovered → add volume
       volumeSignal = "add";
     } else if (pump >= 5 || soreness <= -2) {
-      // Over-stimulated or severely fatigued → reduce volume
       volumeSignal = "reduce";
     } else if (pump === 4 && soreness <= -1) {
-      // High pump + some fatigue → err on side of recovery
       volumeSignal = "reduce";
     } else {
-      // Sweet spot (pump 3-4, soreness -1 to +2) → maintain
       volumeSignal = "hold";
     }
   } else {
-    // Fallback: soreness-only (original logic)
     if (soreness >= 1) volumeSignal = "add";
     else if (soreness <= -1) volumeSignal = "reduce";
   }
 
-  // Apply volume adjustment
   if (volumeSignal === "add") {
     nextSets = Math.min(result.targetSets + 1, 6);
   } else if (volumeSignal === "reduce") {
@@ -131,23 +184,12 @@ export function calculateNextWeekTargets(result: WorkoutResult): NextWeekTargets
     nextSets = Math.max(result.targetSets - drop, 1);
   }
 
-  // Weight increment — only if rep goal met and recovery OK
   const repGoalMet = result.repsCompleted !== null && result.repsCompleted >= result.repGoal;
   const recoveryOk = soreness >= 0;
 
   if (repGoalMet && recoveryOk) {
-    let increment: number;
-    if (goal === "strength") {
-      increment = isLowerBody ? 2.5 : 1.25;
-    } else {
-      // powerbuilding and hypertrophy
-      increment = isLowerBody ? 5 : 2.5;
-    }
     nextWeight = result.actualWeight + increment;
   }
-
-  const mesoWeek = ((nextWeek - 1) % 4) + 1;
-  const nextRIR = rirSchedule[mesoWeek] || rirSchedule[1];
 
   return {
     exerciseId: result.exerciseId,
