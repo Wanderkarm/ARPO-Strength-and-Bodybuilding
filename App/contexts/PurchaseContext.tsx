@@ -35,7 +35,7 @@ import Purchases, { LOG_LEVEL } from "react-native-purchases";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-const REVENUECAT_IOS_KEY    = "appl_NtywFdJvlsDyWsGxoutkBXqFaLk";
+const REVENUECAT_IOS_KEY: string = "appl_NtywFdJvlsDyWsGxoutkBXqFaLk";
 const ENTITLEMENT_ID        = "pro";
 export const TRIAL_WORKOUTS = 3;
 export const UNLOCK_PRICE_LABEL   = "$9.95";  // founder's price — raise to REGULAR_PRICE_LABEL after 500 sales

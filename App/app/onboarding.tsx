@@ -37,7 +37,7 @@ import { useUnit, type WeightUnit } from "@/contexts/UnitContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step = "welcome" | "unit" | "identity" | "physical" | "goals" | "target" | "pace" | "summary";
+type Step = "welcome" | "unit" | "identity" | "physical" | "goals" | "training" | "target" | "pace" | "summary";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -115,11 +115,11 @@ export default function OnboardingScreen() {
 
   // Dynamic step config — summary always last, target+pace only for cut/bulk
   const NUMBERED_STEPS: Step[] = bodyGoal === "recomp"
-    ? ["unit", "identity", "physical", "goals", "summary"]
-    : ["unit", "identity", "physical", "goals", "target", "pace", "summary"];
-  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 7 : 9;
-  // recomp: 5 onboarding + templates + weights = 7
-  // cut/bulk: 7 onboarding + templates + weights = 9
+    ? ["unit", "identity", "physical", "goals", "training", "summary"]
+    : ["unit", "identity", "physical", "goals", "training", "target", "pace", "summary"];
+  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 8 : 10;
+  // recomp: 6 onboarding + templates + weights = 8
+  // cut/bulk: 8 onboarding + templates + weights = 10
 
   // Estimated TDEE for summary screen
   const tdeeEstimate = useMemo(() => {
@@ -248,12 +248,14 @@ export default function OnboardingScreen() {
       setStep("identity");
     } else if (step === "goals") {
       setStep("physical");
-    } else if (step === "target") {
+    } else if (step === "training") {
       setStep("goals");
+    } else if (step === "target") {
+      setStep("training");
     } else if (step === "pace") {
       setStep("target");
     } else if (step === "summary") {
-      setStep(bodyGoal === "recomp" ? "goals" : "pace");
+      setStep(bodyGoal === "recomp" ? "training" : "pace");
     }
   }
 
@@ -662,14 +664,9 @@ export default function OnboardingScreen() {
       {step === "goals" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Your Goals</Text>
+            <Text style={titleStyle}>Your Goal</Text>
             <Text style={subtitleStyle}>
-              All optional — defaults are applied if skipped. You can change everything in Settings.
-            </Text>
-
-            {/* ── Body Goal ── */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              Body Goal
+              What are you training for? This shapes your nutrition targets and program structure.
             </Text>
 
             {BODY_GOALS.map(g => (
@@ -714,8 +711,19 @@ export default function OnboardingScreen() {
                 </Text>
               </View>
             )}
+          </ScrollView>
+          {continueBtn(() => { haptic(); setStep("training"); })}
+        </>
+      )}
 
-            <View style={{ height: bodyGoal === "recomp" ? 8 : 24 }} />
+      {/* ── TRAINING ────────────────────────────────────────────────────────── */}
+      {step === "training" && (
+        <>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+            <Text style={titleStyle}>Training Setup</Text>
+            <Text style={subtitleStyle}>
+              These two settings shape how your program progresses. Both can be changed anytime in Settings.
+            </Text>
 
             {/* ── Activity Level ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
@@ -753,7 +761,7 @@ export default function OnboardingScreen() {
               </Pressable>
             ))}
 
-            <View style={{ height: 24 }} />
+            <View style={{ height: 28 }} />
 
             {/* ── Progression Method ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
@@ -813,8 +821,6 @@ export default function OnboardingScreen() {
             () => {
               haptic();
               if (bodyGoal !== "recomp") {
-                // Pre-fill currentWeight from bodyweight so the user doesn't
-                // have to type their weight a second time on the target step
                 if (!currentWeight && bodyweight) setCurrentWeight(bodyweight);
                 setStep("target");
               } else {
