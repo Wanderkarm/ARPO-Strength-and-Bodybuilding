@@ -72,7 +72,7 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
-  const { isPurchased, trialWorkoutsRemaining } = usePurchase();
+  const { isPurchased, isTrialExpired, trialWorkoutsRemaining } = usePurchase();
 
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,7 +174,10 @@ export default function DashboardScreen() {
     setIsLoading(false);
   }, []);
 
-  useFocusEffect(useCallback(() => { loadPlan(); }, [loadPlan]));
+  useFocusEffect(useCallback(() => {
+    if (isTrialExpired) { router.replace("/paywall"); return; }
+    loadPlan();
+  }, [loadPlan, isTrialExpired]));
 
   // Silent background sync: refresh steps (and weight if not yet logged today)
   // whenever the app comes to the foreground.
