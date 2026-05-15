@@ -228,7 +228,7 @@ export default function DashboardScreen() {
             const result = await skipSession(plan.id, plan.currentWeek, plan.currentDay || 1);
             if (result.isMesoComplete) {
               await AsyncStorage.removeItem("activePlanId");
-              router.replace("/meso-complete");
+              router.replace({ pathname: "/meso-complete", params: { planId: plan.id } });
             } else {
               await loadPlan();
             }

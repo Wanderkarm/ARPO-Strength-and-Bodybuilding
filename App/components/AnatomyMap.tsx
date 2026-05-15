@@ -5,7 +5,7 @@ import { Exercise } from "@/lib/local-db";
 import { EXERCISE_METADATA } from "@/lib/exercise-metadata";
 import Colors from "@/constants/colors";
 
-const CRIMSON = "#C62828";
+const CRIMSON = Colors.primary;
 const INACTIVE_FILL = "#242424";
 const BODY_BORDER = "none";
 

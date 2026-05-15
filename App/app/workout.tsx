@@ -358,9 +358,12 @@ export default function WorkoutScreen() {
         } catch {}
       }
     });
-    // Track keyboard so we can hide the exercise guide during set entry
-    const kbShow = Keyboard.addListener("keyboardWillShow", () => setKeyboardVisible(true));
-    const kbHide = Keyboard.addListener("keyboardWillHide", () => setKeyboardVisible(false));
+    // Track keyboard so we can hide the exercise guide during set entry.
+    // iOS fires "Will" events (before animation); Android only fires "Did" events.
+    const kbShowEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const kbHideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const kbShow = Keyboard.addListener(kbShowEvent, () => setKeyboardVisible(true));
+    const kbHide = Keyboard.addListener(kbHideEvent, () => setKeyboardVisible(false));
     // Cleanup timers on unmount
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -916,8 +919,8 @@ export default function WorkoutScreen() {
   }
 
   async function handleConfirmRecovery() {
-    // Prevent double-complete: manual "Finish" tap and auto-finish timer can both
-    // fire within the same render cycle — the ref guard blocks the second call.
+    // Prevent double-complete: this ref is set synchronously (before any await) so
+    // JS's single-threaded event loop guarantees only the first caller proceeds.
     if (finishingRef.current) return;
     finishingRef.current = true;
     const planId = await AsyncStorage.getItem("activePlanId");
@@ -1387,9 +1390,10 @@ export default function WorkoutScreen() {
   const isBodyweight = currentEx.exercise.equipment === "BODYWEIGHT";
   const isWeightedBW = currentEx.exercise.equipment === "WEIGHTED_BODYWEIGHT";
 
-  // In DP mode show "min–max" rep range instead of a fixed target
-  function getRepDisplay(targetReps: number): string {
-    if (progressionMode === "double_progression" && plan) {
+  // In DP mode show "min–max" rep range instead of a fixed target.
+  // Myo-mini sets always show their own target (e.g. "3") — never the DP range.
+  function getRepDisplay(targetReps: number, isMyo = false): string {
+    if (!isMyo && progressionMode === "double_progression" && plan) {
       const [minR, maxR] = getDPRepRange(currentEx.exercise.category, plan.goalType as any);
       return `${minR}–${maxR}`;
     }
@@ -1403,7 +1407,7 @@ export default function WorkoutScreen() {
   ).length;
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
 
       {/* ── Watch reminder banner ── */}
       {watchBannerVisible && (
@@ -1441,7 +1445,31 @@ export default function WorkoutScreen() {
           borderBottomColor: Colors.border,
         }}
       >
-        <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} hitSlop={12}>
+        <Pressable
+          onPress={() => {
+            // Only prompt if the workout has started (at least one set logged)
+            const anyLogged = exerciseStates.some((ex) =>
+              ex.sets.some((s) => s.repsCompleted !== "")
+            );
+            if (!anyLogged || finishing) {
+              router.canGoBack() ? router.back() : router.replace("/(tabs)");
+              return;
+            }
+            Alert.alert(
+              "Leave Workout?",
+              "Your progress is saved and you can resume this workout later from the dashboard.",
+              [
+                { text: "Keep Going", style: "cancel" },
+                {
+                  text: "Leave",
+                  style: "destructive",
+                  onPress: () => router.canGoBack() ? router.back() : router.replace("/(tabs)"),
+                },
+              ]
+            );
+          }}
+          hitSlop={12}
+        >
           <Ionicons name="close" size={24} color={Colors.text} />
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
@@ -1856,11 +1884,13 @@ export default function WorkoutScreen() {
 
                   <View style={{ flex: 1, paddingVertical: 10, alignItems: "center", borderRightWidth: 1, borderRightColor: Colors.border }}>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
-                      {isBodyweight
-                        ? `BW × ${getRepDisplay(set.targetReps)}`
-                        : isWeightedBW
-                          ? (set.targetWeight > 0 ? `BW+${set.targetWeight} × ${getRepDisplay(set.targetReps)}` : `BW × ${getRepDisplay(set.targetReps)}`)
-                          : `${set.targetWeight} ${unit} × ${getRepDisplay(set.targetReps)}`}
+                      {(() => {
+                        const isMyo = set.setType === 'myo_activation' || set.setType === 'myo_mini';
+                        const repStr = getRepDisplay(set.targetReps, isMyo);
+                        if (isBodyweight) return `BW × ${repStr}`;
+                        if (isWeightedBW) return set.targetWeight > 0 ? `BW+${set.targetWeight} × ${repStr}` : `BW × ${repStr}`;
+                        return `${set.targetWeight} ${unit} × ${repStr}`;
+                      })()}
                     </Text>
                   </View>
 

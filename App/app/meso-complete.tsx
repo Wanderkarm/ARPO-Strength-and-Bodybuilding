@@ -6,6 +6,7 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
+import { useUnit } from "@/contexts/UnitContext";
 import {
   getMesoStats,
   createWorkoutPlanFromPrevious,
@@ -25,18 +27,24 @@ export default function MesoCompleteScreen() {
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const params = useLocalSearchParams<{ planId: string }>();
   const planId = params.planId || "";
+  const { unit } = useUnit();
 
   const [stats, setStats] = useState<MesoStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [runningBack, setRunningBack] = useState(false);
 
   useEffect(() => {
-    if (planId) {
-      getMesoStats(planId).then((s) => {
-        setStats(s);
-        setLoading(false);
-      });
+    if (!planId) {
+      // Defensive: no planId means we can't show stats — go home
+      router.replace("/(tabs)");
+      return;
     }
+    getMesoStats(planId).then((s) => {
+      setStats(s);
+      setLoading(false);
+    }).catch(() => {
+      router.replace("/(tabs)");
+    });
   }, [planId]);
 
   function formatVolume(vol: number): string {
@@ -55,12 +63,13 @@ export default function MesoCompleteScreen() {
     } catch (err) {
       console.error(err);
       setRunningBack(false);
+      Alert.alert("Error", "Couldn't start the new cycle. Please try again.", [{ text: "OK" }]);
     }
   }
 
-  function handleSelectNew() {
+  async function handleSelectNew() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    AsyncStorage.removeItem("activePlanId");
+    await AsyncStorage.removeItem("activePlanId");
     router.replace("/templates");
   }
 
@@ -181,7 +190,7 @@ export default function MesoCompleteScreen() {
                 marginTop: 2,
               }}
             >
-              lbs moved
+              {unit} moved
             </Text>
           </View>
 
@@ -269,10 +278,10 @@ export default function MesoCompleteScreen() {
                   Exercise
                 </Text>
                 <Text style={{ flex: 1, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  Wk 1
+                  Wk 1 ({unit})
                 </Text>
                 <Text style={{ flex: 1, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  Peak
+                  Peak ({unit})
                 </Text>
                 <Text style={{ flex: 1, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
                   +Gain

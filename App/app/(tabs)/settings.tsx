@@ -209,7 +209,12 @@ export default function SettingsScreen() {
                 : Math.round(latestWeightKg * 2.20462 * 10) / 10;
             setBodyweightInput(String(displayWeight));
           } else if (profile.bodyweight) {
-            setBodyweightInput(String(profile.bodyweight));
+            // profile.bodyweight is always stored in kg (set via onboarding with conversion)
+            const displayWeight =
+              unit === "kg"
+                ? Math.round(profile.bodyweight * 10) / 10
+                : Math.round(profile.bodyweight * 2.20462 * 10) / 10;
+            setBodyweightInput(String(displayWeight));
           }
         }
       }
@@ -274,9 +279,11 @@ export default function SettingsScreen() {
     if (!userId) return;
     const val = parseFloat(bodyweightInput);
     if (isNaN(val) || val <= 0) return;
+    // Always store in kg so all downstream calcs work regardless of display unit
+    const valKg = unit === "lbs" ? Math.round((val / 2.20462) * 10) / 10 : val;
     setSaving(true);
     try {
-      await updateUserBodyweight(userId, val);
+      await updateUserBodyweight(userId, valKg);
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
       console.error(err);

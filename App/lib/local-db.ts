@@ -952,6 +952,10 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
   const logs: WorkoutLog[] = [];
   for (const log of logRows) {
     const exercise = await getExerciseById(log.exercise_id);
+    if (!exercise) {
+      // Stale exercise ID (deleted or migration issue) — skip this log rather than crashing
+      continue;
+    }
     const setRows = await db.getAllAsync<{
       id: string; set_number: number; target_weight: number; target_reps: number;
       reps_completed: number | null; weight_used: number | null; completed_at: string | null;
@@ -990,7 +994,7 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
       pumpRating: log.pump_rating,
       completedAt: log.completed_at,
       isSkipped: log.is_skipped === 1,
-      exercise: exercise!,
+      exercise: exercise,
       sets: setRows.map(s => ({
         id: s.id,
         setNumber: s.set_number,
@@ -1055,7 +1059,7 @@ export async function resetWorkoutDay(planId: string, weekNumber: number, dayNum
       [log.id]
     );
     await db.runAsync(
-      "UPDATE workout_logs SET soreness_rating = NULL WHERE id = ?",
+      "UPDATE workout_logs SET soreness_rating = NULL, pump_rating = NULL WHERE id = ?",
       [log.id]
     );
   }
@@ -1124,10 +1128,10 @@ export async function skipSession(
     const rir = isNextDeload ? "4 RIR" : (RIR_SCHEDULE[nextMesoWeek] || "3 RIR");
 
     const allWeekLogs = await db.getAllAsync<{
-      exercise_id: string; day_number: number; target_sets: number;
+      exercise_id: string; original_exercise_id: string | null; day_number: number; target_sets: number;
       target_weight: number; target_rir: string; is_skipped: number; equipment: string;
     }>(
-      `SELECT wl.exercise_id, wl.day_number, wl.target_sets, wl.target_weight,
+      `SELECT wl.exercise_id, wl.original_exercise_id, wl.day_number, wl.target_sets, wl.target_weight,
               wl.target_rir, wl.is_skipped, e.equipment
        FROM workout_logs wl
        JOIN exercises e ON wl.exercise_id = e.id
@@ -1154,11 +1158,12 @@ export async function skipSession(
            FROM set_logs sl
            JOIN workout_logs wl ON sl.workout_log_id = wl.id
            WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.exercise_id = ? AND wl.day_number = ?
-             AND sl.reps_completed IS NOT NULL`,
+             AND sl.reps_completed IS NOT NULL AND sl.reps_completed > 0
+             AND wl.is_skipped = 0`,
           [workoutPlanId, plan.current_week, log.exercise_id, log.day_number]
         );
-        const sorenessResult = await db.getFirstAsync<{ soreness_rating: number | null }>(
-          "SELECT soreness_rating FROM workout_logs WHERE workout_plan_id = ? AND week_number = ? AND exercise_id = ? AND day_number = ?",
+        const sorenessResult = await db.getFirstAsync<{ soreness_rating: number | null; pump_rating: number | null }>(
+          "SELECT soreness_rating, pump_rating FROM workout_logs WHERE workout_plan_id = ? AND week_number = ? AND exercise_id = ? AND day_number = ?",
           [workoutPlanId, plan.current_week, log.exercise_id, log.day_number]
         );
 
@@ -1192,6 +1197,7 @@ export async function skipSession(
           repsCompleted: Math.round(avgRepsResult?.avg_reps || 10),
           repGoal: repGoal1,
           sorenessRating: sorenessResult?.soreness_rating ?? 0,
+          pumpRating: sorenessResult?.pump_rating ?? null,
           goalType: skipGoalType,
         }, skipProgressionMode);
         nextSets = targets.targetSets;
@@ -1205,10 +1211,12 @@ export async function skipSession(
       }
 
       const logId = generateId();
+      // Carry original_exercise_id forward so future weeks can still restore to template
+      const skipOriginalId = log.original_exercise_id ?? log.exercise_id;
       await db.runAsync(
-        `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [logId, workoutPlanId, log.exercise_id, nextWeek, log.day_number, nextSets, nextWeight, rir]
+        `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, original_exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [logId, workoutPlanId, log.exercise_id, skipOriginalId, nextWeek, log.day_number, nextSets, nextWeight, rir]
       );
 
       const skipRepTarget = skipProgressionMode === "double_progression"

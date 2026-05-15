@@ -206,13 +206,15 @@ export default function PaywallScreen() {
         </Pressable>
 
         {/* Legal */}
-        <Text style={{
-          fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted,
-          textAlign: "center", marginTop: 12, lineHeight: 15,
-        }}>
-          Payment charged to your Apple ID at confirmation.{"\n"}
-          {Platform.OS === "ios" ? "Manage in Settings → [Your Name] → App Store." : ""}
-        </Text>
+        {Platform.OS === "ios" && (
+          <Text style={{
+            fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted,
+            textAlign: "center", marginTop: 12, lineHeight: 15,
+          }}>
+            Payment charged to your Apple ID at confirmation.{"\n"}
+            Manage in Settings → [Your Name] → App Store.
+          </Text>
+        )}
       </View>
     </View>
   );

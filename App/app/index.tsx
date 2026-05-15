@@ -133,7 +133,7 @@ export default function LandingScreen() {
             marginBottom: 4,
           }}
         >
-          The Science of Hypertrophy &amp; Strength
+          The Science of Hypertrophy & Strength
         </Text>
 
         <View style={{ marginTop: 32, width: "100%", gap: 8 }}>

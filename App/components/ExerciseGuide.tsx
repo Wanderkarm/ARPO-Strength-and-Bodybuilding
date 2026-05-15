@@ -18,6 +18,18 @@ export default function ExerciseGuide({ exercise }: Props) {
   const usableWidth = screenWidth - 40;
   const anatomyWidth = Math.floor(usableWidth * 0.42);
 
+  // No metadata at all — show a minimal placeholder so the guide isn't blank
+  if (!meta) {
+    return (
+      <View style={[styles.container, { alignItems: "center", paddingVertical: 24 }]}>
+        <AnatomyMap exercise={exercise} containerWidth={Math.floor(usableWidth * 0.5)} />
+        <Text style={[styles.sectionLabel, { marginTop: 16, textAlign: "center" }]}>
+          No detailed guide available for this exercise yet.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionLabel}>Targeted Muscles</Text>
@@ -108,7 +120,7 @@ const styles = StyleSheet.create({
   },
   barFill: {
     height: 4,
-    backgroundColor: "#C62828",
+    backgroundColor: Colors.primary,
   },
 
   instructionsContainer: {
@@ -134,7 +146,7 @@ const styles = StyleSheet.create({
   stepBadge: {
     width: 20,
     height: 20,
-    backgroundColor: "#C62828",
+    backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
     flexShrink: 0,
