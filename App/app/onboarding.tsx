@@ -361,7 +361,7 @@ export default function OnboardingScreen() {
             {/* Logo */}
             <Image
               source={require("../assets/images/logo-mark.png")}
-              style={{ width: "55%", aspectRatio: 0.7, alignSelf: "center", marginBottom: 16 }}
+              style={{ width: "50%", height: 140, alignSelf: "center", marginBottom: 16 }}
               resizeMode="contain"
             />
             <View style={{ width: 40, height: 3, backgroundColor: Colors.primary, marginBottom: 16 }} />
