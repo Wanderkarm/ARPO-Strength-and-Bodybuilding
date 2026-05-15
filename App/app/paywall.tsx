@@ -68,7 +68,7 @@ export default function PaywallScreen() {
         {/* Logo */}
         <Image
           source={require("../assets/images/logo-mark.png")}
-          style={{ width: "45%", aspectRatio: 0.7, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
+          style={{ width: "45%", height: 120, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
           resizeMode="contain"
         />
 
