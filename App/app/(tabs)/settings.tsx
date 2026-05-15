@@ -1370,6 +1370,40 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
 
+        {/* ── Dev Tools (only visible in dev builds, never in production) ── */}
+        {__DEV__ && (
+          <>
+            <SectionHeader title="Dev Tools" />
+            <View style={{ borderWidth: 1, borderColor: "#F59E0B44", borderLeftWidth: 3, borderLeftColor: "#F59E0B", padding: 16, marginBottom: 8, gap: 10 }}>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
+                These controls are only visible in development builds and are hidden in production.
+              </Text>
+              {[
+                { label: "Reset trial (back to 3 sessions)", value: "0" },
+                { label: "Set trial to 1 session left", value: "2" },
+                { label: "Expire trial (trigger paywall)", value: "3" },
+              ].map(({ label, value }) => (
+                <Pressable
+                  key={label}
+                  onPress={async () => {
+                    await AsyncStorage.setItem("trialWorkoutCount", value);
+                    Alert.alert("Dev", `trialWorkoutCount set to ${value}. Restart or refocus the app.`);
+                  }}
+                  style={({ pressed }) => ({
+                    borderWidth: 1, borderColor: "#F59E0B",
+                    paddingVertical: 11, paddingHorizontal: 14,
+                    alignItems: "center", opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 0.8 }}>
+                    {label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
       </ScrollView>
     </View>
     </KeyboardAvoidingView>
