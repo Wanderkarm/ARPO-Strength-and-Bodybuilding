@@ -362,7 +362,7 @@ export default function OnboardingScreen() {
           <View style={{ flex: 1, justifyContent: "center" }}>
             {/* Logo */}
             <Image
-              source={require("../assets/images/LOGO2.png")}
+              source={require("../assets/images/LOGO1.png")}
               style={{ width: "50%", height: 140, alignSelf: "center", marginBottom: 16 }}
               resizeMode="contain"
             />

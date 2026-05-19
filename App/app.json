@@ -4,12 +4,12 @@
     "slug": "arpoautoregulatedprogressiveoverload",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/LOGO2.png",
+    "icon": "./assets/images/LOGO1.png",
     "scheme": "powrlog",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/LOGO1.png",
+      "image": "./assets/images/LOGO2.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },

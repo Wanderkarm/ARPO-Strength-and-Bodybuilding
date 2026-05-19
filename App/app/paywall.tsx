@@ -67,7 +67,7 @@ export default function PaywallScreen() {
       >
         {/* Logo */}
         <Image
-          source={require("../assets/images/LOGO2.png")}
+          source={require("../assets/images/LOGO1.png")}
           style={{ width: "45%", height: 120, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
           resizeMode="contain"
         />

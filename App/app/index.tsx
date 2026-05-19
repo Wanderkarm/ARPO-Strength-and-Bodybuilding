@@ -108,7 +108,7 @@ export default function LandingScreen() {
         }}
       >
         <Image
-          source={require("@/assets/images/LOGO1.png")}
+          source={require("@/assets/images/LOGO2.png")}
           style={{ width: "92%", aspectRatio: 1, marginBottom: 8 }}
           resizeMode="contain"
         />
