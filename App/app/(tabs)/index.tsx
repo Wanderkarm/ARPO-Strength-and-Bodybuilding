@@ -140,12 +140,14 @@ export default function DashboardScreen() {
       setStreak(s);
       setTodaySteps(steps);
     }
+    // Capture current week from the locally-fetched plan (not stale state closure)
+    const currentWeekForRecovery = p?.currentWeek ?? 1;
     getCachedRecoveryMetrics().then(async (cached) => {
       setRecovery(cached);
       if (cached) {
         const history = await getRecoveryHistory();
         const baseline = computeBaseline(history);
-        setRecoveryIntelligence(classifyRecovery(cached, baseline, mesoWeekOf(plan?.currentWeek ?? 1)));
+        setRecoveryIntelligence(classifyRecovery(cached, baseline, mesoWeekOf(currentWeekForRecovery)));
       }
     });
 

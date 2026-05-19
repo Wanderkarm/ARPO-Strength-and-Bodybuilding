@@ -115,9 +115,12 @@ export default function PostOnboardingScreen() {
       ]);
       setUnit(u);
 
-      // Use profile bodyweight to seed the tier calculations (stored in user's unit)
+      // profile.bodyweight is always stored in kg — convert to user's unit for tier calculations
       if (profile?.bodyweight && profile.bodyweight > 0) {
-        setBodyweight(profile.bodyweight);
+        const bwInUnit = u === "lbs"
+          ? Math.round(profile.bodyweight * 2.20462)
+          : profile.bodyweight;
+        setBodyweight(bwInUnit);
       } else {
         // Sensible fallback if bodyweight wasn't set during onboarding
         setBodyweight(u === "kg" ? 75 : 165);
