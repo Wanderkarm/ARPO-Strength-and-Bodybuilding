@@ -15,6 +15,7 @@ import {
   Keyboard,
   Linking,
 } from "react-native";
+import { WebView } from "react-native-webview";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -294,6 +295,7 @@ export default function WorkoutScreen() {
   const [restTimerVisible, setRestTimerVisible] = useState(false);
   const [restTimerSeconds, setRestTimerSeconds] = useState(90);
   const [restTimerKey, setRestTimerKey] = useState(0);
+  const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editName, setEditName] = useState("");
   const [editVideoUrl, setEditVideoUrl] = useState("");
@@ -1390,6 +1392,16 @@ export default function WorkoutScreen() {
   const isBodyweight = currentEx.exercise.equipment === "BODYWEIGHT";
   const isWeightedBW = currentEx.exercise.equipment === "WEIGHTED_BODYWEIGHT";
 
+  /** Extract an 11-char YouTube video ID from youtu.be/... or youtube.com/watch?v=... URLs */
+  function extractYouTubeId(url: string): string | null {
+    if (!url) return null;
+    const shortMatch = url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+    if (shortMatch) return shortMatch[1];
+    const longMatch = url.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+    if (longMatch) return longMatch[1];
+    return null;
+  }
+
   // In DP mode show "min–max" rep range instead of a fixed target.
   // Myo-mini sets always show their own target (e.g. "3") — never the DP range.
   function getRepDisplay(targetReps: number, isMyo = false): string {
@@ -1561,57 +1573,14 @@ export default function WorkoutScreen() {
       {/* ── Non-scrollable content: exercise header + set table ─────────────
            TextInputs live here so iOS never auto-scrolls the screen          ── */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-          <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, flexShrink: 1 }}>
-              {currentEx.exercise.name}
-            </Text>
-            {currentEx.supersetGroup !== null && (
-              <SupersetIcon state="active" size={22} />
-            )}
-          </View>
-          <View style={{ flexDirection: "row", gap: 4, marginLeft: 6, flexShrink: 0 }}>
-            <Pressable
-              testID="edit-exercise-btn"
-              onPress={openEditModal}
-              hitSlop={10}
-              style={{ width: 32, height: 32, borderWidth: 1, borderColor: Colors.border, justifyContent: "center", alignItems: "center" }}
-            >
-              <Ionicons name="pencil" size={14} color={Colors.textMuted} />
-            </Pressable>
-            <Pressable
-              testID="reset-workout-btn"
-              onPress={() => setResetModalVisible(true)}
-              hitSlop={10}
-              style={{ width: 32, height: 32, borderWidth: 1, borderColor: Colors.border, justifyContent: "center", alignItems: "center" }}
-            >
-              <Ionicons name="refresh" size={14} color={Colors.textMuted} />
-            </Pressable>
-            <Pressable
-              testID="swap-exercise-btn"
-              onPress={() => setSwapModalVisible(true)}
-              hitSlop={10}
-              style={{ width: 32, height: 32, borderWidth: 1, borderColor: Colors.border, justifyContent: "center", alignItems: "center" }}
-            >
-              <Ionicons name="swap-horizontal" size={14} color={Colors.textMuted} />
-            </Pressable>
-            <View ref={videoButtonRef} style={{ flexDirection: "row", alignItems: "center" }}>
-              {currentEx.exercise.defaultVideoUrl ? (
-                <Pressable
-                  testID="video-link-btn"
-                  onPress={() => Linking.openURL(currentEx.exercise.defaultVideoUrl!).catch(() => {})}
-                  hitSlop={10}
-                  style={{ width: 32, height: 32, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}
-                >
-                  <Ionicons name="play" size={14} color={Colors.primary} />
-                </Pressable>
-              ) : (
-                <View style={{ width: 32, height: 32, backgroundColor: Colors.bgAccent, justifyContent: "center", alignItems: "center" }}>
-                  <Ionicons name="play" size={14} color={Colors.textMuted} />
-                </View>
-              )}
-            </View>
-          </View>
+        {/* ── Exercise name row ── */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, flex: 1 }}>
+            {currentEx.exercise.name}
+          </Text>
+          {currentEx.supersetGroup !== null && (
+            <SupersetIcon state="active" size={22} />
+          )}
         </View>
 
         <View style={{ flexDirection: "row", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
@@ -1635,6 +1604,85 @@ export default function WorkoutScreen() {
                 DP
               </Text>
             </>
+          )}
+        </View>
+
+        {/* ── Action bar: secondary actions + Watch video ── */}
+        <View style={{ flexDirection: "row", gap: 8, marginBottom: 16, alignItems: "center" }} ref={videoButtonRef}>
+          {/* Edit */}
+          <Pressable
+            testID="edit-exercise-btn"
+            onPress={openEditModal}
+            style={({ pressed }) => ({
+              flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5,
+              height: 38, borderWidth: 1, borderColor: Colors.border,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Ionicons name="pencil-outline" size={14} color={Colors.textMuted} />
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+              Edit
+            </Text>
+          </Pressable>
+
+          {/* Swap */}
+          <Pressable
+            testID="swap-exercise-btn"
+            onPress={() => setSwapModalVisible(true)}
+            style={({ pressed }) => ({
+              flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5,
+              height: 38, borderWidth: 1, borderColor: Colors.border,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Ionicons name="swap-horizontal-outline" size={14} color={Colors.textMuted} />
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+              Swap
+            </Text>
+          </Pressable>
+
+          {/* Reset */}
+          <Pressable
+            testID="reset-workout-btn"
+            onPress={() => setResetModalVisible(true)}
+            style={({ pressed }) => ({
+              flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5,
+              height: 38, borderWidth: 1, borderColor: Colors.border,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Ionicons name="refresh-outline" size={14} color={Colors.textMuted} />
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+              Reset
+            </Text>
+          </Pressable>
+
+          {/* Watch video — primary, red, only shown when URL exists */}
+          {currentEx.exercise.defaultVideoUrl ? (
+            <Pressable
+              testID="video-link-btn"
+              onPress={() => setVideoModalVisible(true)}
+              style={({ pressed }) => ({
+                flex: 1.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+                height: 38, backgroundColor: Colors.primary,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Ionicons name="play" size={14} color="#fff" />
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#fff", textTransform: "uppercase", letterSpacing: 1 }}>
+                Watch
+              </Text>
+            </Pressable>
+          ) : (
+            <View style={{
+              flex: 1.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+              height: 38, borderWidth: 1, borderColor: Colors.border, opacity: 0.35,
+            }}>
+              <Ionicons name="play-outline" size={14} color={Colors.textMuted} />
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
+                Watch
+              </Text>
+            </View>
           )}
         </View>
 
@@ -3460,6 +3508,98 @@ export default function WorkoutScreen() {
             )}
           </View>
         </View>
+      </Modal>
+
+      {/* ── YouTube Video Modal ── */}
+      <Modal
+        visible={videoModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setVideoModalVisible(false)}
+      >
+        {(() => {
+          const videoId = extractYouTubeId(currentEx?.exercise.defaultVideoUrl ?? "");
+          return (
+            <View style={{ flex: 1, backgroundColor: "#000" }}>
+              {/* Header */}
+              <View style={{
+                flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+                paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12,
+                backgroundColor: Colors.bg,
+              }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }} numberOfLines={1}>
+                    {currentEx?.exercise.name}
+                  </Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>
+                    {currentEx?.exercise.category} · {currentEx?.exercise.equipment}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setVideoModalVisible(false)}
+                  hitSlop={12}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 4 })}
+                >
+                  <Ionicons name="close" size={24} color={Colors.text} />
+                </Pressable>
+              </View>
+
+              {videoId ? (
+                <WebView
+                  style={{ flex: 1, backgroundColor: "#000" }}
+                  source={{
+                    html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; background: #000; }
+    body { display: flex; align-items: center; justify-content: center; height: 100vh; background: #000; }
+    iframe { width: 100%; aspect-ratio: 16/9; border: none; }
+  </style>
+</head>
+<body>
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&autoplay=1"
+    allow="autoplay; fullscreen"
+    allowfullscreen>
+  </iframe>
+</body>
+</html>`,
+                  }}
+                  allowsFullscreenVideo
+                  mediaPlaybackRequiresUserAction={false}
+                  javaScriptEnabled
+                />
+              ) : (
+                <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
+                  <Ionicons name="videocam-off-outline" size={40} color={Colors.textMuted} />
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 14, color: Colors.textMuted }}>
+                    No video available for this exercise.
+                  </Text>
+                </View>
+              )}
+
+              {/* "Can't play? Open in YouTube" fallback */}
+              {videoId && (
+                <Pressable
+                  onPress={() => Linking.openURL(currentEx?.exercise.defaultVideoUrl ?? "").catch(() => {})}
+                  style={({ pressed }) => ({
+                    backgroundColor: Colors.bg, paddingVertical: 14, alignItems: "center",
+                    borderTopWidth: 1, borderTopColor: Colors.border, opacity: pressed ? 0.6 : 1,
+                  })}
+                >
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted }}>
+                    Can't play?{" "}
+                    <Text style={{ color: Colors.primary, textDecorationLine: "underline" }}>
+                      Open in YouTube
+                    </Text>
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          );
+        })()}
       </Modal>
     </KeyboardAvoidingView>
   );
