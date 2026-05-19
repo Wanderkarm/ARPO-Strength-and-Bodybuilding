@@ -117,8 +117,10 @@ export default function DashboardScreen() {
 
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
+    // Declare p outside the if-block so it's accessible for recovery intelligence below
+    let p: WorkoutPlan | null = null;
     if (planId) {
-      const p = await getWorkoutPlan(planId);
+      p = await getWorkoutPlan(planId);
       setPlan(p);
       if (p) {
         const idx = (p.currentDay || 1) - 1;
