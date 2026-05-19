@@ -15,7 +15,7 @@ import {
   Keyboard,
   Linking,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import YoutubePlayer from "react-native-youtube-iframe";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -3545,32 +3545,16 @@ export default function WorkoutScreen() {
               </View>
 
               {videoId ? (
-                <WebView
-                  style={{ flex: 1, backgroundColor: "#000" }}
-                  source={{
-                    html: `<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; background: #000; }
-    body { display: flex; align-items: center; justify-content: center; height: 100vh; background: #000; }
-    iframe { width: 100%; aspect-ratio: 16/9; border: none; }
-  </style>
-</head>
-<body>
-  <iframe
-    src="https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&autoplay=1"
-    allow="autoplay; fullscreen"
-    allowfullscreen>
-  </iframe>
-</body>
-</html>`,
-                  }}
-                  allowsFullscreenVideo
-                  mediaPlaybackRequiresUserAction={false}
-                  javaScriptEnabled
-                />
+                <View style={{ flex: 1, justifyContent: "center", backgroundColor: "#000" }}>
+                  <YoutubePlayer
+                    height={220}
+                    videoId={videoId}
+                    play
+                    webViewStyle={{ backgroundColor: "#000" }}
+                    webViewProps={{ allowsFullscreenVideo: true }}
+                    initialPlayerParams={{ rel: false, modestbranding: true }}
+                  />
+                </View>
               ) : (
                 <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
                   <Ionicons name="videocam-off-outline" size={40} color={Colors.textMuted} />
