@@ -425,18 +425,25 @@ export default function WorkoutScreen() {
       startWorkoutSession(plan.id, plan.currentWeek, currentDayNum).then(async (startedAt) => {
         startedAtRef.current = startedAt;
         const initial = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
-        // Only trigger watch reminder on a fresh session start (not resume)
+
+        // Check tour status once here so we can coordinate with the superset modal
+        const tourDone = await AsyncStorage.getItem("hasCompletedWorkoutTour");
+
+        // Only trigger watch reminder / superset modal on a fresh session start (not resume)
         if (initial < 10) {
           // Show superset suggestion modal on fresh session start
           const hasSeen = await AsyncStorage.getItem("supersetIntroSeen");
           setSupersetIntroIsFirstTime(!hasSeen);
           setSupersetIntroVisible(true);
           if (!hasSeen) await AsyncStorage.setItem("supersetIntroSeen", "1");
+
+          // If the tour hasn't been seen, defer it until the superset modal is dismissed.
+          // Running two transparent Modals concurrently silently blocks all touches.
+          if (!tourDone) pendingTourRef.current = true;
+
           const watchEnabled = await AsyncStorage.getItem("watchReminderEnabled");
           if (watchEnabled === "true") {
             setWatchBannerVisible(true);
-            // Fire a local notification — this vibrates Apple Watch / Android Wear
-            // automatically when the phone notification arrives on the wrist
             try {
               await Notifications.scheduleNotificationAsync({
                 content: {
@@ -444,13 +451,16 @@ export default function WorkoutScreen() {
                   body: "Open the Workout app on your Apple Watch and select Strength Training",
                   sound: false,
                 },
-                trigger: null, // fire immediately
+                trigger: null,
               });
             } catch {}
-            // Auto-dismiss banner after 10 seconds
             setTimeout(() => setWatchBannerVisible(false), 10000);
           }
+        } else {
+          // Resumed session — superset modal won't show, so fire tour directly if needed
+          if (!tourDone) setTimeout(() => startTour(), 1000);
         }
+
         setElapsedSeconds(Math.max(0, initial));
         if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = setInterval(() => {
@@ -501,14 +511,6 @@ export default function WorkoutScreen() {
         );
       });
 
-      AsyncStorage.getItem("hasCompletedWorkoutTour").then((done) => {
-        if (!done) {
-          // Don't start the tour while the superset intro modal may be open —
-          // two concurrent transparent Modals block all touches silently.
-          // Set a flag; the tour will start once the superset intro is dismissed.
-          pendingTourRef.current = true;
-        }
-      });
     }
   }, [plan]);
 
