@@ -341,6 +341,8 @@ export default function WorkoutScreen() {
   // ── Superset onboarding ───────────────────────────────────────────────────
   const [supersetIntroVisible, setSupersetIntroVisible] = useState(false);
   const [supersetIntroIsFirstTime, setSupersetIntroIsFirstTime] = useState(false);
+  // Tour should start after the superset intro modal is dismissed, not concurrently
+  const pendingTourRef = useRef(false);
   // ── Superset jump banner ──────────────────────────────────────────────────
   const [supersetJumpBanner, setSupersetJumpBanner] = useState<string | null>(null);
   // ── Keyboard visibility (used to hide guide during input) ────────────────
@@ -501,7 +503,10 @@ export default function WorkoutScreen() {
 
       AsyncStorage.getItem("hasCompletedWorkoutTour").then((done) => {
         if (!done) {
-          setTimeout(() => startTour(), 1000);
+          // Don't start the tour while the superset intro modal may be open —
+          // two concurrent transparent Modals block all touches silently.
+          // Set a flag; the tour will start once the superset intro is dismissed.
+          pendingTourRef.current = true;
         }
       });
     }
@@ -551,6 +556,15 @@ export default function WorkoutScreen() {
     setTourVisible(false);
     setSpotlight(null);
     AsyncStorage.setItem("hasCompletedWorkoutTour", "true");
+  }
+
+  /** Dismiss the superset intro modal, then start the tour if it was pending. */
+  function dismissSupersetIntro() {
+    setSupersetIntroVisible(false);
+    if (pendingTourRef.current) {
+      pendingTourRef.current = false;
+      setTimeout(() => startTour(), 400); // short delay so modal fade-out completes
+    }
   }
 
   function handleWeightEndEditing(exIndex: number, si: number, setData: SetState) {
@@ -2674,7 +2688,7 @@ export default function WorkoutScreen() {
         visible={supersetIntroVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setSupersetIntroVisible(false)}
+        onRequestClose={dismissSupersetIntro}
       >
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center", paddingHorizontal: 28 }}>
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, width: "100%", padding: 24, gap: 16 }}>
@@ -2737,7 +2751,7 @@ export default function WorkoutScreen() {
                         });
                         return next;
                       });
-                      setSupersetIntroVisible(false);
+                      dismissSupersetIntro();
                     }}
                     style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.8 : 1 })}
                   >
@@ -2749,7 +2763,7 @@ export default function WorkoutScreen() {
               );
             })()}
 
-            <Pressable onPress={() => setSupersetIntroVisible(false)} hitSlop={8}>
+            <Pressable onPress={dismissSupersetIntro} hitSlop={8}>
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textSecondary, textAlign: "center" }}>
                 Skip — standard sets
               </Text>
