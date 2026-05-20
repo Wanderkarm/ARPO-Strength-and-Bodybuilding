@@ -31,7 +31,7 @@ import React, {
 } from "react";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Purchases, { LOG_LEVEL } from "react-native-purchases";
+import Purchases, { LOG_LEVEL, PACKAGE_TYPE } from "react-native-purchases";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -137,7 +137,9 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
     }
     try {
       const offerings = await Purchases.getOfferings();
-      const pkg = offerings.current?.availablePackages[0];
+      const packages = offerings.current?.availablePackages ?? [];
+      // Prefer the Lifetime package; fall back to first available
+      const pkg = packages.find(p => p.packageType === PACKAGE_TYPE.LIFETIME) ?? packages[0];
       if (!pkg) return { success: false, error: "Product unavailable. Try again later." };
 
       const { customerInfo } = await Purchases.purchasePackage(pkg);
