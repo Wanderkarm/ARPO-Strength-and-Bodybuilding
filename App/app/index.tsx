@@ -108,17 +108,30 @@ export default function LandingScreen() {
         }}
       >
         <Image
-          source={require("@/assets/images/LOGO2.png")}
-          style={{ width: "92%", aspectRatio: 1, marginBottom: 8 }}
+          source={require("@/assets/images/LOGO1.png")}
+          style={{ width: 72, height: 72, marginBottom: 12 }}
           resizeMode="contain"
         />
+
+        <Text
+          style={{
+            fontFamily: "Rubik_700Bold",
+            fontSize: 26,
+            color: Colors.text,
+            textTransform: "uppercase",
+            letterSpacing: 4,
+            marginBottom: 2,
+          }}
+        >
+          POWR<Text style={{ color: Colors.primary }}>LOG</Text>
+        </Text>
 
         <View
           style={{
             width: 40,
             height: 2,
             backgroundColor: Colors.primary,
-            marginBottom: 14,
+            marginVertical: 12,
           }}
         />
 
