@@ -27,6 +27,7 @@ import {
   getUserProfile,
   updateUserUnit,
   updateUserBodyweight,
+  logBodyWeight,
   updatePlanGoalType,
   updateUserProgressionMode,
   switchGymType,
@@ -285,6 +286,8 @@ export default function SettingsScreen() {
     setSaving(true);
     try {
       await updateUserBodyweight(userId, valKg);
+      // Also write to body_weight_logs so the chart on the Body tab stays current
+      await logBodyWeight(userId, valKg);
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
       console.error(err);

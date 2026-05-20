@@ -214,7 +214,7 @@ export default function SummaryScreen() {
           <Text style={{
             fontFamily: "Rubik_700Bold",
             fontSize: 28,
-            color: "#FFFFFF",
+            color: Colors.text,
             textTransform: "uppercase",
             letterSpacing: 1,
             textAlign: "center",
@@ -282,7 +282,7 @@ export default function SummaryScreen() {
               <Text style={{
                 fontFamily: "Rubik_700Bold",
                 fontSize: 12,
-                color: "#FFFFFF",
+                color: Colors.text,
                 textTransform: "uppercase",
                 letterSpacing: 2,
               }}>
@@ -311,7 +311,7 @@ export default function SummaryScreen() {
                     <Text style={{
                       fontFamily: "Rubik_700Bold",
                       fontSize: 13,
-                      color: "#FFFFFF",
+                      color: Colors.text,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
                     }} numberOfLines={1}>
@@ -374,7 +374,7 @@ export default function SummaryScreen() {
               {/* Trend — the data signal */}
               <View style={{ paddingHorizontal: 14, paddingTop: 10 }}>
                 <Text style={{
-                  fontFamily: "Rubik_600SemiBold", fontSize: 12, color: "#FFFFFF", marginBottom: 3,
+                  fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, marginBottom: 3,
                 }}>
                   {recoveryIntelligence.trendCopy}
                 </Text>
@@ -434,7 +434,7 @@ export default function SummaryScreen() {
                 <Text style={{
                   fontFamily: "Rubik_600SemiBold",
                   fontSize: 12,
-                  color: "#FFFFFF",
+                  color: Colors.text,
                   textTransform: "uppercase",
                   letterSpacing: 2,
                 }}>
@@ -468,7 +468,7 @@ export default function SummaryScreen() {
                     <Text style={{
                       fontFamily: "Rubik_700Bold",
                       fontSize: 11,
-                      color: "#FFFFFF",
+                      color: Colors.text,
                       textTransform: "uppercase",
                       letterSpacing: 1,
                     }} numberOfLines={1}>
@@ -492,7 +492,7 @@ export default function SummaryScreen() {
                       <Text style={{
                         fontFamily: "Rubik_700Bold",
                         fontSize: 13,
-                        color: "#FFFFFF",
+                        color: Colors.text,
                         marginBottom: 4,
                       }}>
                         {thisWeekStr}
@@ -517,7 +517,7 @@ export default function SummaryScreen() {
                         Next Week →
                       </Text>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#FFFFFF" }}>
+                        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text }}>
                           {nextWeekStr}
                         </Text>
                         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: arrow.color }}>
@@ -548,7 +548,7 @@ export default function SummaryScreen() {
             <Text style={{
               fontFamily: "Rubik_700Bold",
               fontSize: 15,
-              color: "#FFFFFF",
+              color: Colors.text,
               textAlign: "center",
               textTransform: "uppercase",
               letterSpacing: 2,
@@ -704,7 +704,7 @@ export default function SummaryScreen() {
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
                 </Pressable>
               </View>
-              <DateTimePicker value={workoutPickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWorkoutHour(d.getHours()); setWorkoutMinute(d.getMinutes()); } }} style={{ height: 180 }} />
+              <DateTimePicker value={workoutPickerDate} mode="time" display="spinner" textColor={Colors.text} onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWorkoutHour(d.getHours()); setWorkoutMinute(d.getMinutes()); } }} style={{ height: 180 }} />
             </View>
           </View>
         </Modal>
@@ -718,7 +718,7 @@ export default function SummaryScreen() {
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
                 </Pressable>
               </View>
-              <DateTimePicker value={weighinPickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWeighinHour(d.getHours()); setWeighinMinute(d.getMinutes()); } }} style={{ height: 180 }} />
+              <DateTimePicker value={weighinPickerDate} mode="time" display="spinner" textColor={Colors.text} onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWeighinHour(d.getHours()); setWeighinMinute(d.getMinutes()); } }} style={{ height: 180 }} />
             </View>
           </View>
         </Modal>

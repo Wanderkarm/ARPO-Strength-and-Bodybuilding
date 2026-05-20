@@ -376,11 +376,9 @@ export async function getPreBuiltTemplates(): Promise<Template[]> {
   const rows = await db.getAllAsync<{ id: string; name: string }>(
     "SELECT id, name FROM templates WHERE is_custom = 0"
   );
-  const results: Template[] = [];
-  for (const r of rows) {
-    const t = await getTemplateWithDays(r.id);
-    if (t) results.push(t);
-  }
+  // Fetch all templates in parallel instead of serial to cut load time on cold start
+  const settled = await Promise.all(rows.map((r) => getTemplateWithDays(r.id)));
+  const results = settled.filter((t): t is Template => t !== null);
   results.sort((a, b) => {
     const aIdx = FEATURED_TEMPLATES.indexOf(a.name);
     const bIdx = FEATURED_TEMPLATES.indexOf(b.name);
@@ -1108,11 +1106,19 @@ export async function skipSession(
      WHERE workout_plan_id = ? AND week_number = ? AND completed_at IS NOT NULL`,
     [workoutPlanId, weekNumber]
   );
+  // At least one session this week must have been actually trained (not skipped) before
+  // marking the meso complete — prevents an all-skip deload week from ending the meso.
+  const realSessionResult = await db.getFirstAsync<{ cnt: number }>(
+    `SELECT COUNT(*) as cnt FROM workout_logs
+     WHERE workout_plan_id = ? AND week_number = ? AND is_skipped = 0 AND completed_at IS NOT NULL`,
+    [workoutPlanId, weekNumber]
+  );
+  const hasRealSession = (realSessionResult?.cnt ?? 0) > 0;
 
   const allDaysComplete = completedDaysResult.length >= totalDays;
   const mesoWeek = ((plan.current_week - 1) % 4) + 1;
   const isDeloadWeek = mesoWeek === 4;
-  const isMesoComplete = allDaysComplete && isDeloadWeek;
+  const isMesoComplete = allDaysComplete && isDeloadWeek && hasRealSession;
 
   if (isMesoComplete) {
     await db.runAsync("UPDATE workout_plans SET is_active = 0 WHERE id = ?", [workoutPlanId]);
@@ -1148,6 +1154,22 @@ export async function skipSession(
         // Deload: reduce sets ~40%, keep weight (minimum 2 sets)
         nextSets = Math.max(2, Math.floor(log.target_sets * 0.6));
         nextWeight = log.target_weight;
+      } else if (log.is_skipped === 1) {
+        // For skipped exercises, pull the most recent non-skipped base targets so
+        // they don't fossilize at the value from the last time this exercise was
+        // actually done (prevents indefinitely stale weights/sets).
+        const freshBase = await db.getFirstAsync<{ target_sets: number; target_weight: number }>(
+          `SELECT target_sets, target_weight FROM workout_logs
+           WHERE workout_plan_id = ? AND exercise_id = ? AND day_number = ?
+             AND is_skipped = 0 AND completed_at IS NOT NULL
+           ORDER BY week_number DESC LIMIT 1`,
+          [workoutPlanId, log.exercise_id, log.day_number]
+        );
+        if (freshBase) {
+          nextSets   = freshBase.target_sets;
+          nextWeight = freshBase.target_weight;
+        }
+        // else keep log.target_sets / log.target_weight (no prior non-skipped session)
       } else if (log.is_skipped === 0) {
         exercise = await db.getFirstAsync<{ category: string }>(
           "SELECT category FROM exercises WHERE id = ?",
@@ -2498,7 +2520,7 @@ export async function finishWorkoutSession(
   weekNumber: number,
   dayNumber: number,
   sessionNotes: string | null
-): Promise<void> {
+): Promise<string> {
   const db  = getDb();
   const now = new Date().toISOString();
   const row = await db.getFirstAsync<{ id: string; started_at: string }>(
@@ -2514,6 +2536,7 @@ export async function finishWorkoutSession(
       [now, duration, sessionNotes?.trim() || null, row.id]
     );
   }
+  return now; // Return actual DB write time for use in summary navigation
 }
 
 // ─── Daily Steps ──────────────────────────────────────────────────────────────

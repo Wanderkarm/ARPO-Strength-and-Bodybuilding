@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Animated,
+  Dimensions,
 } from "react-native";
 import { router } from "expo-router";
 import { useFocusEffect } from "expo-router";
@@ -32,7 +33,7 @@ import { kgToLbs, lbsToKg } from "@/utils/nutritionCalculator";
 // ─── Bodyweight trend chart ───────────────────────────────────────────────────
 
 function BodyWeightChart({ data, unit }: { data: BodyWeightEntry[]; unit: string }) {
-  const W = 340;
+  const W = Dimensions.get("window").width - 48; // 24 px padding each side
   const H = 120;
   const PAD = { top: 12, right: 12, bottom: 28, left: 44 };
   const chartW = W - PAD.left - PAD.right;

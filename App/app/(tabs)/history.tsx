@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View, Text, Pressable, Platform, ActivityIndicator,
   FlatList, Alert, ScrollView,
 } from "react-native";
-import { useFocusEffect, router } from "expo-router";
+import { useFocusEffect, router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -40,6 +40,11 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
+
+  // ── Deep-link params (from DayDetailSheet "View session →") ───────────────
+  const { deepPlanId, deepWeek, deepDay } = useLocalSearchParams<{
+    deepPlanId?: string; deepWeek?: string; deepDay?: string;
+  }>();
 
   // ── View mode ──────────────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
@@ -102,6 +107,19 @@ export default function HistoryScreen() {
     }
   }
 
+  // Auto-expand entry when deep-linked from DayDetailSheet "View session →"
+  useEffect(() => {
+    if (!deepPlanId || !deepWeek || !deepDay || listLoading) return;
+    setViewMode("list");
+    const idx = history.findIndex(
+      (h) =>
+        h.planId === deepPlanId &&
+        h.weekNumber === Number(deepWeek) &&
+        h.dayNumber === Number(deepDay)
+    );
+    if (idx !== -1) setExpandedIndex(idx);
+  }, [deepPlanId, deepWeek, deepDay, history, listLoading]);
+
   function handleMonthChange(year: number, month: number) {
     setCalYear(year);
     setCalMonth(month);
@@ -130,7 +148,7 @@ export default function HistoryScreen() {
           text: "Undo Skip",
           style: "default",
           onPress: async () => {
-            setUndoingSkip(item.planId);
+            setUndoingSkip(`${item.planId}-${item.weekNumber}-${item.dayNumber}`);
             try {
               await unSkipSession(item.planId, item.weekNumber, item.dayNumber);
               // Only promote this plan to active if the user has no other active plan
@@ -189,10 +207,10 @@ export default function HistoryScreen() {
                 </View>
                 <Pressable
                   onPress={(e) => { e.stopPropagation?.(); handleUndoSkip(item); }}
-                  disabled={undoingSkip === item.planId}
-                  style={({ pressed }) => ({ borderWidth: 1, borderColor: Colors.primary + "88", paddingHorizontal: 8, paddingVertical: 2, opacity: pressed || undoingSkip === item.planId ? 0.6 : 1 })}
+                  disabled={undoingSkip === `${item.planId}-${item.weekNumber}-${item.dayNumber}`}
+                  style={({ pressed }) => ({ borderWidth: 1, borderColor: Colors.primary + "88", paddingHorizontal: 8, paddingVertical: 2, opacity: pressed || undoingSkip === `${item.planId}-${item.weekNumber}-${item.dayNumber}` ? 0.6 : 1 })}
                 >
-                  {undoingSkip === item.planId
+                  {undoingSkip === `${item.planId}-${item.weekNumber}-${item.dayNumber}`
                     ? <ActivityIndicator size="small" color={Colors.primary} />
                     : <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Undo</Text>
                   }

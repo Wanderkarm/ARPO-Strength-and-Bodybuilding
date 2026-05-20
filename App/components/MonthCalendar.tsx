@@ -13,13 +13,18 @@ interface Props {
   onMonthChange: (year: number, month: number) => void;
 }
 
-const CELL = Math.floor(Dimensions.get("window").width / 7);
-const TODAY = new Date().toISOString().slice(0, 10);
+// Note: CELL and TODAY are intentionally NOT module-level constants — they are
+// computed inside the component so they stay accurate after orientation changes
+// (CELL) and across midnight boundaries (TODAY).
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 
 export default function MonthCalendar({ year, month, calendarData, onDayPress, onMonthChange }: Props) {
+  // Computed per-render so they stay fresh after orientation changes / midnight
+  const CELL = Math.floor(Dimensions.get("window").width / 7);
+  const TODAY = new Date().toISOString().slice(0, 10);
+
   const orderedDays = getOrderedDays();
   const weekStart = getWeekStartDay();
 

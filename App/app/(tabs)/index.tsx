@@ -127,7 +127,7 @@ export default function DashboardScreen() {
         setSelectedDayIdx(idx);
         setPreviewWeek(p.currentWeek);
         setTimeout(() => {
-          dayScrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: false });
+          dayScrollRef.current?.scrollTo({ x: idx * (SCREEN_WIDTH - 48), animated: false });
         }, 50);
       }
     }
@@ -1187,7 +1187,10 @@ export default function DashboardScreen() {
                   </Text>
                   <Pressable
                     onPress={() => {
-                      const url = Platform.OS === "ios" ? "x-apple-health://" : "content://com.google.android.apps.healthdata/";
+                      // Android: open Health Connect via intent URI (not content:// which is invalid for Linking)
+                      const url = Platform.OS === "ios"
+                        ? "x-apple-health://"
+                        : "market://details?id=com.google.android.apps.healthdata";
                       Linking.openURL(url).catch(() => {});
                     }}
                     hitSlop={10}

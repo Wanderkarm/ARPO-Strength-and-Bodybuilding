@@ -47,7 +47,9 @@ const BYPASS_PAYWALL_IN_DEV = false;
 
 // ─── AsyncStorage keys ────────────────────────────────────────────────────────
 
-const TRIAL_COUNT_KEY = "trialWorkoutCount";
+const TRIAL_COUNT_KEY    = "trialWorkoutCount";
+/** Persisted after a confirmed RC purchase so purchased users survive offline RC failures */
+const PURCHASED_CACHE_KEY = "isPurchasedCache";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,6 +97,17 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // ── Local purchase cache — apply immediately so purchased users are never
+      //    routed to the paywall on launch even when RC is temporarily offline.
+      const cached = await AsyncStorage.getItem(PURCHASED_CACHE_KEY);
+      if (cached === "true") {
+        setIsPurchased(true);
+        setIsLoading(false);
+        // Verify with RC in the background (non-blocking) to catch revocations
+        verifyPurchaseInBackground();
+        return;
+      }
+
       // ── RevenueCat purchase check ──────────────────────────────────────────
       if (Platform.OS !== "web" && REVENUECAT_IOS_KEY !== "YOUR_REVENUECAT_IOS_API_KEY") {
         try {
@@ -103,6 +116,7 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
           const info = await Purchases.getCustomerInfo();
           if (info.entitlements.active[ENTITLEMENT_ID]) {
             setIsPurchased(true);
+            await AsyncStorage.setItem(PURCHASED_CACHE_KEY, "true");
             setIsLoading(false);
             return;
           }
@@ -119,6 +133,21 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
       console.error("[PurchaseContext] init error:", err);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function verifyPurchaseInBackground() {
+    try {
+      if (Platform.OS === "web" || REVENUECAT_IOS_KEY === "YOUR_REVENUECAT_IOS_API_KEY") return;
+      Purchases.configure({ apiKey: REVENUECAT_IOS_KEY });
+      const info = await Purchases.getCustomerInfo();
+      if (!info.entitlements.active[ENTITLEMENT_ID]) {
+        // RC says not purchased — clear cache so next launch re-checks properly
+        await AsyncStorage.removeItem(PURCHASED_CACHE_KEY);
+        setIsPurchased(false);
+      }
+    } catch {
+      // Network error — keep cached status, will re-verify next launch
     }
   }
 
@@ -145,6 +174,7 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
       const { customerInfo } = await Purchases.purchasePackage(pkg);
       if (customerInfo.entitlements.active[ENTITLEMENT_ID]) {
         setIsPurchased(true);
+        await AsyncStorage.setItem(PURCHASED_CACHE_KEY, "true");
         return { success: true };
       }
       return { success: false, error: "Purchase completed but not activated. Tap Restore." };
@@ -163,6 +193,7 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
       const info = await Purchases.restorePurchases();
       if (info.entitlements.active[ENTITLEMENT_ID]) {
         setIsPurchased(true);
+        await AsyncStorage.setItem(PURCHASED_CACHE_KEY, "true");
         return { success: true };
       }
       return { success: false, error: "No previous purchase found for this Apple ID." };

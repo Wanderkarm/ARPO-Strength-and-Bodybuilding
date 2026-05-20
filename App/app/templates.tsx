@@ -123,6 +123,7 @@ export default function TemplatesScreen() {
       let exerciseSwaps: Record<string, string> | undefined;
       if (isHome) {
         const swapMap: Record<string, string> = {};
+        const unswappedNames: string[] = [];
         for (const day of selectedTemplate.days) {
           for (const te of day.exercises) {
             const ex = te.exercise;
@@ -134,12 +135,24 @@ export default function TemplatesScreen() {
                   e.id !== ex.id &&
                   !Object.values(swapMap).includes(e.id)
               );
-              if (alt) swapMap[ex.id] = alt.id;
+              if (alt) {
+                swapMap[ex.id] = alt.id;
+              } else {
+                // No unique dumbbell/BW alternative found — keep original but warn
+                if (!unswappedNames.includes(ex.name)) unswappedNames.push(ex.name);
+              }
             }
           }
         }
         exerciseSwaps = swapMap;
         await AsyncStorage.setItem("exerciseSwaps", JSON.stringify(swapMap));
+        if (unswappedNames.length > 0) {
+          Alert.alert(
+            "Some Exercises Kept",
+            `No unique home-gym alternative was found for: ${unswappedNames.join(", ")}. These have been kept as-is — you can swap them manually in the workout screen.`,
+            [{ text: "OK" }]
+          );
+        }
       }
 
       const gymType = isHome ? "HOME" : "GYM";

@@ -51,10 +51,11 @@ export default function CustomBuilderScreen() {
   }, []);
 
   useEffect(() => {
-    setDayStates(
+    // Use functional form to avoid stale dayStates closure when daysPerWeek changes
+    setDayStates((prev) =>
       Array.from({ length: daysPerWeek }, (_, i) => ({
         dayNumber: i + 1,
-        exercises: dayStates[i]?.exercises || [],
+        exercises: prev[i]?.exercises || [],
       }))
     );
   }, [daysPerWeek]);

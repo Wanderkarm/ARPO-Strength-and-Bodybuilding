@@ -8,6 +8,7 @@ import {
   Platform,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -161,6 +162,24 @@ export default function NutritionSetupScreen() {
   async function handleSave() {
     const uid = await AsyncStorage.getItem("userId");
     if (!uid) return;
+
+    // Validate target weight direction against goal before saving
+    if (bodyGoal !== "recomp" && targetWeight && currentWeight) {
+      const current = parseFloat(currentWeight);
+      const target = parseFloat(targetWeight);
+      if (!isNaN(current) && !isNaN(target)) {
+        const targetIsHigher = target > current;
+        if (bodyGoal === "cut" && targetIsHigher) {
+          Alert.alert("Check Target Weight", "For a fat-loss goal your target should be lower than your current weight.");
+          return;
+        }
+        if (bodyGoal === "bulk" && !targetIsHigher) {
+          Alert.alert("Check Target Weight", "For a muscle-building goal your target should be higher than your current weight.");
+          return;
+        }
+      }
+    }
+
     setSaving(true);
     try {
       const parsedFt = parseInt(heightFt);

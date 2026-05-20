@@ -98,6 +98,13 @@ export default function SessionEditSheet({
   }
 
   async function handleSave() {
+    // Re-check the lock window at save time — user may have opened the sheet
+    // before 24 h elapsed then saved after the window closed.
+    if (!isWithinEditWindow(completedAt)) {
+      if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      onClose();
+      return;
+    }
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSaving(true);
     try {

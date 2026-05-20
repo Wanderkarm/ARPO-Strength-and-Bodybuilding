@@ -155,16 +155,21 @@ export default function OneRepMaxScreen() {
                 placeholderTextColor={Colors.textMuted}
                 style={{
                   borderWidth: 1,
-                  borderColor: Colors.border,
+                  borderColor: parseInt(reps) > 30 ? Colors.danger : Colors.border,
                   backgroundColor: Colors.bgAccent,
                   paddingHorizontal: 14,
                   paddingVertical: 16,
                   fontFamily: "Rubik_700Bold",
                   fontSize: 24,
-                  color: Colors.text,
+                  color: parseInt(reps) > 30 ? Colors.danger : Colors.text,
                   textAlign: "center",
                 }}
               />
+              {parseInt(reps) > 30 && (
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.danger, marginTop: 4, textAlign: "center" }}>
+                  Max 30 reps{"\n"}(formula accuracy drops above this)
+                </Text>
+              )}
             </View>
           </View>
 

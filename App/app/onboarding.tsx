@@ -192,11 +192,10 @@ export default function OnboardingScreen() {
       // 2. Create user record + weight baselines
       const user = await createUser(gender, bw, experience, weights, weightUnit);
       await AsyncStorage.setItem("userId", user.id);
-      // Save progression preference chosen during onboarding
-      if (progressionMode === "double_progression") {
-        const { updateUserProgressionMode } = await import("@/lib/local-db");
-        await updateUserProgressionMode(user.id, progressionMode);
-      }
+      // Save progression preference chosen during onboarding (always persist so the
+      // default "arpo" is also written, not just double_progression)
+      const { updateUserProgressionMode } = await import("@/lib/local-db");
+      await updateUserProgressionMode(user.id, progressionMode);
       await AsyncStorage.setItem("userGender", gender);
       if (bodyGoal !== "recomp") {
         await AsyncStorage.setItem("nutritionPace", deficitPace);
@@ -329,13 +328,14 @@ export default function OnboardingScreen() {
           textTransform: "uppercase",
           letterSpacing: 2,
         }}>
-          Step {currentStepNumber} of {TOTAL_FLOW_STEPS}
+          Step {currentStepNumber} of {NUMBERED_STEPS.length}
         </Text>
       </View>
 
-      {/* Segmented progress bar — all 5 steps */}
+      {/* Segmented progress bar — shows onboarding steps only so the bar
+          reaches 100% on the final onboarding step before routing away */}
       <View style={{ flexDirection: "row", gap: 3 }}>
-        {Array.from({ length: TOTAL_FLOW_STEPS }).map((_, i) => (
+        {Array.from({ length: NUMBERED_STEPS.length }).map((_, i) => (
           <View
             key={i}
             style={{
@@ -363,7 +363,7 @@ export default function OnboardingScreen() {
             {/* Logo */}
             <Image
               source={require("../assets/images/LOGO1.png")}
-              style={{ width: "50%", height: 140, alignSelf: "center", marginBottom: 16 }}
+              style={{ width: "50%", maxWidth: 180, height: 140, alignSelf: "center", marginBottom: 16 }}
               resizeMode="contain"
             />
             <View style={{ width: 40, height: 3, backgroundColor: Colors.primary, marginBottom: 16 }} />
@@ -649,11 +649,17 @@ export default function OnboardingScreen() {
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => { haptic(); setStep("goals"); }}
+              onPress={() => {
+                haptic();
+                // Clear all physical fields so defaults are applied — distinct from Continue
+                setHeightFt(""); setHeightIn(""); setHeightCm("");
+                setBodyweight(""); setAge("");
+                setStep("goals");
+              }}
               style={({ pressed }) => ({ alignItems: "center", paddingVertical: 12, opacity: pressed ? 0.6 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Skip this step
+                Skip — use defaults
               </Text>
             </Pressable>
           </View>

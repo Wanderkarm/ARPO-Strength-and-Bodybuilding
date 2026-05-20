@@ -10,6 +10,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   InputAccessoryView,
+  Dimensions,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -69,6 +70,7 @@ export default function BodyScreen() {
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null);
   const [bodyGoal, setBodyGoal] = useState<string>("recomp");
   const [nutritionConfigured, setNutritionConfigured] = useState(false);
+  const [nutritionPace, setNutritionPace] = useState<"conservative" | "moderate" | "aggressive">("moderate");
 
   // Weigh-in
   const [weightHistory, setWeightHistory] = useState<WeightEntry[]>([]);
@@ -98,13 +100,18 @@ export default function BodyScreen() {
       if (!uid) return;
       setUserId(uid);
 
-      const [profile, nutrition, weights, measurements, bfHistory] = await Promise.all([
+      const [profile, nutrition, weights, measurements, bfHistory, storedPace] = await Promise.all([
         getUserProfile(uid),
         getNutritionProfile(uid),
         getBodyWeightHistory(uid, 14),
         getBodyMeasurementHistory(uid, 1),
         getBodyFatHistory(uid, 30),
+        AsyncStorage.getItem("nutritionPace"),
       ]);
+      // Map stored pace ("slow" | "moderate" | "aggressive") to NutritionPlan key
+      const paceKey = storedPace === "slow" ? "conservative"
+        : storedPace === "aggressive" ? "aggressive" : "moderate";
+      setNutritionPace(paceKey as "conservative" | "moderate" | "aggressive");
 
       const u = (profile?.weightUnit ?? "lbs") as "lbs" | "kg";
       setUnit(u);
@@ -244,7 +251,7 @@ export default function BodyScreen() {
     ? Math.round((new Date(bodyFatHistory[bodyFatHistory.length - 1].loggedAt).getTime() - new Date(bodyFatHistory[0].loggedAt).getTime()) / 86_400_000)
     : null;
   const goalMeta = GOAL_META[bodyGoal] ?? GOAL_META.recomp;
-  const macros = nutritionPlan?.moderate;
+  const macros = nutritionPlan?.[nutritionPace];
 
   function fmtMeasurement(valueCm: number | null) {
     if (valueCm === null) return null;
@@ -422,7 +429,7 @@ export default function BodyScreen() {
                   )}
                 </View>
                 {sparkData && (
-                  <Svg width={240} height={44} style={{ marginBottom: 12 }}>
+                  <Svg width={Dimensions.get("window").width - 96} height={44} style={{ marginBottom: 12 }}>
                     <Polyline points={sparkData.pts} fill="none" stroke={Colors.primary} strokeWidth="1.5" strokeOpacity={0.65} />
                     <Circle cx={sparkData.lastX} cy={sparkData.lastY} r={3.5} fill={Colors.primary} />
                   </Svg>
@@ -611,7 +618,7 @@ export default function BodyScreen() {
                         </Text>
                       )}
                     </View>
-                    <Svg width={240} height={44} style={{ marginBottom: 4 }}>
+                    <Svg width={Dimensions.get("window").width - 96} height={44} style={{ marginBottom: 4 }}>
                       <Polyline points={bfSparkData.pts} fill="none" stroke={Colors.primary} strokeWidth="1.5" strokeOpacity={0.65} />
                       <Circle cx={bfSparkData.lastX} cy={bfSparkData.lastY} r={3.5} fill={Colors.primary} />
                     </Svg>

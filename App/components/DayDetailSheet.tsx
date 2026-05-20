@@ -32,8 +32,14 @@ export default function DayDetailSheet({ visible, dateStr, data, weightUnit, onC
 
   function handleViewSession() {
     onClose();
-    // Navigate to History tab — list view will show the session
-    router.push("/(tabs)/history");
+    router.push({
+      pathname: "/(tabs)/history",
+      params: {
+        deepPlanId: data?.planId ?? "",
+        deepWeek: String(data?.weekNumber ?? ""),
+        deepDay: String(data?.dayNumber ?? ""),
+      },
+    });
   }
 
   return (

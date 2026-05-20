@@ -6,8 +6,8 @@ const Colors = {
   primary: "#DC2626",
   primaryDark: "#991B1B",
   text: "#FFFFFF",
-  textSecondary: "#999999",
-  textMuted: "#777777",
+  textSecondary: "#AAAAAA", // was #999999 — bumped for WCAG AA on bgAccent (#1A1A1A)
+  textMuted: "#888888",     // was #777777 — bumped for WCAG AA on bgAccent (#1A1A1A)
   border: "#222222",
   success: "#22C55E",
   warning: "#F59E0B",

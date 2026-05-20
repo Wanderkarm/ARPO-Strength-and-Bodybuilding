@@ -175,6 +175,7 @@ interface ExerciseState {
   exerciseNotes: string;
   prevSets: PrevSet[] | null; // last session's completed sets for this exercise
   supersetGroup: number | null; // exercises sharing same group ID alternate sets
+  isSkipped?: boolean; // true when user tapped "Skip Exercise"
 }
 
 function formatElapsed(seconds: number): string {
@@ -424,7 +425,8 @@ export default function WorkoutScreen() {
       // Start session timer (idempotent — INSERT OR IGNORE in DB)
       startWorkoutSession(plan.id, plan.currentWeek, currentDayNum).then(async (startedAt) => {
         startedAtRef.current = startedAt;
-        const initial = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+        const parsedStart = new Date(startedAt).getTime();
+        const initial = Number.isFinite(parsedStart) ? Math.floor((Date.now() - parsedStart) / 1000) : 0;
 
         // Check tour status once here so we can coordinate with the superset modal
         const tourDone = await AsyncStorage.getItem("hasCompletedWorkoutTour");
@@ -464,7 +466,8 @@ export default function WorkoutScreen() {
         setElapsedSeconds(Math.max(0, initial));
         if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = setInterval(() => {
-          setElapsedSeconds(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
+          const t = new Date(startedAt).getTime();
+          if (Number.isFinite(t)) setElapsedSeconds(Math.floor((Date.now() - t) / 1000));
         }, 1000);
       }).catch((err) => {
         console.error("[workout] startWorkoutSession failed:", err);
@@ -919,6 +922,8 @@ export default function WorkoutScreen() {
   }
 
   function isExerciseComplete(ex: ExerciseState): boolean {
+    // Exercises explicitly skipped by the user are considered handled
+    if (ex.isSkipped) return true;
     if (ex.sets.length === 0) return false; // guard: [].every() is vacuously true
     const bw = ex.exercise.equipment === "BODYWEIGHT";
     return ex.sets.every((s) => bw ? s.repsCompleted !== "" : s.repsCompleted !== "" && s.weightUsed !== "");
@@ -985,8 +990,8 @@ export default function WorkoutScreen() {
       const result = await completeWorkout(planId, currentDayNumber, exercises);
       const currentRIR = exerciseStates.length > 0 ? exerciseStates[0].targetRIR : "";
 
-      // Save session duration + notes
-      await finishWorkoutSession(planId, currentPlan.currentWeek, currentDayNumber, sessionNotes);
+      // Save session duration + notes; returns the DB-stamped completion timestamp
+      const sessionCompletedAt = await finishWorkoutSession(planId, currentPlan.currentWeek, currentDayNumber, sessionNotes);
 
       // Fire a local notification for each PR (runs in background, non-blocking)
       if (result.prs.length > 0) {
@@ -999,6 +1004,9 @@ export default function WorkoutScreen() {
       await incrementTrialWorkout();
 
       if (result.isMesoComplete) {
+        // Clear activePlanId before navigating so a force-quit during meso-complete
+        // doesn't leave a stale planId pointing at an inactive plan on next launch
+        await AsyncStorage.removeItem("activePlanId");
         router.replace({ pathname: "/meso-complete", params: { planId } });
       } else {
         router.replace({
@@ -1012,7 +1020,7 @@ export default function WorkoutScreen() {
             nextWeekTargets: JSON.stringify(result.nextWeekTargets),
             currentRIR,
             prs: JSON.stringify(result.prs),
-            completedAt: new Date().toISOString(),
+            completedAt: sessionCompletedAt,
           },
         });
       }
@@ -1042,6 +1050,11 @@ export default function WorkoutScreen() {
         await updateSetLog(ex.sets[i].setLogId, { weightUsed: 0 });
       }
     }
+
+    // Mark the exercise as skipped so isExerciseComplete() treats it as handled
+    setExerciseStates((prev) =>
+      prev.map((s, i) => i === exIndex ? { ...s, isSkipped: true } : s)
+    );
 
     setIncompleteModalVisible(false);
     if (currentExerciseIndex < exerciseStates.length - 1) {
@@ -1443,14 +1456,16 @@ export default function WorkoutScreen() {
   ).length;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
+    // Outer View holds safe-area insets so the KAV only adjusts the content area, not the header
+    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, paddingBottom: bottomInset }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
 
       {/* ── Watch reminder banner ── */}
       {watchBannerVisible && (
         <Pressable
           onPress={() => setWatchBannerVisible(false)}
           style={{
-            backgroundColor: "#1A237E",
+            backgroundColor: Colors.bgAccent,
             paddingHorizontal: 16,
             paddingVertical: 10,
             flexDirection: "row",
@@ -1460,14 +1475,14 @@ export default function WorkoutScreen() {
         >
           <Text style={{ fontSize: 18 }}>⌚</Text>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: "#FFFFFF", letterSpacing: 0.5 }}>
+            <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, letterSpacing: 0.5 }}>
               Start Strength Training on your Apple Watch
             </Text>
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: "#9FA8DA", marginTop: 1 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 1 }}>
               Open the Workout app → Strength Training · Tap to dismiss
             </Text>
           </View>
-          <Ionicons name="close" size={16} color="#9FA8DA" />
+          <Ionicons name="close" size={16} color={Colors.textSecondary} />
         </Pressable>
       )}
 
@@ -3610,5 +3625,6 @@ export default function WorkoutScreen() {
         })()}
       </Modal>
     </KeyboardAvoidingView>
+    </View>
   );
 }

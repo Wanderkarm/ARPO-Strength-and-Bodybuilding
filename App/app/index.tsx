@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { View, Text, Pressable, Platform, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Pressable, Platform, Image, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -47,12 +47,16 @@ export default function LandingScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
   const { isPurchased, isTrialExpired, isLoading: purchaseLoading } = usePurchase();
+  const [checking, setChecking] = useState(false);
+  const [routeError, setRouteError] = useState(false);
 
   useEffect(() => {
     if (!purchaseLoading) checkExistingUser();
   }, [purchaseLoading]);
 
   async function checkExistingUser() {
+    setChecking(true);
+    setRouteError(false);
     try {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) return; // New user — stay on landing page
@@ -87,7 +91,12 @@ export default function LandingScreen() {
 
       // No active plan anywhere — send to template picker
       router.replace("/templates");
-    } catch {}
+    } catch (err) {
+      console.error("[LandingScreen] checkExistingUser error:", err);
+      setRouteError(true);
+    } finally {
+      setChecking(false);
+    }
   }
 
   return (
@@ -197,26 +206,38 @@ export default function LandingScreen() {
       </View>
 
       <View style={{ paddingHorizontal: 24, paddingBottom: 24 }}>
+        {routeError && (
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.danger, textAlign: "center", marginBottom: 10 }}>
+            Something went wrong loading your data. Tap below to retry.
+          </Text>
+        )}
         <Pressable
-          onPress={() => router.push("/onboarding")}
+          onPress={checking ? undefined : (routeError ? checkExistingUser : () => router.push("/onboarding"))}
+          disabled={checking || purchaseLoading}
           style={({ pressed }) => ({
             backgroundColor: Colors.primary,
             paddingVertical: 18,
-            opacity: pressed ? 0.85 : 1,
+            opacity: pressed || checking || purchaseLoading ? 0.6 : 1,
+            alignItems: "center",
+            justifyContent: "center",
           })}
         >
-          <Text
-            style={{
-              fontFamily: "Rubik_700Bold",
-              fontSize: 16,
-              color: Colors.text,
-              textAlign: "center",
-              textTransform: "uppercase",
-              letterSpacing: 2,
-            }}
-          >
-            Begin Setup
-          </Text>
+          {checking || purchaseLoading ? (
+            <ActivityIndicator color={Colors.text} />
+          ) : (
+            <Text
+              style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: 16,
+                color: Colors.text,
+                textAlign: "center",
+                textTransform: "uppercase",
+                letterSpacing: 2,
+              }}
+            >
+              {routeError ? "Retry" : "Begin Setup"}
+            </Text>
+          )}
         </Pressable>
       </View>
     </View>

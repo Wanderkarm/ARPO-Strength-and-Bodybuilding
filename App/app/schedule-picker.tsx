@@ -51,6 +51,29 @@ export default function SchedulePickerScreen() {
     else router.replace("/(tabs)");
   }
 
+  /** Generates a default evenly-spread training schedule when the user skips picking days */
+  function defaultTrainingDays(count: number): number[] {
+    // Spread evenly Mon-Sun (DOW 1-7, where 0 = Sun). Prefer weekdays first.
+    const candidates = [1, 3, 5, 2, 4, 6, 0]; // Mon,Wed,Fri,Tue,Thu,Sat,Sun
+    return candidates.slice(0, count);
+  }
+
+  async function handleSkip() {
+    if (!planId) { navigate(); return; }
+    setSaving(true);
+    try {
+      const trainingDays = pickingRestDays
+        ? [0, 1, 2, 3, 4, 5, 6].filter((d) => !defaultTrainingDays(daysPerWeek).includes(d))
+        : defaultTrainingDays(daysPerWeek);
+      await saveTrainingSchedule(planId, trainingDays);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+      navigate();
+    }
+  }
+
   async function handleSave() {
     if (selected.size !== requiredCount) return;
     if (!planId) { navigate(); return; }
@@ -198,7 +221,7 @@ export default function SchedulePickerScreen() {
 
         {/* Skip */}
         <Pressable
-          onPress={navigate}
+          onPress={handleSkip}
           style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, alignItems: "center", paddingVertical: 10 })}
         >
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>

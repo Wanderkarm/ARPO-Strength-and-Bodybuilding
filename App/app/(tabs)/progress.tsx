@@ -6,6 +6,7 @@ import {
   Pressable,
   Platform,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,7 +32,8 @@ function WeightChart({
   data: { weekNumber: number; maxWeight: number }[];
   unit: string;
 }) {
-  const W = 220;
+  // 24 px horizontal padding on each side, 48 px reserved for labels on left
+  const W = Dimensions.get("window").width - 24 * 2 - 48;
   const H = 72;
   const PAD = { top: 8, right: 8, bottom: 20, left: 36 };
   const chartW = W - PAD.left - PAD.right;
@@ -129,7 +131,8 @@ function VolumeBar({
   mav: [number, number];
   mrv: number;
 }) {
-  const BAR_W = 180;
+  // 24 px screen padding each side, ~80 px for muscle name label
+  const BAR_W = Dimensions.get("window").width - 24 * 2 - 80;
   const BAR_H = 8;
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi));
   const pct = clamp(sets / mrv, 0, 1.15);
@@ -150,7 +153,7 @@ function VolumeBar({
       {/* Background */}
       <Line x1={0} y1={BAR_H / 2 + 1} x2={BAR_W} y2={BAR_H / 2 + 1} stroke={Colors.border} strokeWidth={BAR_H} strokeLinecap="square" />
       {/* MAV zone (green tint) */}
-      <Line x1={mavX0} y1={BAR_H / 2 + 1} x2={mavX1} y2={BAR_H / 2 + 1} stroke="#1a3a1a" strokeWidth={BAR_H} strokeLinecap="square" />
+      <Line x1={mavX0} y1={BAR_H / 2 + 1} x2={mavX1} y2={BAR_H / 2 + 1} stroke={Colors.success + "40"} strokeWidth={BAR_H} strokeLinecap="square" />
       {/* Fill */}
       <Line x1={0} y1={BAR_H / 2 + 1} x2={fillW} y2={BAR_H / 2 + 1} stroke={fillColor} strokeWidth={BAR_H} strokeLinecap="square" />
       {/* MEV tick */}
