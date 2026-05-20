@@ -157,6 +157,7 @@ export default function TemplatesScreen() {
       });
     } catch (err) {
       console.error(err);
+      Alert.alert("Error", "Couldn't create plan. Please try again.", [{ text: "OK" }]);
     } finally {
       setCreating(false);
     }

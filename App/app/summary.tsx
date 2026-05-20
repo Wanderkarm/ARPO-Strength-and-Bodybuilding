@@ -643,20 +643,7 @@ export default function SummaryScreen() {
                   {Platform.OS === "android" && showWorkoutPicker && (
                     <DateTimePicker value={workoutPickerDate} mode="time" display="default" onChange={(_e: DateTimePickerEvent, d?: Date) => { setShowWorkoutPicker(false); if (d) { setWorkoutHour(d.getHours()); setWorkoutMinute(d.getMinutes()); } }} />
                   )}
-                  {Platform.OS === "ios" && showWorkoutPicker && (
-                    <Modal visible transparent animationType="slide">
-                      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
-                        <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
-                          <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
-                            <Pressable onPress={() => setShowWorkoutPicker(false)} hitSlop={12}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
-                            </Pressable>
-                          </View>
-                          <DateTimePicker value={workoutPickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWorkoutHour(d.getHours()); setWorkoutMinute(d.getMinutes()); } }} style={{ height: 180 }} />
-                        </View>
-                      </View>
-                    </Modal>
-                  )}
+                  {/* iOS time picker rendered as sibling Modal outside this sheet — see below */}
                 </View>
               )}
             </View>
@@ -690,20 +677,7 @@ export default function SummaryScreen() {
                   {Platform.OS === "android" && showWeighinPicker && (
                     <DateTimePicker value={weighinPickerDate} mode="time" display="default" onChange={(_e: DateTimePickerEvent, d?: Date) => { setShowWeighinPicker(false); if (d) { setWeighinHour(d.getHours()); setWeighinMinute(d.getMinutes()); } }} />
                   )}
-                  {Platform.OS === "ios" && showWeighinPicker && (
-                    <Modal visible transparent animationType="slide">
-                      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
-                        <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
-                          <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
-                            <Pressable onPress={() => setShowWeighinPicker(false)} hitSlop={12}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
-                            </Pressable>
-                          </View>
-                          <DateTimePicker value={weighinPickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWeighinHour(d.getHours()); setWeighinMinute(d.getMinutes()); } }} style={{ height: 180 }} />
-                        </View>
-                      </View>
-                    </Modal>
-                  )}
+                  {/* iOS time picker rendered as sibling Modal outside this sheet — see below */}
                 </View>
               )}
             </View>
@@ -719,6 +693,36 @@ export default function SummaryScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ── iOS time pickers: rendered as siblings to avoid nested-Modal issues ── */}
+      {Platform.OS === "ios" && showWorkoutPicker && (
+        <Modal visible transparent animationType="slide">
+          <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+            <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                <Pressable onPress={() => setShowWorkoutPicker(false)} hitSlop={12}>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                </Pressable>
+              </View>
+              <DateTimePicker value={workoutPickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWorkoutHour(d.getHours()); setWorkoutMinute(d.getMinutes()); } }} style={{ height: 180 }} />
+            </View>
+          </View>
+        </Modal>
+      )}
+      {Platform.OS === "ios" && showWeighinPicker && (
+        <Modal visible transparent animationType="slide">
+          <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000066" }}>
+            <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
+                <Pressable onPress={() => setShowWeighinPicker(false)} hitSlop={12}>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                </Pressable>
+              </View>
+              <DateTimePicker value={weighinPickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={(_e: DateTimePickerEvent, d?: Date) => { if (d) { setWeighinHour(d.getHours()); setWeighinMinute(d.getMinutes()); } }} style={{ height: 180 }} />
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }

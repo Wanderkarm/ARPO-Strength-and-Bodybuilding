@@ -1727,7 +1727,7 @@ export async function completeWorkout(
 
     const nextMesoWeek2 = ((nextWeek - 1) % 4) + 1;
     const isNextDeload2 = nextMesoWeek2 === 4;
-    const rir = isNextDeload2 ? "4 RIR" : (RIR_SCHEDULE[nextMesoWeek2] || "3 RIR");
+    const rir = isNextDeload2 ? "Deload" : (RIR_SCHEDULE[nextMesoWeek2] || "3 RIR");
 
     const allWeekLogs = await db.getAllAsync<{
       exercise_id: string; original_exercise_id: string | null;
@@ -1752,6 +1752,15 @@ export async function completeWorkout(
         const nextExerciseId = (log.is_permanent_swap === 0 && log.original_exercise_id)
           ? log.original_exercise_id
           : log.exercise_id;
+        // Look up previous week's rep target so deload matches the plan's rep scheme
+        const repTargetResult2 = await db.getFirstAsync<{ target_reps: number }>(
+          `SELECT COALESCE(MAX(sl.target_reps), 10) as target_reps
+           FROM set_logs sl
+           JOIN workout_logs wl ON sl.workout_log_id = wl.id
+           WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.exercise_id = ? AND wl.day_number = ?`,
+          [workoutPlanId, plan.current_week, log.exercise_id, log.day_number]
+        );
+        const deloadTargetReps = repTargetResult2?.target_reps ?? 10;
         await db.runAsync(
           `INSERT INTO workout_logs (id, workout_plan_id, exercise_id, original_exercise_id, week_number, day_number, target_sets, target_weight, target_rir)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1761,7 +1770,7 @@ export async function completeWorkout(
         for (let s = 1; s <= deloadSets; s++) {
           await db.runAsync(
             "INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps) VALUES (?, ?, ?, ?, ?)",
-            [generateId(), logId, s, log.target_weight, 12]
+            [generateId(), logId, s, log.target_weight, deloadTargetReps]
           );
         }
         continue;
@@ -1772,7 +1781,7 @@ export async function completeWorkout(
          FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.exercise_id = ? AND wl.day_number = ?
-           AND sl.reps_completed IS NOT NULL`,
+           AND sl.reps_completed > 0`,
         [workoutPlanId, plan.current_week, log.exercise_id, log.day_number]
       );
       const avgReps = Math.round(avgRepsResult?.avg_reps || 10);
@@ -1891,7 +1900,7 @@ export async function getMesoStats(planId: string): Promise<MesoStats> {
 
   const sessionsResult = await db.getFirstAsync<{ count: number }>(
     `SELECT COUNT(DISTINCT week_number || '-' || day_number) as count
-     FROM workout_logs WHERE workout_plan_id = ? AND completed_at IS NOT NULL`,
+     FROM workout_logs WHERE workout_plan_id = ? AND completed_at IS NOT NULL AND is_skipped = 0`,
     [planId]
   );
 
@@ -2952,6 +2961,16 @@ export async function propagateSetChangeToPlan(
       }
     }
   }
+}
+
+/**
+ * Mark a plan as inactive without deleting it. Called when the user
+ * navigates away from meso-complete to pick a new routine, so the
+ * old plan is no longer counted as active in subsequent queries.
+ */
+export async function abandonPlan(planId: string): Promise<void> {
+  const db = getDb();
+  await db.runAsync("UPDATE workout_plans SET is_active = 0 WHERE id = ?", [planId]);
 }
 
 /**

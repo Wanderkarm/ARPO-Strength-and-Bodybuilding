@@ -48,6 +48,7 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
   const notifIdRef = useRef<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasFinishedRef = useRef(false);
+  const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [seconds, setSeconds] = useState(initialSeconds);
   const [paperModalVisible, setPaperModalVisible] = useState(false);
@@ -73,6 +74,7 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (dismissTimeoutRef.current) clearTimeout(dismissTimeoutRef.current);
       cancelNotification(notifIdRef.current);
     };
   }, []);
@@ -106,7 +108,8 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
       }
     }
 
-    setTimeout(() => {
+    dismissTimeoutRef.current = setTimeout(() => {
+      dismissTimeoutRef.current = null;
       onDismiss();
     }, 1500);
   }
@@ -114,6 +117,11 @@ export default function RestTimer({ initialSeconds, onDismiss }: RestTimerProps)
   async function addTime() {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    // Cancel any pending auto-dismiss so the timer continues after +30s
+    if (dismissTimeoutRef.current) {
+      clearTimeout(dismissTimeoutRef.current);
+      dismissTimeoutRef.current = null;
     }
     endTimestampRef.current += 30000;
     const newRemaining = Math.ceil((endTimestampRef.current - Date.now()) / 1000);

@@ -133,7 +133,12 @@ export default function HistoryScreen() {
             setUndoingSkip(item.planId);
             try {
               await unSkipSession(item.planId, item.weekNumber, item.dayNumber);
-              await AsyncStorage.setItem("activePlanId", item.planId);
+              // Only promote this plan to active if the user has no other active plan
+              // (avoids clobbering a currently running plan when undoing an old skip)
+              const currentActivePlanId = await AsyncStorage.getItem("activePlanId");
+              if (!currentActivePlanId || currentActivePlanId === item.planId) {
+                await AsyncStorage.setItem("activePlanId", item.planId);
+              }
               if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               router.replace("/(tabs)");
             } catch (err) {

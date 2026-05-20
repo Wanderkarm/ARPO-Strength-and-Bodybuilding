@@ -168,6 +168,7 @@ export default function ProgressScreen() {
 
   const [loading, setLoading] = useState(true);
   const [noPlan, setNoPlan] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [exerciseHistory, setExerciseHistory] = useState<ExerciseWeightHistory[]>([]);
   const [muscleVolume, setMuscleVolume] = useState<MuscleVolumeData[]>([]);
   const [currentWeek, setCurrentWeek] = useState(1);
@@ -182,6 +183,7 @@ export default function ProgressScreen() {
 
   async function loadData() {
     setLoading(true);
+    setLoadError(false);
     const planId = await AsyncStorage.getItem("activePlanId");
     if (!planId) {
       setNoPlan(true);
@@ -197,6 +199,7 @@ export default function ProgressScreen() {
       setNoPlan(false);
     } catch (err) {
       console.error(err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -206,6 +209,23 @@ export default function ProgressScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator color={Colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
+        <Ionicons name="alert-circle-outline" size={48} color={Colors.danger} />
+        <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginTop: 16, textAlign: "center" }}>
+          Couldn't Load Progress
+        </Text>
+        <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, marginTop: 8, textAlign: "center", lineHeight: 20 }}>
+          There was a problem reading your data. Try again.
+        </Text>
+        <Pressable onPress={loadData} style={({ pressed }) => ({ marginTop: 20, borderWidth: 1, borderColor: Colors.primary, paddingVertical: 12, paddingHorizontal: 24, opacity: pressed ? 0.7 : 1 })}>
+          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Retry</Text>
+        </Pressable>
       </View>
     );
   }

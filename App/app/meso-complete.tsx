@@ -18,6 +18,7 @@ import { useUnit } from "@/contexts/UnitContext";
 import {
   getMesoStats,
   createWorkoutPlanFromPrevious,
+  abandonPlan,
   type MesoStats,
 } from "@/lib/local-db";
 
@@ -69,6 +70,9 @@ export default function MesoCompleteScreen() {
 
   async function handleSelectNew() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await abandonPlan(planId);
+    } catch { /* non-fatal — plan is already complete */ }
     await AsyncStorage.removeItem("activePlanId");
     router.replace("/templates");
   }

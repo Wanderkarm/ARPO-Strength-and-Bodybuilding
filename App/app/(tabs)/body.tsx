@@ -224,7 +224,9 @@ export default function BodyScreen() {
   const oldestEntry = weightHistory.length > 1 ? weightHistory[0] : null;
 
   const latestDisplay = latestEntry
-    ? (unit === "lbs" ? kgToLbs(latestEntry.weightKg) : Math.round(latestEntry.weightKg * 10) / 10)
+    ? (unit === "lbs"
+        ? kgToLbs(latestEntry.weightKg).toFixed(1)
+        : (Math.round(latestEntry.weightKg * 10) / 10).toFixed(1))
     : null;
 
   const changeVal = (latestEntry && oldestEntry && latestEntry.id !== oldestEntry.id)
