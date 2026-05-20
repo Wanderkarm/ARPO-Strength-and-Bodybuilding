@@ -205,7 +205,7 @@ export default function HistoryScreen() {
         {isExpanded && !item.isSkipped && (
           <View style={{ marginTop: 16 }}>
             {/* Edit button — only within 24hr window */}
-            {Date.now() - new Date(item.date).getTime() < 24 * 60 * 60 * 1000 && (
+            {(() => { const ts = new Date(item.date).getTime(); return !isNaN(ts) && Date.now() - ts < 24 * 60 * 60 * 1000; })() && (
               <Pressable
                 onPress={(e) => { e.stopPropagation?.(); setEditTarget(item); }}
                 style={({ pressed }) => ({

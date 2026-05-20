@@ -1125,7 +1125,7 @@ export async function skipSession(
 
     const nextMesoWeek = ((nextWeek - 1) % 4) + 1;
     const isNextDeload = nextMesoWeek === 4;
-    const rir = isNextDeload ? "4 RIR" : (RIR_SCHEDULE[nextMesoWeek] || "3 RIR");
+    const rir = isNextDeload ? "Deload" : (RIR_SCHEDULE[nextMesoWeek] || "3 RIR");
 
     const allWeekLogs = await db.getAllAsync<{
       exercise_id: string; original_exercise_id: string | null; day_number: number; target_sets: number;
@@ -1615,8 +1615,9 @@ export async function completeWorkout(
   const prs: { exerciseId: string; exerciseName: string; newBest: number; previousBest: number }[] = [];
   for (const ex of exercisesData) {
     if (ex.sets.length === 0) continue;
-    const maxThisSession = Math.max(...ex.sets.map((s) => s.weightUsed).filter((w) => w > 0));
-    if (maxThisSession <= 0) continue; // skip bodyweight
+    const sessionWeights = ex.sets.map((s) => s.weightUsed).filter((w) => w > 0);
+    const maxThisSession = sessionWeights.length > 0 ? Math.max(...sessionWeights) : 0;
+    if (maxThisSession <= 0) continue; // skip bodyweight / no-weight sets
 
     const row = await db.getFirstAsync<{ max_weight: number | null }>(
       `SELECT MAX(sl.weight_used) as max_weight
@@ -1659,13 +1660,15 @@ export async function completeWorkout(
       [ex.sorenessRating, ex.pumpRating ?? null, new Date().toISOString(), ex.logId]
     );
 
-    const avgReps = ex.sets.length > 0
-      ? Math.round(ex.sets.reduce((sum, s) => sum + s.repsCompleted, 0) / ex.sets.length)
+    // Exclude skipped sets (repsCompleted = 0) from the average so they don't
+    // drag down the algorithm and cause incorrect weight reductions.
+    const validSets = ex.sets.filter(s => s.repsCompleted > 0);
+    const avgReps = validSets.length > 0
+      ? Math.round(validSets.reduce((sum, s) => sum + s.repsCompleted, 0) / validSets.length)
       : 0;
 
-    const maxActualWeight = ex.sets.length > 0
-      ? Math.max(...ex.sets.map((s) => s.weightUsed).filter((w) => w > 0))
-      : 0;
+    const weightedSets = ex.sets.map((s) => s.weightUsed).filter((w) => w > 0);
+    const maxActualWeight = weightedSets.length > 0 ? Math.max(...weightedSets) : 0;
     const actualWeight2 = maxActualWeight > 0 ? maxActualWeight : ex.targetWeight;
 
     // Use the actual target_reps from the set logs rather than a hardcoded value,
@@ -2949,4 +2952,23 @@ export async function propagateSetChangeToPlan(
       }
     }
   }
+}
+
+/**
+ * Wipes all user-generated data from the database while preserving the
+ * seed data (exercises, templates, template_days, template_exercises).
+ * Call this before AsyncStorage.clear() in the "Delete All Data" flow.
+ */
+export async function deleteAllUserData(): Promise<void> {
+  const db = getDb();
+  // Delete in dependency order so FK constraints (foreign_keys = ON) don't fire
+  await db.runAsync("DELETE FROM set_logs");
+  await db.runAsync("DELETE FROM workout_sessions");
+  await db.runAsync("DELETE FROM workout_logs");
+  await db.runAsync("DELETE FROM workout_plans");
+  await db.runAsync("DELETE FROM body_measurements");
+  await db.runAsync("DELETE FROM body_weight_logs");
+  await db.runAsync("DELETE FROM daily_steps");
+  await db.runAsync("DELETE FROM user_weight_baselines");
+  await db.runAsync("DELETE FROM users");
 }

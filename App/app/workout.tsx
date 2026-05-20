@@ -466,6 +466,8 @@ export default function WorkoutScreen() {
         timerIntervalRef.current = setInterval(() => {
           setElapsedSeconds(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
         }, 1000);
+      }).catch((err) => {
+        console.error("[workout] startWorkoutSession failed:", err);
       });
 
       // Build exercise states then load prev-session data async
@@ -483,6 +485,7 @@ export default function WorkoutScreen() {
         supersetGroup: null,
         sets: (log.sets || []).map((s) => {
           const hasData = s.repsCompleted !== null && s.weightUsed !== null;
+          const isBodyweightEx = log.exercise.equipment === "BODYWEIGHT";
           return {
             setLogId: s.id,
             setNumber: s.setNumber,
@@ -491,7 +494,7 @@ export default function WorkoutScreen() {
             repsCompleted: s.repsCompleted !== null ? String(s.repsCompleted) : "",
             weightUsed: s.weightUsed !== null ? String(s.weightUsed) : "",
             feedback: hasData
-              ? getFeedback(s.repsCompleted!, s.weightUsed!, s.targetWeight, s.targetReps)
+              ? getFeedback(s.repsCompleted!, s.weightUsed ?? 0, s.targetWeight, s.targetReps, isBodyweightEx)
               : null,
             setType: s.setType ?? 'normal',
             myoGroupId: s.myoGroupId ?? null,
@@ -717,11 +720,14 @@ export default function WorkoutScreen() {
 
         return updated;
       });
-      // Jump to superset partner only if this blur actually completed the set
-      // (same gate as the setExerciseStates updater above — no jump on empty fields)
+      // Jump to superset partner only if this blur actually completed the set.
+      // Capture the snapshot BEFORE the setExerciseStates updater runs (the ref
+      // is updated synchronously in the effect), so we check pre-update state.
       const snapEx = exerciseStatesRef.current[exIndex];
       const snapSet = snapEx?.sets[setIndex];
-      if (snapSet && !snapSet.feedback) {
+      // wasAlreadyDone: set had feedback before this blur — don't jump again
+      const wasAlreadyDone = !!snapSet?.feedback;
+      if (!wasAlreadyDone && snapSet) {
         const bw = snapEx.exercise.equipment === "BODYWEIGHT";
         const reps = parseInt(snapSet.repsCompleted);
         const weight = parseFloat(snapSet.weightUsed) || 0;
@@ -941,6 +947,10 @@ export default function WorkoutScreen() {
     // JS's single-threaded event loop guarantees only the first caller proceeds.
     if (finishingRef.current) return;
     finishingRef.current = true;
+    // Capture stable plan values NOW (before any await) to avoid stale closure issues
+    const currentPlan = plan;
+    const currentDayNumber = currentPlan?.currentDay ?? dayNumber;
+    if (!currentPlan) { finishingRef.current = false; return; }
     const planId = await AsyncStorage.getItem("activePlanId");
     if (!planId) { finishingRef.current = false; return; }
     setFinishing(true);
@@ -972,13 +982,11 @@ export default function WorkoutScreen() {
           .map((ex) => updateExerciseNotes(ex.logId, ex.exerciseNotes))
       );
 
-      const result = await completeWorkout(planId, dayNumber, exercises);
+      const result = await completeWorkout(planId, currentDayNumber, exercises);
       const currentRIR = exerciseStates.length > 0 ? exerciseStates[0].targetRIR : "";
 
       // Save session duration + notes
-      if (plan) {
-        await finishWorkoutSession(planId, plan.currentWeek, dayNumber, sessionNotes);
-      }
+      await finishWorkoutSession(planId, currentPlan.currentWeek, currentDayNumber, sessionNotes);
 
       // Fire a local notification for each PR (runs in background, non-blocking)
       if (result.prs.length > 0) {

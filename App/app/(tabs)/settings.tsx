@@ -33,6 +33,7 @@ import {
   getAllExercises,
   getWorkoutPlan,
   getMostRecentBodyWeightKg,
+  deleteAllUserData,
   type GymType,
 } from "@/lib/local-db";
 import type { GoalType } from "@/utils/volumeLandmarks";
@@ -1345,6 +1346,7 @@ export default function SettingsScreen() {
                             style: "destructive",
                             onPress: async () => {
                               try {
+                                await deleteAllUserData();
                                 await AsyncStorage.clear();
                                 router.replace("/");
                               } catch (err) {

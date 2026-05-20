@@ -151,28 +151,28 @@ export default function DashboardScreen() {
         const baseline = computeBaseline(history);
         setRecoveryIntelligence(classifyRecovery(cached, baseline, mesoWeekOf(currentWeekForRecovery)));
       }
-    });
+    }).catch(() => {});
 
     // Body comp nudge
     AsyncStorage.getItem("bodyCompPromptDismissed").then((val) => {
       setBodyCompPromptDismissed(val === "1");
-    });
+    }).catch(() => {});
 
     // Health permissions nudge — show only if they haven't gone through the health screen
     AsyncStorage.getItem("healthPermissionsRequested").then((val) => {
       setHealthNudgeDismissed(val === "1");
-    });
+    }).catch(() => {});
 
     // Calendar strip — load current week data + training schedule
     if (uid) {
       const now = new Date();
       const start = weekStartDate(now);
       const end = weekEndDate(now);
-      getCalendarData(uid, start, end).then(setWeekCalData);
+      getCalendarData(uid, start, end).then(setWeekCalData).catch(() => {});
     }
-    const pid = await AsyncStorage.getItem("activePlanId");
-    if (pid) {
-      getTrainingSchedule(pid).then(setTrainingDays);
+    // Re-use the planId already fetched above (planId is in scope from loadPlan)
+    if (planId) {
+      getTrainingSchedule(planId).then(setTrainingDays).catch(() => {});
     }
 
     setIsLoading(false);
