@@ -38,8 +38,8 @@ import Purchases, { LOG_LEVEL } from "react-native-purchases";
 const REVENUECAT_IOS_KEY: string = "appl_NtywFdJvlsDyWsGxoutkBXqFaLk";
 const ENTITLEMENT_ID        = "pro";
 export const TRIAL_WORKOUTS = 3;
-export const UNLOCK_PRICE_LABEL   = "$9.95";  // founder's price — raise to REGULAR_PRICE_LABEL after 500 sales
-export const REGULAR_PRICE_LABEL  = "$29.95"; // standard price shown as "Regular price" on paywall
+export const UNLOCK_PRICE_LABEL   = "$9.99";  // founder's price — raise to REGULAR_PRICE_LABEL after 500 sales
+export const REGULAR_PRICE_LABEL  = "$29.99"; // standard price shown as "Regular price" on paywall
 export const FOUNDING_TIER_COUNT  = 500;      // number of founding-member slots
 
 /** Set true to skip all paywall logic during local dev / simulator testing */
