@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -70,7 +70,7 @@ export default function SummaryScreen() {
 
   const planId        = params.planId || "";
   const totalVolume   = parseFloat(params.totalVolume || "0");
-  const weekNumber    = parseInt(params.weekNumber || "1");
+  const weekNumber    = Math.max(1, parseInt(params.weekNumber || "1") || 1);
   const dayNumber     = parseInt(params.dayNumber || "1");
   const exerciseCount = parseInt(params.exerciseCount || "0");
   const currentRIR    = params.currentRIR || "";
@@ -123,6 +123,17 @@ export default function SummaryScreen() {
   }
 
   async function handleSaveNotifs() {
+    if (workoutEnabled || weighinEnabled) {
+      // Re-verify permission at save time — user may have revoked it in iOS Settings
+      // after toggling the switch but before tapping "Set Reminders".
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        // Permission was revoked — just dismiss without scheduling
+        await AsyncStorage.setItem("notifPromptDismissed", "1");
+        setShowNotifPrompt(false);
+        return;
+      }
+    }
     try {
       if (workoutEnabled) await scheduleWorkoutReminder(workoutHour, workoutMinute);
       if (weighinEnabled) await scheduleWeighInReminder(weighinHour, weighinMinute);
@@ -132,10 +143,14 @@ export default function SummaryScreen() {
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }
 
-  const workoutPickerDate = new Date();
-  workoutPickerDate.setHours(workoutHour, workoutMinute, 0, 0);
-  const weighinPickerDate = new Date();
-  weighinPickerDate.setHours(weighinHour, weighinMinute, 0, 0);
+  // Memoised so the Date reference only changes when hour/minute actually changes,
+  // preventing the iOS DateTimePicker spinner from resetting on unrelated re-renders.
+  const workoutPickerDate = useMemo(() => {
+    const d = new Date(); d.setHours(workoutHour, workoutMinute, 0, 0); return d;
+  }, [workoutHour, workoutMinute]);
+  const weighinPickerDate = useMemo(() => {
+    const d = new Date(); d.setHours(weighinHour, weighinMinute, 0, 0); return d;
+  }, [weighinHour, weighinMinute]);
 
   let nextWeekTargets: NextWeekTarget[] = [];
   try { nextWeekTargets = JSON.parse(params.nextWeekTargets || "[]"); } catch {}

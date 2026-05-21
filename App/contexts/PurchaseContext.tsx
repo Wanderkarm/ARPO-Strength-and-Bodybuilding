@@ -154,7 +154,11 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
   // ─── increment ──────────────────────────────────────────────────────────────
   async function incrementTrialWorkout(): Promise<void> {
     if (isPurchased) return; // already unlocked — don't touch the counter
-    const newCount = completedWorkouts + 1;
+    // Read from AsyncStorage (source of truth) rather than React state to avoid
+    // a race condition where two rapid calls both see the same stale state value.
+    const raw = await AsyncStorage.getItem(TRIAL_COUNT_KEY);
+    const current = parseInt(raw ?? "0", 10) || 0;
+    const newCount = current + 1;
     setCompletedWorkouts(newCount);
     await AsyncStorage.setItem(TRIAL_COUNT_KEY, String(newCount));
   }

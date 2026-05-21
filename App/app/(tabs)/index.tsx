@@ -1043,7 +1043,7 @@ export default function DashboardScreen() {
                   : todaySteps.steps.toLocaleString()}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginBottom: 8 }}>
-                / {(todaySteps.goal / 1000).toFixed(0)}k goal
+                / {todaySteps.goal % 1000 === 0 ? `${todaySteps.goal / 1000}k` : `${(todaySteps.goal / 1000).toFixed(1)}k`} goal
               </Text>
               <View style={{ height: 3, backgroundColor: Colors.bgAccent }}>
                 <View style={{

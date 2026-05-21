@@ -264,9 +264,10 @@ export async function syncFromAppleHealth(userId: string): Promise<SyncResult> {
       "%"
     );
     if (bodyFatSample?.quantity != null && bodyFatSample.quantity > 0) {
-      // HealthKit returns body fat as a fraction (0.135 = 13.5%) regardless of
-      // the '%' unit request — multiply by 100 to convert to a real percentage.
-      bodyFatPct = Math.round(bodyFatSample.quantity * 100 * 10) / 10;
+      // HealthKit with the '%' unit returns an already-converted percentage (18.5, not 0.185).
+      // Guard against library versions that return a fraction (value < 1) just in case.
+      const rawBf = bodyFatSample.quantity;
+      bodyFatPct = Math.round((rawBf > 1 ? rawBf : rawBf * 100) * 10) / 10;
       await logBodyMeasurements(userId, {
         chestCm: null, waistCm: null, hipsCm: null,
         leftArmCm: null, rightArmCm: null, leftThighCm: null, rightThighCm: null, neckCm: null,
@@ -481,11 +482,11 @@ export async function silentDailySync(userId: string): Promise<{ stepsSynced: bo
     }
 
     if (Platform.OS === "android") {
-      const { initialize, readRecords } = require("react-native-health-connect");
+      const { initialize, readRecords, requestPermission } = require("react-native-health-connect");
       const available = await initialize();
       if (!available) return { stepsSynced: false, weightSynced: false };
 
-      await require("react-native-health-connect").requestPermission([
+      await requestPermission([
         { accessType: "read", recordType: "Steps" },
         { accessType: "read", recordType: "Weight" },
       ]);

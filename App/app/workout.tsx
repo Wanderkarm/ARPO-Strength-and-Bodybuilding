@@ -318,6 +318,8 @@ export default function WorkoutScreen() {
   const restTimerContainerRef = useRef<View>(null);
   const restTimerY = useRef<number>(0);
   const exerciseStatesRef = useRef<ExerciseState[]>([]);
+  const currentExerciseIndexRef = useRef(0); // mirrors currentExerciseIndex state for use in timer callbacks
+  const handleConfirmRecoveryRef = useRef<() => void>(() => {}); // always points to latest handleConfirmRecovery
   const autoFinishTriggeredRef = useRef(false);
   const finishingRef = useRef(false); // guards against double-complete (manual + auto-finish race)
   const { height: screenHeight } = useWindowDimensions();
@@ -602,6 +604,23 @@ export default function WorkoutScreen() {
           { text: "Yes, I crushed it", style: "default" },
         ]
       );
+    } else if (num < setData.targetWeight * 0.5) {
+      // Likely a typo (e.g. "45" instead of "145") — warn without blocking
+      const refKey = `${exIndex}-${si}`;
+      Alert.alert(
+        "Weight Seems Low",
+        `You entered ${num}, which is less than half your target of ${setData.targetWeight}. Did you mean to type a different weight?`,
+        [
+          {
+            text: "Fix it",
+            onPress: () => {
+              updateSet(exIndex, si, "weightUsed", "");
+              setTimeout(() => weightInputRefs.current[refKey]?.focus(), 150);
+            },
+          },
+          { text: "That's correct", style: "default" },
+        ]
+      );
     }
   }
 
@@ -665,6 +684,10 @@ export default function WorkoutScreen() {
     exerciseStatesRef.current = exerciseStates;
   }, [exerciseStates]);
 
+  useEffect(() => {
+    currentExerciseIndexRef.current = currentExerciseIndex;
+  }, [currentExerciseIndex]);
+
   // Auto-complete: as soon as every set on every exercise is logged, save and
   // navigate to the summary — no "Finish Workout" tap required.
   useEffect(() => {
@@ -674,9 +697,10 @@ export default function WorkoutScreen() {
     const allDone = exerciseStates.every(isExerciseComplete);
     if (allDone) {
       autoFinishTriggeredRef.current = true;
-      // Brief delay so the user sees the last feedback row before the screen transitions
+      // Brief delay so the user sees the last feedback row before the screen transitions.
+      // Use ref so the callback always captures the latest plan/state at call time.
       setTimeout(() => {
-        handleConfirmRecovery();
+        handleConfirmRecoveryRef.current();
       }, 1200);
     }
   }, [exerciseStates]);
@@ -1035,6 +1059,10 @@ export default function WorkoutScreen() {
     }
   }
 
+  // Keep the ref pointing at the latest version so the auto-finish setTimeout
+  // always calls the current handleConfirmRecovery (captures latest plan/state).
+  handleConfirmRecoveryRef.current = handleConfirmRecovery;
+
   async function handleSkipExercise() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const exIndex = currentExerciseIndex;
@@ -1323,7 +1351,8 @@ export default function WorkoutScreen() {
   }
 
   async function appendMyoMiniSet() {
-    const ex = exerciseStatesRef.current[currentExerciseIndex];
+    const idx = currentExerciseIndexRef.current;
+    const ex = exerciseStatesRef.current[idx];
     if (!ex || !myoGroupId) return;
     const newMini = await addMyoMiniSet(ex.logId, ex.targetWeight, myoGroupId);
     if (!newMini) return;
@@ -1332,7 +1361,7 @@ export default function WorkoutScreen() {
     setMyoMiniCount(newCount);
     setExerciseStates((prev) => {
       const next = [...prev];
-      const exNext = { ...next[currentExerciseIndex] };
+      const exNext = { ...next[idx] };
       exNext.sets = [
         ...exNext.sets,
         {

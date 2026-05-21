@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
-import { usePurchase, UNLOCK_PRICE_LABEL, REGULAR_PRICE_LABEL, FOUNDING_TIER_COUNT } from "@/contexts/PurchaseContext";
+import { usePurchase, UNLOCK_PRICE_LABEL, REGULAR_PRICE_LABEL, FOUNDING_TIER_COUNT, TRIAL_WORKOUTS } from "@/contexts/PurchaseContext";
 
 const FEATURES = [
   { icon: "trending-up",        text: "ARPO auto-progression — weights adjust every session" },
@@ -77,7 +77,7 @@ export default function PaywallScreen() {
           fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text,
           textTransform: "uppercase", letterSpacing: 1.5, textAlign: "center", marginBottom: 6,
         }}>
-          3 sessions done.{"\n"}Time to unlock.
+          {TRIAL_WORKOUTS} sessions done.{"\n"}Time to unlock.
         </Text>
         <Text style={{
           fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary,

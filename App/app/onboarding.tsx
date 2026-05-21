@@ -117,9 +117,9 @@ export default function OnboardingScreen() {
   const NUMBERED_STEPS: Step[] = bodyGoal === "recomp"
     ? ["unit", "identity", "physical", "goals", "training", "summary"]
     : ["unit", "identity", "physical", "goals", "training", "target", "pace", "summary"];
-  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 8 : 10;
-  // recomp: 6 onboarding + templates + weights = 8
-  // cut/bulk: 8 onboarding + templates + weights = 10
+  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 7 : 9;
+  // recomp: 6 onboarding + templates = 7
+  // cut/bulk: 8 onboarding + templates = 9
 
   // Estimated TDEE for summary screen
   const tdeeEstimate = useMemo(() => {
