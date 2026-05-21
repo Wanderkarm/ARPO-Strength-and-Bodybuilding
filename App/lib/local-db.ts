@@ -2987,16 +2987,6 @@ export async function propagateSetChangeToPlan(
 }
 
 /**
- * Mark a plan as inactive without deleting it. Called when the user
- * navigates away from meso-complete to pick a new routine, so the
- * old plan is no longer counted as active in subsequent queries.
- */
-export async function abandonPlan(planId: string): Promise<void> {
-  const db = getDb();
-  await db.runAsync("UPDATE workout_plans SET is_active = 0 WHERE id = ?", [planId]);
-}
-
-/**
  * Wipes all user-generated data from the database while preserving the
  * seed data (exercises, templates, template_days, template_exercises).
  * Call this before AsyncStorage.clear() in the "Delete All Data" flow.
