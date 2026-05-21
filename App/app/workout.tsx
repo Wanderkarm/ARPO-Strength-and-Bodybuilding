@@ -1429,13 +1429,15 @@ export default function WorkoutScreen() {
   const isBodyweight = currentEx.exercise.equipment === "BODYWEIGHT";
   const isWeightedBW = currentEx.exercise.equipment === "WEIGHTED_BODYWEIGHT";
 
-  /** Extract an 11-char YouTube video ID from youtu.be/... or youtube.com/watch?v=... URLs */
+  /** Extract an 11-char YouTube video ID from youtu.be/..., youtube.com/watch?v=..., or youtube.com/shorts/... URLs */
   function extractYouTubeId(url: string): string | null {
     if (!url) return null;
     const shortMatch = url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
     if (shortMatch) return shortMatch[1];
     const longMatch = url.match(/[?&]v=([A-Za-z0-9_-]{11})/);
     if (longMatch) return longMatch[1];
+    const shortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/);
+    if (shortsMatch) return shortsMatch[1];
     return null;
   }
 
