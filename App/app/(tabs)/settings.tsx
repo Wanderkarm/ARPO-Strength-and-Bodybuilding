@@ -1300,8 +1300,8 @@ export default function SettingsScreen() {
         <SectionHeader title="Legal" />
         <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
           {[
-            { label: "Privacy Policy", url: "https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/privacy.html" },
-            { label: "Terms of Use", url: "https://wanderkarm.github.io/ARPO-Strength-and-Bodybuilding/terms.html" },
+            { label: "Privacy Policy", url: "https://powrlog.com/privacy" },
+            { label: "Terms of Use",   url: "https://powrlog.com/terms" },
           ].map((item, i) => (
             <Pressable
               key={item.label}

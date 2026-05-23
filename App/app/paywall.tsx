@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -215,6 +216,21 @@ export default function PaywallScreen() {
             Manage in Settings → [Your Name] → App Store.
           </Text>
         )}
+
+        {/* Privacy Policy + Terms — required by Apple Guideline 3.1.1 on IAP screens */}
+        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 10 }}>
+          <Pressable onPress={() => Linking.openURL("https://powrlog.com/privacy")}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textDecorationLine: "underline" }}>
+              Privacy Policy
+            </Text>
+          </Pressable>
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>·</Text>
+          <Pressable onPress={() => Linking.openURL("https://powrlog.com/terms")}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textDecorationLine: "underline" }}>
+              Terms of Use
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
