@@ -2517,6 +2517,20 @@ export async function startWorkoutSession(
   return row?.started_at ?? now;
 }
 
+/**
+ * Returns true if the given plan has an in-progress workout session
+ * (started but not yet finished). Used on app launch to detect a
+ * mid-workout app kill (e.g. iOS terminated app during a phone call).
+ */
+export async function hasActiveWorkoutSession(planId: string): Promise<boolean> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ id: string }>(
+    "SELECT id FROM workout_sessions WHERE workout_plan_id = ? AND completed_at IS NULL",
+    [planId]
+  );
+  return row != null;
+}
+
 export async function finishWorkoutSession(
   planId: string,
   weekNumber: number,

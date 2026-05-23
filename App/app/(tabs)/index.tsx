@@ -28,6 +28,7 @@ import {
   getWorkoutPlan, skipSession,
   getStreakInfo, getTodaySteps, updateDailySteps,
   getCalendarData, getTrainingSchedule, hasEverSyncedFromHealthApp,
+  hasActiveWorkoutSession,
   type WorkoutPlan, type WorkoutLog, type StreakInfo, type DailyStepsEntry,
   type CalendarData, type CalendarDayData,
 } from "@/lib/local-db";
@@ -114,6 +115,23 @@ export default function DashboardScreen() {
   // Collapsible sections
   const [mesoExpanded, setMesoExpanded] = useState(false);
   const [workoutExpanded, setWorkoutExpanded] = useState(false);
+
+  // ── Resume-workout redirect (runs once on mount) ───────────────────────────
+  // When iOS terminates the app mid-workout (e.g. during a phone call or due to
+  // memory pressure) and the user relaunches, we land on this home screen with
+  // the navigation stack reset.  Detect the orphaned session and silently
+  // navigate back to /workout so the user never loses their place.
+  useEffect(() => {
+    async function checkForActiveSession() {
+      const planId = await AsyncStorage.getItem("activePlanId");
+      if (!planId) return;
+      const active = await hasActiveWorkoutSession(planId);
+      if (active) {
+        router.replace("/workout");
+      }
+    }
+    checkForActiveSession();
+  }, []);
 
   const loadPlan = useCallback(async () => {
     const planId = await AsyncStorage.getItem("activePlanId");
