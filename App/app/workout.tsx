@@ -353,6 +353,8 @@ export default function WorkoutScreen() {
   const [supersetJumpBanner, setSupersetJumpBanner] = useState<string | null>(null);
   // ── Keyboard visibility (used to hide guide during input) ────────────────
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // Ref mirror so async callbacks (setTimeout, updater fns) can read current value
+  const keyboardVisibleRef = useRef(false);
   // ── Add / Remove Sets scope modal ────────────────────────────────────────
   const [setManageModal, setSetManageModal] = useState<'add' | 'remove' | null>(null);
   const [setManageSaving, setSetManageSaving] = useState(false);
@@ -372,8 +374,8 @@ export default function WorkoutScreen() {
     // iOS fires "Will" events (before animation); Android only fires "Did" events.
     const kbShowEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const kbHideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const kbShow = Keyboard.addListener(kbShowEvent, () => setKeyboardVisible(true));
-    const kbHide = Keyboard.addListener(kbHideEvent, () => setKeyboardVisible(false));
+    const kbShow = Keyboard.addListener(kbShowEvent, () => { setKeyboardVisible(true); keyboardVisibleRef.current = true; });
+    const kbHide = Keyboard.addListener(kbHideEvent, () => { setKeyboardVisible(false); keyboardVisibleRef.current = false; });
     // Cleanup timers on unmount
     return () => {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -710,57 +712,65 @@ export default function WorkoutScreen() {
 
   function handleFieldBlur(exIndex: number, setIndex: number) {
     setTimeout(() => {
+      // ── Read current values from the ref (safe in async callbacks) ──────────
+      const snapEx = exerciseStatesRef.current[exIndex];
+      const snapSet = snapEx?.sets[setIndex];
+      if (!snapEx || !snapSet || snapSet.feedback) return;
+
+      const isBodyweight = snapEx.exercise.equipment === "BODYWEIGHT";
+      const reps = parseInt(snapSet.repsCompleted);
+      if (isNaN(reps) || reps <= 0) return;
+      if (!isBodyweight) {
+        const weight = parseFloat(snapSet.weightUsed);
+        if (isNaN(weight) || weight <= 0) return;
+      }
+
+      // ── Compute feedback and timer values OUTSIDE the updater ────────────────
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const weight = parseFloat(snapSet.weightUsed) || 0;
+      const feedback = getFeedback(reps, weight, snapSet.targetWeight, snapSet.targetReps, isBodyweight);
+
+      const isLastSet = setIndex === snapEx.sets.length - 1;
+      const jumpingToPartner = hasActiveSupersertPartner(exIndex);
+      const isMyo = snapSet.setType === 'myo_activation' || snapSet.setType === 'myo_mini';
+      const shouldStartTimer = !isLastSet && !jumpingToPartner && !isMyo;
+      const restSeconds = shouldStartTimer
+        ? calculateRestTime(snapEx.exercise.category, (plan?.goalType ?? "hypertrophy") as any)
+        : 0;
+
+      // ── Update exercise state (updater does ONLY state mutation, no side-effects) ──
       setExerciseStates((current) => {
         const ex = current[exIndex];
         if (!ex) return current;
         const set = ex.sets[setIndex];
         if (!set || set.feedback) return current;
-        const isBodyweight = ex.exercise.equipment === "BODYWEIGHT";
-        const reps = parseInt(set.repsCompleted);
-        if (isNaN(reps) || reps <= 0) return current;
-        if (!isBodyweight) {
-          const weight = parseFloat(set.weightUsed);
-          if (isNaN(weight) || weight <= 0) return current;
-        }
-
-        if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        const weight = parseFloat(set.weightUsed) || 0;
-        const feedback = getFeedback(reps, weight, set.targetWeight, set.targetReps, isBodyweight);
-
         const updated = [...current];
         const updatedEx = { ...updated[exIndex] };
         const updatedSets = [...updatedEx.sets];
         updatedSets[setIndex] = { ...updatedSets[setIndex], feedback };
         updatedEx.sets = updatedSets;
         updated[exIndex] = updatedEx;
+        return updated;
+      });
 
-        const isLastSet = setIndex === updatedEx.sets.length - 1;
-        const jumpingToPartner = hasActiveSupersertPartner(exIndex);
-        const isMyo = updatedSets[setIndex]?.setType === 'myo_activation' || updatedSets[setIndex]?.setType === 'myo_mini';
-        if (!isLastSet && !jumpingToPartner && !isMyo) {
-          const category = updatedEx.exercise.category;
-          const restSeconds = calculateRestTime(category, (plan?.goalType ?? "hypertrophy") as any);
-          setRestTimerSeconds(restSeconds);
-          setRestTimerKey((prev) => prev + 1);
-          setRestTimerVisible(true);
+      // ── Start rest timer OUTSIDE the updater ────────────────────────────────
+      if (shouldStartTimer) {
+        setRestTimerSeconds(restSeconds);
+        setRestTimerKey((prev) => prev + 1);
+        setRestTimerVisible(true);
+        // Only scroll to rest timer when keyboard is NOT visible — scrolling while
+        // keyboard is open can silently unfocus the active TextInput on iOS.
+        if (!keyboardVisibleRef.current) {
           setTimeout(() => {
             scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
           }, 150);
         }
+      }
 
-        return updated;
-      });
-      // Jump to superset partner only if this blur actually completed the set.
-      // Capture the snapshot BEFORE the setExerciseStates updater runs (the ref
-      // is updated synchronously in the effect), so we check pre-update state.
-      const snapEx = exerciseStatesRef.current[exIndex];
-      const snapSet = snapEx?.sets[setIndex];
-      // wasAlreadyDone: set had feedback before this blur — don't jump again
-      const wasAlreadyDone = !!snapSet?.feedback;
-      if (!wasAlreadyDone && snapSet) {
+      // ── Jump to superset partner if set is now complete ──────────────────────
+      const wasAlreadyDone = !!snapSet.feedback;
+      if (!wasAlreadyDone) {
         const bw = snapEx.exercise.equipment === "BODYWEIGHT";
-        const reps = parseInt(snapSet.repsCompleted);
-        const weight = parseFloat(snapSet.weightUsed) || 0;
         const setIsDone = !isNaN(reps) && reps > 0 && (bw || (!isNaN(weight) && weight > 0));
         if (setIsDone && hasActiveSupersertPartner(exIndex)) {
           setTimeout(() => tryJumpToSupersetPartner(exIndex), 550);
@@ -805,9 +815,13 @@ export default function WorkoutScreen() {
       setRestTimerSeconds(restSeconds);
       setRestTimerKey((prev) => prev + 1);
       setRestTimerVisible(true);
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
-      }, 150);
+      // Only scroll to rest timer when keyboard is NOT visible — scrolling while
+      // keyboard is open can silently unfocus the active TextInput on iOS.
+      if (!keyboardVisibleRef.current) {
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
+        }, 150);
+      }
     }
   }
 
