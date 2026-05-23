@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/colors";
 import { usePurchase, UNLOCK_PRICE_LABEL, REGULAR_PRICE_LABEL, FOUNDING_TIER_COUNT, TRIAL_WORKOUTS } from "@/contexts/PurchaseContext";
 
@@ -27,11 +28,15 @@ const FEATURES = [
   { icon: "bar-chart-outline",  text: "Volume landmarks & muscle progress charts" },
 ];
 
+const DEV_TAP_TARGET = 7;
+const DEV_UNLOCK_EMAIL = "andrewmarklatham@gmail.com"; // owner's Apple ID
+
 export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
   const { purchaseUnlock, restorePurchases, isPurchased } = usePurchase();
   const [purchasing, setPurchasing] = useState(false);
   const [restoring,  setRestoring]  = useState(false);
+  const [devTaps,    setDevTaps]    = useState(0);
 
   // Redirect once purchased (inside useEffect — never during render)
   useEffect(() => {
@@ -46,6 +51,17 @@ export default function PaywallScreen() {
       router.replace("/(tabs)");
     } else if (result.error) {
       Alert.alert("Purchase Failed", result.error, [{ text: "OK" }]);
+    }
+  }
+
+  async function handleDevTap() {
+    const next = devTaps + 1;
+    setDevTaps(next);
+    if (next >= DEV_TAP_TARGET) {
+      setDevTaps(0);
+      await AsyncStorage.setItem("trialWorkoutCount", "0");
+      await AsyncStorage.setItem("isPurchasedCache", "true");
+      router.replace("/(tabs)");
     }
   }
 
@@ -66,12 +82,19 @@ export default function PaywallScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo */}
-        <Image
-          source={require("../assets/images/LOGO1.png")}
-          style={{ width: "45%", maxWidth: 160, height: 120, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
-          resizeMode="contain"
-        />
+        {/* Logo — tap 7× for dev unlock */}
+        <Pressable onPress={handleDevTap} style={{ alignSelf: "center" }}>
+          <Image
+            source={require("../assets/images/LOGO1.png")}
+            style={{ width: "45%", maxWidth: 160, height: 120, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
+            resizeMode="contain"
+          />
+          {devTaps >= 3 && devTaps < DEV_TAP_TARGET && (
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 2 }}>
+              {DEV_TAP_TARGET - devTaps} more...
+            </Text>
+          )}
+        </Pressable>
 
         {/* Headline */}
         <Text style={{
