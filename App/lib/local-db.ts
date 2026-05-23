@@ -49,9 +49,9 @@ const DUMBBELL_FACTOR: Record<string, number> = {
  * much faster than recovering from an injury on an overloaded first session.
  */
 const MACHINE_FACTOR: Record<string, number> = {
-  "QUADS":           0.55, // leg extension ≈ 50–60% of squat
-  "GLUTES":          0.70, // hip abduction, cable pull-through
-  "HAMSTRINGS":      0.65, // leg curl ≈ 60–70% of deadlift baseline
+  "QUADS":           0.50, // leg extension ≈ 45–55% of squat
+  "GLUTES":          0.60, // hip abduction, cable pull-through
+  "HAMSTRINGS":      0.45, // lying/seated leg curl ≈ 40–50% of deadlift baseline
   "HORIZONTAL PUSH": 0.85, // chest press machine ≈ barbell bench
   "INCLINE PUSH":    0.75, // incline machine press
   "VERTICAL PUSH":   0.85, // shoulder press machine ≈ OHP
