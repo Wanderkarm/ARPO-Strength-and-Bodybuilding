@@ -30,12 +30,14 @@ const DUMBBELL_FACTOR: Record<string, number> = {
   "BICEPS":          0.35, // curl baseline is already modest
   "TRICEPS":         0.28,
   "REAR DELTS":      0.35, // category modifier (×0.4) already discounts heavily
+  "LATERAL DELTS":   0.50, // category modifier (×0.35) already discounts; cable→DB ≈ 0.5×
   "TRAPS":           0.30,
   "QUADS":           0.25,
   "HAMSTRINGS":      0.28,
   "GLUTES":          0.22,
   "CALVES":          0.25,
   "ABS":             0.22,
+  "FOREARMS":        0.50, // wrist curls — barbellCurl baseline (×0.5) already conservative
 };
 
 /**
