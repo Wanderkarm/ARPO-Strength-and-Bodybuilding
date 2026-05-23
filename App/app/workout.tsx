@@ -2041,7 +2041,7 @@ export default function WorkoutScreen() {
                       onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
                       onSubmitEditing={() => Keyboard.dismiss()}
                       returnKeyType="done"
-                      keyboardType="number-pad"
+                      keyboardType="decimal-pad"
                       placeholder="—"
                       placeholderTextColor={Colors.textMuted}
                       style={{
