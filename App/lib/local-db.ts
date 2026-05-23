@@ -41,6 +41,33 @@ const DUMBBELL_FACTOR: Record<string, number> = {
 };
 
 /**
+ * Per-category fraction of barbell baseline to use as the starting machine
+ * weight. Isolation machines (leg extension, leg curl, cable fly, etc.) need
+ * a heavy discount vs the compound barbell lift used as the baseline.
+ * Compound machines (leg press, chest press, seated row) could handle more,
+ * but we err conservative — the user will auto-progress up from a low start
+ * much faster than recovering from an injury on an overloaded first session.
+ */
+const MACHINE_FACTOR: Record<string, number> = {
+  "QUADS":           0.55, // leg extension ≈ 50–60% of squat
+  "GLUTES":          0.70, // hip abduction, cable pull-through
+  "HAMSTRINGS":      0.65, // leg curl ≈ 60–70% of deadlift baseline
+  "HORIZONTAL PUSH": 0.85, // chest press machine ≈ barbell bench
+  "INCLINE PUSH":    0.75, // incline machine press
+  "VERTICAL PUSH":   0.85, // shoulder press machine ≈ OHP
+  "HORIZONTAL BACK": 0.85, // machine row ≈ barbell row
+  "VERTICAL BACK":   0.75, // lat pulldown vs row baseline
+  "BICEPS":          0.85, // preacher curl machine
+  "TRICEPS":         0.75, // cable pushdown (category modifier ×0.7 already applied)
+  "CALVES":          0.80, // calf raise machine
+  "TRAPS":           0.80, // cable upright row
+  "REAR DELTS":      0.90, // reverse pec deck (category modifier ×0.4 already discounts)
+  "LATERAL DELTS":   0.90, // cable lateral raise (category modifier ×0.35 already discounts)
+  "ABS":             0.75, // cable crunch, machine crunch
+  "FOREARMS":        0.80,
+};
+
+/**
  * Rounds a dumbbell weight to the nearest available rack increment:
  *   < 50  →  nearest 2.5  (e.g. 22.5, 27.5, 32.5 …)
  *   ≥ 50  →  nearest 5    (most gyms stop stocking 2.5-lb steps above 50 lb)
@@ -801,6 +828,11 @@ export async function createWorkoutPlan(
       } else if (exerciseEquipment === "BARBELL") {
         // Snap to nearest loadable barbell combination (5 lb or 2.5 kg steps from bar weight).
         targetWeight = snapBarbellWeight(targetWeight, userUnit);
+      } else if (exerciseEquipment === "MACHINE") {
+        // Isolation machines (leg extension, leg curl, cable fly, etc.) need a discount
+        // vs the compound barbell lift used as the category baseline.
+        const factor = MACHINE_FACTOR[exerciseCategory] ?? 0.75;
+        targetWeight = Math.max(10, Math.round((targetWeight * factor) / 5) * 5);
       }
 
       const logId = generateId();
@@ -977,6 +1009,9 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
         resolvedTargetWeight = snapDumbbellWeight(rawWeight * factor);
       } else if (equipment === "BARBELL") {
         resolvedTargetWeight = snapBarbellWeight(rawWeight, userUnit);
+      } else if (equipment === "MACHINE") {
+        const factor = MACHINE_FACTOR[exercise.category] ?? 0.75;
+        resolvedTargetWeight = Math.max(10, Math.round((rawWeight * factor) / 5) * 5);
       } else {
         resolvedTargetWeight = rawWeight || 50;
       }
@@ -1477,6 +1512,9 @@ async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: strin
             computedWeight = snapDumbbellWeight(rawWeight * factor);
           } else if (exercise.equipment === "BARBELL") {
             computedWeight = snapBarbellWeight(rawWeight, planRow.unit as "kg" | "lbs");
+          } else if (exercise.equipment === "MACHINE") {
+            const factor = MACHINE_FACTOR[exercise.category] ?? 0.75;
+            computedWeight = Math.max(10, Math.round((rawWeight * factor) / 5) * 5);
           } else {
             computedWeight = rawWeight || 50;
           }
