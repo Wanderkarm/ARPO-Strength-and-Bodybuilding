@@ -313,6 +313,9 @@ export default function WorkoutScreen() {
   const [plateCalcTarget, setPlateCalcTarget] = useState("");
   const [plateCalcBar, setPlateCalcBar] = useState<number | null>(null);
   const [plateResult, setPlateResult] = useState<PlateResult | null>(null);
+  // Incrementing key forces the TextInput to remount each time the modal opens,
+  // fixing iOS controlled-TextInput desync where old typed text persists after close/reopen.
+  const [plateCalcInputKey, setPlateCalcInputKey] = useState(0);
 
   const scrollRef = useRef<ScrollView>(null);
   const restTimerContainerRef = useRef<View>(null);
@@ -1883,6 +1886,7 @@ export default function WorkoutScreen() {
                       const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
                       setPlateCalcTarget(target);
                       setPlateCalcBar(null);
+                      setPlateCalcInputKey(k => k + 1);
                       if (target) {
                         setPlateResult(calculatePlates(parseFloat(target), unit));
                       } else {
@@ -2111,6 +2115,7 @@ export default function WorkoutScreen() {
               const target = currentEx.targetWeight > 0 ? String(currentEx.targetWeight) : "";
               setPlateCalcTarget(target);
               setPlateCalcBar(null);
+              setPlateCalcInputKey(k => k + 1);
               if (target) setPlateResult(calculatePlates(parseFloat(target), unit));
               else setPlateResult(null);
               setPlateCalcVisible(true);
@@ -3469,6 +3474,7 @@ export default function WorkoutScreen() {
               Target Weight ({unit})
             </Text>
             <TextInput
+              key={plateCalcInputKey}
               value={plateCalcTarget}
               onChangeText={(t) => {
                 setPlateCalcTarget(t);
