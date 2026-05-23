@@ -69,10 +69,7 @@
     },
     "plugins": [
       [
-        "expo-router",
-        {
-          "origin": "https://replit.com/"
-        }
+        "expo-router"
       ],
       "expo-font",
       "expo-web-browser",
@@ -99,9 +96,6 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {
-        "origin": "https://replit.com/"
-      },
       "eas": {
         "projectId": "ea40d9fc-045c-45b5-a228-e71dbb0eb3b7"
       }
