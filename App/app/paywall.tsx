@@ -82,13 +82,14 @@ export default function PaywallScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo — tap 7× for dev unlock */}
-        <Pressable onPress={handleDevTap} style={{ alignSelf: "center" }}>
-          <Image
-            source={require("../assets/images/LOGO1.png")}
-            style={{ width: "45%", maxWidth: 160, height: 120, alignSelf: "center", marginTop: 12, marginBottom: 8 }}
-            resizeMode="contain"
-          />
+        {/* Headline — tap 7× on "POWRLOG" for dev unlock */}
+        <Pressable onPress={handleDevTap} hitSlop={12} style={{ alignSelf: "center", marginTop: 24, marginBottom: 2 }}>
+          <Text style={{
+            fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.textMuted,
+            textTransform: "uppercase", letterSpacing: 4, textAlign: "center",
+          }}>
+            POWRLOG
+          </Text>
           {devTaps >= 3 && devTaps < DEV_TAP_TARGET && (
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 2 }}>
               {DEV_TAP_TARGET - devTaps} more...
@@ -96,10 +97,9 @@ export default function PaywallScreen() {
           )}
         </Pressable>
 
-        {/* Headline */}
         <Text style={{
           fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text,
-          textTransform: "uppercase", letterSpacing: 1.5, textAlign: "center", marginBottom: 6,
+          textTransform: "uppercase", letterSpacing: 1.5, textAlign: "center", marginTop: 16, marginBottom: 6,
         }}>
           {TRIAL_WORKOUTS} sessions done.{"\n"}Time to unlock.
         </Text>
