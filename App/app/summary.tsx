@@ -191,12 +191,17 @@ export default function SummaryScreen() {
         }}>
           {label}
         </Text>
-        <Text style={{
-          fontFamily: "Rubik_700Bold",
-          fontSize: 24,
-          color: valueColor ?? Colors.text,
-          lineHeight: 28,
-        }}>
+        <Text
+          style={{
+            fontFamily: "Rubik_700Bold",
+            fontSize: 24,
+            color: valueColor ?? Colors.text,
+            lineHeight: 28,
+          }}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+          numberOfLines={1}
+        >
           {value}
         </Text>
         <Text style={{

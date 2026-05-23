@@ -68,6 +68,20 @@ const MACHINE_FACTOR: Record<string, number> = {
 };
 
 /**
+ * Per-exercise overrides for specific machines that differ dramatically from
+ * their category average. Keys are lowercase exercise names.
+ *
+ * Leg Press is a compound movement — intermediates routinely move 1.5–2.5×
+ * their squat on the sled, so the QUADS MACHINE_FACTOR of 0.50 (tuned for
+ * Leg Extension) is wildly low for Leg Press.
+ * Hack Squat machine also loads much closer to a barbell squat.
+ */
+const MACHINE_EXERCISE_OVERRIDE: Record<string, number> = {
+  "leg press":        1.50, // sled compound — ~1.5× squat baseline for intermediates
+  "hack squat":       0.85, // machine closely mimics free-weight squat mechanics
+};
+
+/**
  * Rounds a dumbbell weight to the nearest available rack increment:
  *   < 50  →  nearest 2.5  (e.g. 22.5, 27.5, 32.5 …)
  *   ≥ 50  →  nearest 5    (most gyms stop stocking 2.5-lb steps above 50 lb)
@@ -807,6 +821,7 @@ export async function createWorkoutPlan(
       let exerciseId = te.exercise.id;
       let exerciseCategory = te.exercise.category;
       let exerciseEquipment = te.exercise.equipment;
+      let exerciseName = te.exercise.name;
 
       if (exerciseSwaps && exerciseSwaps[te.exercise.id]) {
         const swappedExercise = await getExerciseById(exerciseSwaps[te.exercise.id]);
@@ -814,6 +829,7 @@ export async function createWorkoutPlan(
           exerciseId = swappedExercise.id;
           exerciseCategory = swappedExercise.category;
           exerciseEquipment = swappedExercise.equipment;
+          exerciseName = swappedExercise.name;
         }
       }
 
@@ -829,9 +845,10 @@ export async function createWorkoutPlan(
         // Snap to nearest loadable barbell combination (5 lb or 2.5 kg steps from bar weight).
         targetWeight = snapBarbellWeight(targetWeight, userUnit);
       } else if (exerciseEquipment === "MACHINE") {
-        // Isolation machines (leg extension, leg curl, cable fly, etc.) need a discount
-        // vs the compound barbell lift used as the category baseline.
-        const factor = MACHINE_FACTOR[exerciseCategory] ?? 0.75;
+        // Check for per-exercise overrides first (e.g. Leg Press >> Leg Extension).
+        // Fall back to category-level MACHINE_FACTOR for all other machines.
+        const nameKey = exerciseName.toLowerCase();
+        const factor = MACHINE_EXERCISE_OVERRIDE[nameKey] ?? MACHINE_FACTOR[exerciseCategory] ?? 0.75;
         targetWeight = Math.max(10, Math.round((targetWeight * factor) / 5) * 5);
       }
 
@@ -1010,7 +1027,8 @@ export async function getWorkoutPlan(planId: string): Promise<WorkoutPlan | null
       } else if (equipment === "BARBELL") {
         resolvedTargetWeight = snapBarbellWeight(rawWeight, userUnit);
       } else if (equipment === "MACHINE") {
-        const factor = MACHINE_FACTOR[exercise.category] ?? 0.75;
+        const nameKey = exercise.name.toLowerCase();
+        const factor = MACHINE_EXERCISE_OVERRIDE[nameKey] ?? MACHINE_FACTOR[exercise.category] ?? 0.75;
         resolvedTargetWeight = Math.max(10, Math.round((rawWeight * factor) / 5) * 5);
       } else {
         resolvedTargetWeight = rawWeight || 50;
@@ -1513,7 +1531,8 @@ async function applyExerciseSwapToLog(db: ReturnType<typeof getDb>, logId: strin
           } else if (exercise.equipment === "BARBELL") {
             computedWeight = snapBarbellWeight(rawWeight, planRow.unit as "kg" | "lbs");
           } else if (exercise.equipment === "MACHINE") {
-            const factor = MACHINE_FACTOR[exercise.category] ?? 0.75;
+            const nameKey = exercise.name.toLowerCase();
+            const factor = MACHINE_EXERCISE_OVERRIDE[nameKey] ?? MACHINE_FACTOR[exercise.category] ?? 0.75;
             computedWeight = Math.max(10, Math.round((rawWeight * factor) / 5) * 5);
           } else {
             computedWeight = rawWeight || 50;
