@@ -78,25 +78,25 @@ export default function PaywallScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
+      {/* Fixed header — always visible, tap 7× for dev unlock */}
+      <Pressable onPress={handleDevTap} hitSlop={12} style={{ alignSelf: "center", paddingVertical: 10 }}>
+        <Text style={{
+          fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.textMuted,
+          textTransform: "uppercase", letterSpacing: 4, textAlign: "center",
+        }}>
+          POWRLOG
+        </Text>
+        {devTaps >= 3 && devTaps < DEV_TAP_TARGET && (
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 2 }}>
+            {DEV_TAP_TARGET - devTaps} more...
+          </Text>
+        )}
+      </Pressable>
+
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Headline — tap 7× on "POWRLOG" for dev unlock */}
-        <Pressable onPress={handleDevTap} hitSlop={12} style={{ alignSelf: "center", marginTop: 24, marginBottom: 2 }}>
-          <Text style={{
-            fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.textMuted,
-            textTransform: "uppercase", letterSpacing: 4, textAlign: "center",
-          }}>
-            POWRLOG
-          </Text>
-          {devTaps >= 3 && devTaps < DEV_TAP_TARGET && (
-            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", marginTop: 2 }}>
-              {DEV_TAP_TARGET - devTaps} more...
-            </Text>
-          )}
-        </Pressable>
-
         <Text style={{
           fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text,
           textTransform: "uppercase", letterSpacing: 1.5, textAlign: "center", marginTop: 16, marginBottom: 6,
