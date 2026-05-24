@@ -14,7 +14,10 @@ import {
   useWindowDimensions,
   Keyboard,
   Linking,
+  InputAccessoryView,
 } from "react-native";
+
+const NUMPAD_INPUT_ID = "workout-numpad";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
@@ -722,7 +725,8 @@ export default function WorkoutScreen() {
     if (autoFinishTriggeredRef.current) return;
     if (finishingRef.current) return;
     const allDone = exerciseStates.every(isExerciseComplete);
-    if (allDone) {
+    // Don't auto-finish while a myo block is running — mini-sets haven't fired yet.
+    if (allDone && !myoActive) {
       autoFinishTriggeredRef.current = true;
       // Brief delay so the user sees the last feedback row before the screen transitions.
       // Use ref so the callback always captures the latest plan/state at call time.
@@ -1040,6 +1044,7 @@ export default function WorkoutScreen() {
           repsCompleted: parseInt(s.repsCompleted) || 0,
           weightUsed: parseFloat(s.weightUsed) || 0,
           targetReps: s.targetReps,
+          setType: s.setType,
         })),
       }));
 
@@ -1438,7 +1443,7 @@ export default function WorkoutScreen() {
           myoGroupId:    myoGroupId,
         },
       ];
-      next[currentExerciseIndex] = exNext;
+      next[idx] = exNext;
       return next;
     });
   }
@@ -2084,6 +2089,7 @@ export default function WorkoutScreen() {
                         onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
                         onEndEditing={() => handleWeightEndEditing(currentExerciseIndex, si, set)}
                         keyboardType="decimal-pad"
+                        inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
                         placeholder="—"
                         placeholderTextColor={Colors.textMuted}
                         style={{
@@ -2102,9 +2108,8 @@ export default function WorkoutScreen() {
                       value={set.repsCompleted}
                       onChangeText={(v) => handleSetRepsChange(currentExerciseIndex, si, v)}
                       onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
-                      onSubmitEditing={() => Keyboard.dismiss()}
-                      returnKeyType="done"
                       keyboardType="decimal-pad"
+                      inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
                       placeholder="—"
                       placeholderTextColor={Colors.textMuted}
                       style={{
@@ -3750,6 +3755,7 @@ export default function WorkoutScreen() {
                 }
               }}
               keyboardType="decimal-pad"
+              inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
               placeholder="e.g. 185"
               placeholderTextColor={Colors.textMuted}
               style={{
@@ -3844,6 +3850,35 @@ export default function WorkoutScreen() {
         })()}
       </Modal>
     </KeyboardAvoidingView>
+
+    {/* ── Numpad Done toolbar (iOS only) ── */}
+    {Platform.OS === "ios" && (
+      <InputAccessoryView nativeID={NUMPAD_INPUT_ID}>
+        <View style={{
+          backgroundColor: "#1C1C1E",
+          borderTopWidth: 1,
+          borderTopColor: Colors.border,
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+        }}>
+          <Pressable
+            onPress={() => Keyboard.dismiss()}
+            hitSlop={12}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text style={{
+              fontFamily: "Rubik_600SemiBold",
+              fontSize: 16,
+              color: Colors.primary,
+            }}>
+              Done
+            </Text>
+          </Pressable>
+        </View>
+      </InputAccessoryView>
+    )}
     </View>
   );
 }

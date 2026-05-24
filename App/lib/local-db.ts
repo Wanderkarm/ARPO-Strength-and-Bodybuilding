@@ -1659,7 +1659,7 @@ export async function completeWorkout(
     sorenessRating: number;
     /** Pump quality 1–5 collected from the post-session modal */
     pumpRating?: number | null;
-    sets: { setLogId: string; repsCompleted: number; weightUsed: number; targetReps?: number }[];
+    sets: { setLogId: string; repsCompleted: number; weightUsed: number; targetReps?: number; setType?: string }[];
   }[]
 ): Promise<{
   nextWeekTargets: any[];
@@ -1741,9 +1741,15 @@ export async function completeWorkout(
       [ex.sorenessRating, ex.pumpRating ?? null, new Date().toISOString(), ex.logId]
     );
 
+    // Exclude myo mini-sets from the progression average — they have 3–5 reps
+    // by design and would drag avgReps far below the activation/normal set reps,
+    // causing the algorithm to misread good performance as underperformance.
+    // Myo activation sets ARE included (they replace the final normal set).
+    // Volume still counts all sets above (totalVolume loop is unfiltered).
+    const progressionSets = ex.sets.filter(s => !s.setType || s.setType === 'normal' || s.setType === 'myo_activation');
     // Exclude skipped sets (repsCompleted = 0) from the average so they don't
     // drag down the algorithm and cause incorrect weight reductions.
-    const validSets = ex.sets.filter(s => s.repsCompleted > 0);
+    const validSets = progressionSets.filter(s => s.repsCompleted > 0);
     const avgReps = validSets.length > 0
       ? Math.round(validSets.reduce((sum, s) => sum + s.repsCompleted, 0) / validSets.length)
       : 0;
@@ -1752,10 +1758,10 @@ export async function completeWorkout(
     const maxActualWeight = weightedSets.length > 0 ? Math.max(...weightedSets) : 0;
     const actualWeight2 = maxActualWeight > 0 ? maxActualWeight : ex.targetWeight;
 
-    // Use the actual target_reps from the set logs rather than a hardcoded value,
-    // so exercises with different rep targets (e.g. 5-rep strength work) progress correctly.
-    const repGoal2 = ex.sets.length > 0
-      ? Math.max(...ex.sets.map((s) => s.targetReps ?? 10))
+    // Use the actual target_reps from normal/activation sets only — myo mini-set
+    // targetReps (3–5) would lower repGoal and make progression look easier than it is.
+    const repGoal2 = progressionSets.length > 0
+      ? Math.max(...progressionSets.map((s) => s.targetReps ?? 10))
       : 10;
 
     const nextTargets = calculateNextWeekTargets({
