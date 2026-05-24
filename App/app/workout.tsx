@@ -279,6 +279,7 @@ export default function WorkoutScreen() {
   const myoRestTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [myoRecommendVisible, setMyoRecommendVisible] = useState(false);
   const myoUsedThisSessionRef = useRef(false);
+  const [myoExplainVisible, setMyoExplainVisible] = useState(false);
   const [exerciseStates, setExerciseStates] = useState<ExerciseState[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [finishing, setFinishing] = useState(false);
@@ -1325,6 +1326,22 @@ export default function WorkoutScreen() {
     const ex = exerciseStatesRef.current[idx];
     if (!ex || myoActive) return;
     // Find the last incomplete set
+    const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
+    if (!incompleteIdx) return;
+
+    // Show explainer on first-ever myo tap; proceed directly after that
+    const seen = await AsyncStorage.getItem("hasSeenMyoExplainer");
+    if (!seen) {
+      setMyoExplainVisible(true);
+      return; // modal's confirm button calls activateMyoModeConfirmed()
+    }
+    await activateMyoModeConfirmed();
+  }
+
+  async function activateMyoModeConfirmed() {
+    const idx = currentExerciseIndexRef.current;
+    const ex = exerciseStatesRef.current[idx];
+    if (!ex || myoActive) return;
     const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
     if (!incompleteIdx) return;
     const { s: targetSet, i: setIndex } = incompleteIdx;
@@ -3471,6 +3488,118 @@ export default function WorkoutScreen() {
         </View>
       </Modal>
 
+
+      {/* ── Myo-Rep Explainer Modal ── */}
+      <Modal
+        visible={myoExplainVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMyoExplainVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000000CC", paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: "#F59E0B55", width: "100%", maxWidth: 420 }}>
+            {/* Header */}
+            <View style={{ backgroundColor: "#F59E0B18", borderBottomWidth: 1, borderBottomColor: "#F59E0B44", padding: 16, flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <Text style={{ fontSize: 18 }}>〰</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1.5 }}>
+                  Myo-Rep Sets
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 1 }}>
+                  More effective reps in less time
+                </Text>
+              </View>
+              <Pressable onPress={() => setMyoExplainVisible(false)} hitSlop={12}>
+                <Ionicons name="close" size={20} color={Colors.textMuted} />
+              </Pressable>
+            </View>
+
+            <View style={{ padding: 16, gap: 14 }}>
+              {/* Step 1 */}
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: "#F59E0B", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#000" }}>1</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Activation Set</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
+                    Do your set to near failure — aim for 10–15 reps. This primes your motor units.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Step 2 */}
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: "#F59E0B", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#000" }}>2</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>15-Second Rest</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
+                    A countdown timer appears automatically. Take 3–5 deep breaths — just enough to clear lactic acid.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Step 3 */}
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: "#F59E0B", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#000" }}>3</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Mini-Sets (M1, M2 …)</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
+                    A new row appears — do 3–5 reps with the same weight and log it. Rest timer fires again automatically.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Stop condition */}
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: "#F59E0B", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                  <Ionicons name="stop" size={11} color="#000" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Stop When …</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
+                    You can't hit 3 reps, or after 5 mini-sets. Tap STOP MYO anytime to end early.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Tip */}
+              <View style={{ backgroundColor: Colors.bg, borderLeftWidth: 3, borderLeftColor: "#F59E0B", padding: 10, marginTop: 2 }}>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 16 }}>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>Best for: </Text>
+                  isolation exercises like curls, lateral raises, and tricep extensions — not heavy compounds.
+                </Text>
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: Colors.border }}>
+              <Pressable
+                onPress={() => setMyoExplainVisible(false)}
+                style={({ pressed }) => ({ flex: 1, paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.7 : 1, borderRightWidth: 1, borderRightColor: Colors.border })}
+              >
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>Maybe later</Text>
+              </Pressable>
+              <Pressable
+                onPress={async () => {
+                  await AsyncStorage.setItem("hasSeenMyoExplainer", "true");
+                  setMyoExplainVisible(false);
+                  await activateMyoModeConfirmed();
+                }}
+                style={({ pressed }) => ({ flex: 1.4, paddingVertical: 14, alignItems: "center", backgroundColor: "#F59E0B", opacity: pressed ? 0.85 : 1 })}
+              >
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#000", textTransform: "uppercase", letterSpacing: 1 }}>
+                  Let's go →
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Plate Calculator Modal ── */}
       <Modal
