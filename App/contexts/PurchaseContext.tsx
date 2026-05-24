@@ -63,6 +63,8 @@ interface PurchaseContextType {
   incrementTrialWorkout:   () => Promise<void>;
   purchaseUnlock:          () => Promise<{ success: boolean; error?: string }>;
   restorePurchases:        () => Promise<{ success: boolean; error?: string }>;
+  /** Dev-only: unlock without going through RevenueCat */
+  devUnlock:               () => Promise<void>;
 }
 
 const PurchaseContext = createContext<PurchaseContextType>({
@@ -73,6 +75,7 @@ const PurchaseContext = createContext<PurchaseContextType>({
   incrementTrialWorkout:  async () => {},
   purchaseUnlock:         async () => ({ success: false }),
   restorePurchases:       async () => ({ success: false }),
+  devUnlock:              async () => {},
 });
 
 export function usePurchase() {
@@ -188,6 +191,13 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // ─── dev unlock ─────────────────────────────────────────────────────────────
+  async function devUnlock(): Promise<void> {
+    await AsyncStorage.setItem(PURCHASED_CACHE_KEY, "true");
+    await AsyncStorage.setItem(TRIAL_COUNT_KEY, "0");
+    setIsPurchased(true);
+  }
+
   // ─── restore ────────────────────────────────────────────────────────────────
   async function restorePurchases(): Promise<{ success: boolean; error?: string }> {
     if (REVENUECAT_IOS_KEY === "YOUR_REVENUECAT_IOS_API_KEY") {
@@ -219,6 +229,7 @@ export function PurchaseProvider({ children }: { children: ReactNode }) {
       incrementTrialWorkout,
       purchaseUnlock,
       restorePurchases,
+      devUnlock,
     }}>
       {children}
     </PurchaseContext.Provider>

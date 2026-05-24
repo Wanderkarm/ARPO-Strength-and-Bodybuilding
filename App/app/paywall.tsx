@@ -33,7 +33,7 @@ const DEV_UNLOCK_EMAIL = "andrewmarklatham@gmail.com"; // owner's Apple ID
 
 export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
-  const { purchaseUnlock, restorePurchases, isPurchased } = usePurchase();
+  const { purchaseUnlock, restorePurchases, isPurchased, devUnlock } = usePurchase();
   const [purchasing, setPurchasing] = useState(false);
   const [restoring,  setRestoring]  = useState(false);
   const [devTaps,    setDevTaps]    = useState(0);
@@ -59,9 +59,7 @@ export default function PaywallScreen() {
     setDevTaps(next);
     if (next >= DEV_TAP_TARGET) {
       setDevTaps(0);
-      await AsyncStorage.setItem("trialWorkoutCount", "0");
-      await AsyncStorage.setItem("isPurchasedCache", "true");
-      router.replace("/(tabs)");
+      await devUnlock(); // updates context state + AsyncStorage — navigation fires via useEffect
     }
   }
 
