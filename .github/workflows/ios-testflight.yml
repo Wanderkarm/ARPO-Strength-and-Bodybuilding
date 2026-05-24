@@ -97,7 +97,6 @@ jobs:
       # ── 6. Xcode archive ─────────────────────────────────────────────────────
       - name: Build archive
         run: |
-          set -o pipefail
           xcodebuild archive \
             -workspace ios/POWRLOG.xcworkspace \
             -scheme POWRLOG \
@@ -108,13 +107,15 @@ jobs:
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
             DEVELOPMENT_TEAM="Q2MSA33256" \
-            2>&1 | tee /tmp/xcodebuild.log | grep -E "error:|warning:| FAILED| SUCCEEDED|CodeSign|Sign" || true
-          # On failure print the last 60 lines so the actual error is visible
-          if grep -q "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log; then
-            echo "===== LAST 60 LINES OF BUILD LOG ====="
-            tail -60 /tmp/xcodebuild.log
-            exit 1
-          fi
+            2>&1 | tee /tmp/xcodebuild.log | grep -E "^.*(error:|CodeSign| FAILED| SUCCEEDED).*$" || true
+          echo "===== BUILD RESULT ====="
+          grep -E "ARCHIVE (FAILED|SUCCEEDED)|BUILD (FAILED|SUCCEEDED)" /tmp/xcodebuild.log || echo "No final result line found"
+          echo "===== ERRORS ONLY ====="
+          grep " error:" /tmp/xcodebuild.log || echo "No error lines found"
+          echo "===== LAST 30 LINES ====="
+          tail -30 /tmp/xcodebuild.log
+          # Exit 1 if build failed
+          grep -q "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log && exit 1 || true
 
       # ── 7. Export IPA ────────────────────────────────────────────────────────
       - name: Export IPA
