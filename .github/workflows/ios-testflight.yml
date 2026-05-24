@@ -97,20 +97,11 @@ jobs:
       # ── 6. Xcode archive ─────────────────────────────────────────────────────
       - name: Build archive
         run: |
-          set -o pipefail
           xcodebuild archive \
             -workspace ios/POWRLOG.xcworkspace \
             -scheme POWRLOG \
             -configuration Release \
-            -archivePath "$RUNNER_TEMP/POWRLOG.xcarchive" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
-            DEVELOPMENT_TEAM="Q2MSA33256" \
-            2>&1 | xcpretty || xcodebuild archive \
-            -workspace ios/POWRLOG.xcworkspace \
-            -scheme POWRLOG \
-            -configuration Release \
+            -destination "generic/platform=iOS" \
             -archivePath "$RUNNER_TEMP/POWRLOG.xcarchive" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
