@@ -661,26 +661,47 @@ export default function WorkoutScreen() {
   }
 
   function handleSetRepsChange(exIndex: number, setIndex: number, value: string) {
-    updateSet(exIndex, setIndex, "repsCompleted", value);
+    // If the set was already logged, clear its feedback so it can be recalculated.
+    // handleFieldBlur and autoLogSet both guard with `if (set.feedback) return`,
+    // so without this clear the edited values would never update the feedback row.
+    setExerciseStates((prev) => {
+      const updated = [...prev];
+      const ex = { ...updated[exIndex] };
+      const sets = [...ex.sets];
+      const hadFeedback = !!sets[setIndex]?.feedback;
+      sets[setIndex] = { ...sets[setIndex], repsCompleted: value, ...(hadFeedback ? { feedback: null } : {}) };
+      ex.sets = sets;
+      updated[exIndex] = ex;
+      return updated;
+    });
     const num = parseInt(value);
     if (!isNaN(num)) {
-      const ex = exerciseStates[exIndex];
+      const ex = exerciseStatesRef.current[exIndex];
       const setLogId = ex.sets[setIndex].setLogId;
       // Fire-and-forget — don't await in onChangeText to avoid blocking iOS keyboard
       updateSetLog(setLogId, { repsCompleted: num }).catch(() => {});
       // Bodyweight exercises don't require a weight entry — auto-commit 0
       if (ex.exercise.equipment === "BODYWEIGHT") {
-        updateSet(exIndex, setIndex, "weightUsed", "0");
         updateSetLog(setLogId, { weightUsed: 0 }).catch(() => {});
       }
     }
   }
 
   function handleSetWeightChange(exIndex: number, setIndex: number, value: string) {
-    updateSet(exIndex, setIndex, "weightUsed", value);
+    // Clear feedback on edit so the row can be re-evaluated on next blur/log
+    setExerciseStates((prev) => {
+      const updated = [...prev];
+      const ex = { ...updated[exIndex] };
+      const sets = [...ex.sets];
+      const hadFeedback = !!sets[setIndex]?.feedback;
+      sets[setIndex] = { ...sets[setIndex], weightUsed: value, ...(hadFeedback ? { feedback: null } : {}) };
+      ex.sets = sets;
+      updated[exIndex] = ex;
+      return updated;
+    });
     const num = parseFloat(value);
     if (!isNaN(num)) {
-      const setLogId = exerciseStates[exIndex].sets[setIndex].setLogId;
+      const setLogId = exerciseStatesRef.current[exIndex].sets[setIndex].setLogId;
       // Fire-and-forget — don't await in onChangeText to avoid blocking iOS keyboard
       updateSetLog(setLogId, { weightUsed: num }).catch(() => {});
     }
