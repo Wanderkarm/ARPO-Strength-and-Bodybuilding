@@ -3608,8 +3608,14 @@ export default function WorkoutScreen() {
         animationType="slide"
         onRequestClose={() => setPlateCalcVisible(false)}
       >
-        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000088" }}>
+        {/* KeyboardAvoidingView pushes the sheet up when the decimal-pad appears */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1, justifyContent: "flex-end" }}
+        >
+          <Pressable style={{ flex: 1, backgroundColor: "#00000088" }} onPress={() => setPlateCalcVisible(false)} />
           <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 20, paddingBottom: Math.max(bottomInset + 8, 24) }}>
+            {/* Header */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
                 Plate Calculator
@@ -3619,76 +3625,9 @@ export default function WorkoutScreen() {
               </Pressable>
             </View>
 
-            {/* Target weight input */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-              Target Weight ({unit})
-            </Text>
-            <TextInput
-              key={plateCalcInputKey}
-              value={plateCalcTarget}
-              onChangeText={(t) => {
-                setPlateCalcTarget(t);
-                const num = parseFloat(t);
-                if (!isNaN(num) && num > 0) {
-                  setPlateResult(calculatePlates(num, unit, plateCalcBar ?? undefined));
-                } else {
-                  setPlateResult(null);
-                }
-              }}
-              keyboardType="decimal-pad"
-              placeholder="e.g. 185"
-              placeholderTextColor={Colors.textMuted}
-              style={{
-                fontFamily: "Rubik_700Bold",
-                fontSize: 22,
-                color: Colors.text,
-                borderWidth: 1,
-                borderColor: Colors.border,
-                backgroundColor: Colors.bg,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-                marginBottom: 14,
-                textAlign: "center",
-              }}
-            />
-
-            {/* Bar weight selector */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-              Bar
-            </Text>
-            <View style={{ flexDirection: "row", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-              {BAR_PRESETS[unit].map((preset) => {
-                const active = (plateCalcBar ?? (unit === "lbs" ? 45 : 20)) === preset.weight;
-                return (
-                  <Pressable
-                    key={preset.label}
-                    onPress={() => {
-                      setPlateCalcBar(preset.weight);
-                      const num = parseFloat(plateCalcTarget);
-                      if (!isNaN(num) && num > 0) {
-                        setPlateResult(calculatePlates(num, unit, preset.weight));
-                      }
-                    }}
-                    style={({ pressed }) => ({
-                      borderWidth: 1,
-                      borderColor: active ? Colors.primary : Colors.border,
-                      backgroundColor: active ? Colors.primary + "22" : Colors.bg,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      opacity: pressed ? 0.7 : 1,
-                    })}
-                  >
-                    <Text style={{ fontFamily: active ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 11, color: active ? Colors.primary : Colors.textMuted }}>
-                      {preset.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Results */}
-            {plateResult && (
-              <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.primary, padding: 14 }}>
+            {/* Results — shown ABOVE input so they stay visible when keyboard is open */}
+            {plateResult ? (
+              <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.primary, padding: 14, marginBottom: 16 }}>
                 {plateResult.platesPerSide.length === 0 ? (
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
                     Bar only ({plateResult.barWeight} {unit})
@@ -3731,9 +3670,81 @@ export default function WorkoutScreen() {
                   </>
                 )}
               </View>
+            ) : (
+              <View style={{ borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", padding: 14, marginBottom: 16, alignItems: "center" }}>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted }}>
+                  Enter a weight to see plate breakdown
+                </Text>
+              </View>
             )}
+
+            {/* Bar weight selector */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              Bar
+            </Text>
+            <View style={{ flexDirection: "row", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+              {BAR_PRESETS[unit].map((preset) => {
+                const active = (plateCalcBar ?? (unit === "lbs" ? 45 : 20)) === preset.weight;
+                return (
+                  <Pressable
+                    key={preset.label}
+                    onPress={() => {
+                      setPlateCalcBar(preset.weight);
+                      const num = parseFloat(plateCalcTarget);
+                      if (!isNaN(num) && num > 0) {
+                        setPlateResult(calculatePlates(num, unit, preset.weight));
+                      }
+                    }}
+                    style={({ pressed }) => ({
+                      borderWidth: 1,
+                      borderColor: active ? Colors.primary : Colors.border,
+                      backgroundColor: active ? Colors.primary + "22" : Colors.bg,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      opacity: pressed ? 0.7 : 1,
+                    })}
+                  >
+                    <Text style={{ fontFamily: active ? "Rubik_700Bold" : "Rubik_400Regular", fontSize: 11, color: active ? Colors.primary : Colors.textMuted }}>
+                      {preset.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Target weight input — at the bottom, closest to the keyboard */}
+            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              Target Weight ({unit})
+            </Text>
+            <TextInput
+              key={plateCalcInputKey}
+              value={plateCalcTarget}
+              onChangeText={(t) => {
+                setPlateCalcTarget(t);
+                const num = parseFloat(t);
+                if (!isNaN(num) && num > 0) {
+                  setPlateResult(calculatePlates(num, unit, plateCalcBar ?? undefined));
+                } else {
+                  setPlateResult(null);
+                }
+              }}
+              keyboardType="decimal-pad"
+              placeholder="e.g. 185"
+              placeholderTextColor={Colors.textMuted}
+              style={{
+                fontFamily: "Rubik_700Bold",
+                fontSize: 22,
+                color: Colors.text,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                backgroundColor: Colors.bg,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                textAlign: "center",
+              }}
+            />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── YouTube Video Modal ── */}
