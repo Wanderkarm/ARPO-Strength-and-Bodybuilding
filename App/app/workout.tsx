@@ -1320,21 +1320,28 @@ export default function WorkoutScreen() {
   // ── Myo-rep functions ────────────────────────────────────────────────────────
 
   async function activateMyoMode() {
-    const ex = exerciseStates[currentExerciseIndex];
+    // Use the ref so we always read the latest state even in stale-closure contexts
+    const idx = currentExerciseIndexRef.current;
+    const ex = exerciseStatesRef.current[idx];
     if (!ex || myoActive) return;
     // Find the last incomplete set
     const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
     if (!incompleteIdx) return;
     const { s: targetSet, i: setIndex } = incompleteIdx;
     const newGroupId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-    await convertSetToMyoActivation(targetSet.setLogId, newGroupId);
+    try {
+      await convertSetToMyoActivation(targetSet.setLogId, newGroupId);
+    } catch (e) {
+      Alert.alert("Myo Error", `Could not activate myo mode: ${String(e)}`);
+      return;
+    }
     setExerciseStates((prev) => {
       const next = [...prev];
-      const exNext = { ...next[currentExerciseIndex] };
+      const exNext = { ...next[idx] };
       const setsNext = [...exNext.sets];
       setsNext[setIndex] = { ...setsNext[setIndex], setType: 'myo_activation', myoGroupId: newGroupId };
       exNext.sets = setsNext;
-      next[currentExerciseIndex] = exNext;
+      next[idx] = exNext;
       return next;
     });
     setMyoActive(true);
