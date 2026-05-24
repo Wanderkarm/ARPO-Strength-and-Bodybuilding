@@ -60,6 +60,7 @@ jobs:
       - name: Import distribution certificate
         env:
           CERTIFICATE_P12: ${{ secrets.IOS_DIST_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DIST_CERTIFICATE_PASSWORD }}
         run: |
           # Install Apple intermediate certificate for trust chain
           curl -s -o /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
@@ -72,10 +73,9 @@ jobs:
           security set-keychain-settings -t 7200 -u build.keychain
 
           echo "$CERTIFICATE_P12" | base64 --decode -o /tmp/certificate.p12
-          # EAS-managed certificates have no password — use empty string
           security import /tmp/certificate.p12 \
             -k build.keychain \
-            -P "" \
+            -P "$CERTIFICATE_PASSWORD" \
             -T /usr/bin/codesign \
             -T /usr/bin/security
           security set-key-partition-list \
