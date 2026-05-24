@@ -97,6 +97,7 @@ jobs:
       # ── 6. Xcode archive ─────────────────────────────────────────────────────
       - name: Build archive
         run: |
+          set -o pipefail
           xcodebuild archive \
             -workspace ios/POWRLOG.xcworkspace \
             -scheme POWRLOG \
@@ -106,7 +107,14 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
-            DEVELOPMENT_TEAM="Q2MSA33256"
+            DEVELOPMENT_TEAM="Q2MSA33256" \
+            2>&1 | tee /tmp/xcodebuild.log | grep -E "error:|warning:| FAILED| SUCCEEDED|CodeSign|Sign" || true
+          # On failure print the last 60 lines so the actual error is visible
+          if grep -q "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log; then
+            echo "===== LAST 60 LINES OF BUILD LOG ====="
+            tail -60 /tmp/xcodebuild.log
+            exit 1
+          fi
 
       # ── 7. Export IPA ────────────────────────────────────────────────────────
       - name: Export IPA
