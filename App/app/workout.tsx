@@ -339,6 +339,8 @@ export default function WorkoutScreen() {
   const videoButtonRef = useRef<View>(null);
   const actionBarRef = useRef<View>(null);
   const weightInputRefs = useRef<Record<string, TextInput | null>>({});
+  const repsInputRefs   = useRef<Record<string, TextInput | null>>({});
+  const focusedFieldRef = useRef<{ exIndex: number; si: number; field: "weight" | "reps" } | null>(null);
   // Track which exerciseIds have already shown the huge-jump warning this install
   const warnedJumpExercisesRef = useRef<Set<string>>(new Set());
   // ── Watch reminder banner ────────────────────────────────────────────────
@@ -2087,6 +2089,7 @@ export default function WorkoutScreen() {
                         ref={(r) => { weightInputRefs.current[`${currentExerciseIndex}-${si}`] = r; }}
                         value={set.weightUsed}
                         onChangeText={(v) => handleSetWeightChange(currentExerciseIndex, si, v)}
+                        onFocus={() => { focusedFieldRef.current = { exIndex: currentExerciseIndex, si, field: "weight" }; }}
                         onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
                         onEndEditing={() => handleWeightEndEditing(currentExerciseIndex, si, set)}
                         keyboardType="decimal-pad"
@@ -2106,8 +2109,10 @@ export default function WorkoutScreen() {
 
                   <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
                     <TextInput
+                      ref={(r) => { repsInputRefs.current[`${currentExerciseIndex}-${si}`] = r; }}
                       value={set.repsCompleted}
                       onChangeText={(v) => handleSetRepsChange(currentExerciseIndex, si, v)}
+                      onFocus={() => { focusedFieldRef.current = { exIndex: currentExerciseIndex, si, field: "reps" }; }}
                       onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
                       keyboardType="decimal-pad"
                       inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
@@ -3861,11 +3866,58 @@ export default function WorkoutScreen() {
           borderTopWidth: 1,
           borderTopColor: "#444",
           flexDirection: "row",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           alignItems: "center",
           paddingHorizontal: 16,
           paddingVertical: 10,
         }}>
+          {/* Next → advances weight→reps→next weight→next reps */}
+          <Pressable
+            onPress={() => {
+              const f = focusedFieldRef.current;
+              if (!f) { Keyboard.dismiss(); return; }
+              const { exIndex, si, field } = f;
+              const sets = plan?.exercises[exIndex]?.sets ?? [];
+              const isBodyweightEx = plan?.exercises[exIndex]?.exercise.equipment === "BODYWEIGHT";
+              if (field === "weight" && !isBodyweightEx) {
+                // weight → reps (same set)
+                repsInputRefs.current[`${exIndex}-${si}`]?.focus();
+              } else {
+                // reps (or bodyweight weight) → weight of next set
+                const nextSi = si + 1;
+                if (nextSi < sets.length) {
+                  if (isBodyweightEx) {
+                    repsInputRefs.current[`${exIndex}-${nextSi}`]?.focus();
+                  } else {
+                    weightInputRefs.current[`${exIndex}-${nextSi}`]?.focus();
+                  }
+                } else {
+                  Keyboard.dismiss();
+                }
+              }
+            }}
+            hitSlop={12}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.6 : 1,
+              paddingHorizontal: 20,
+              paddingVertical: 7,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: Colors.primary,
+            })}
+          >
+            <Text style={{
+              fontFamily: "Rubik_700Bold",
+              fontSize: 14,
+              color: Colors.primary,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}>
+              Next →
+            </Text>
+          </Pressable>
+
+          {/* Done — always dismisses keyboard */}
           <Pressable
             onPress={() => Keyboard.dismiss()}
             hitSlop={12}
