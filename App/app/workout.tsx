@@ -1956,6 +1956,7 @@ export default function WorkoutScreen() {
                       } else {
                         setPlateResult(null);
                       }
+                      Keyboard.dismiss();
                       setPlateCalcVisible(true);
                     }}
                     hitSlop={10}
@@ -2182,6 +2183,7 @@ export default function WorkoutScreen() {
               setPlateCalcInputKey(k => k + 1);
               if (target) setPlateResult(calculatePlates(parseFloat(target), unit));
               else setPlateResult(null);
+              Keyboard.dismiss();
               setPlateCalcVisible(true);
             }}
             style={({ pressed }) => ({
@@ -3632,21 +3634,21 @@ export default function WorkoutScreen() {
         visible={plateCalcVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setPlateCalcVisible(false)}
+        onRequestClose={() => { Keyboard.dismiss(); setPlateCalcVisible(false); }}
       >
         {/* KeyboardAvoidingView pushes the sheet up when the decimal-pad appears */}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1, justifyContent: "flex-end" }}
         >
-          <Pressable style={{ flex: 1, backgroundColor: "#00000088" }} onPress={() => setPlateCalcVisible(false)} />
+          <Pressable style={{ flex: 1, backgroundColor: "#00000088" }} onPress={() => { Keyboard.dismiss(); setPlateCalcVisible(false); }} />
           <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 20, paddingBottom: Math.max(bottomInset + 8, 24) }}>
             {/* Header */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
                 Plate Calculator
               </Text>
-              <Pressable onPress={() => setPlateCalcVisible(false)} hitSlop={12}>
+              <Pressable onPress={() => { Keyboard.dismiss(); setPlateCalcVisible(false); }} hitSlop={12}>
                 <Ionicons name="close" size={22} color={Colors.textMuted} />
               </Pressable>
             </View>
