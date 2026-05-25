@@ -1355,13 +1355,9 @@ export default function WorkoutScreen() {
     const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
     if (!incompleteIdx) return;
 
-    // Show explainer on first-ever myo tap; proceed directly after that
-    const seen = await AsyncStorage.getItem("hasSeenMyoExplainer");
-    if (!seen) {
-      setMyoExplainVisible(true);
-      return; // modal's confirm button calls activateMyoModeConfirmed()
-    }
-    await activateMyoModeConfirmed();
+    // Always show the explainer modal so the user gets a clear confirm step.
+    // The modal's "Let's go" button calls activateMyoModeConfirmed().
+    setMyoExplainVisible(true);
   }
 
   async function activateMyoModeConfirmed() {
