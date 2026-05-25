@@ -193,7 +193,83 @@ jobs:
             --apiIssuer "$ASC_ISSUER_ID" \
             --verbose
 
-      # ── 9. Cleanup keychain ───────────────────────────────────────────────────
+      # ── 9. Distribute to internal test groups ────────────────────────────────
+      - name: Distribute to Beta 1 and Test1 groups
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          APP_BUNDLE_ID: "com.powrlog.app"
+        run: |
+          gem install jwt --quiet 2>/dev/null
+          ruby - <<'RUBY'
+          require 'jwt'
+          require 'base64'
+          require 'net/http'
+          require 'json'
+          require 'uri'
+
+          # ── Build JWT ──────────────────────────────────────────────────────
+          key_id      = ENV['ASC_KEY_ID']
+          issuer_id   = ENV['ASC_ISSUER_ID']
+          private_key = OpenSSL::PKey::EC.new(Base64.decode64(ENV['ASC_PRIVATE_KEY']))
+          token = JWT.encode(
+            { iss: issuer_id, iat: Time.now.to_i, exp: Time.now.to_i + 1200, aud: 'appstoreconnect-v1' },
+            private_key, 'ES256', { kid: key_id }
+          )
+          headers = { 'Authorization' => "Bearer #{token}", 'Content-Type' => 'application/json' }
+
+          def asc_get(path, headers)
+            uri = URI("https://api.appstoreconnect.apple.com#{path}")
+            req = Net::HTTP::Get.new(uri, headers)
+            Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| JSON.parse(h.request(req).body) }
+          end
+
+          def asc_post(path, body, headers)
+            uri = URI("https://api.appstoreconnect.apple.com#{path}")
+            req = Net::HTTP::Post.new(uri, headers)
+            req.body = body.to_json
+            Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }
+          end
+
+          # ── Find the app ──────────────────────────────────────────────────
+          apps = asc_get('/v1/apps?filter[bundleId]=com.powrlog.app', headers)
+          app_id = apps['data']&.first&.dig('id')
+          abort "Could not find app" unless app_id
+          puts "App ID: #{app_id}"
+
+          # ── Poll for the latest processed build (up to 15 min) ────────────
+          build_id = nil
+          30.times do |i|
+            resp = asc_get("/v1/builds?filter[app]=#{app_id}&filter[processingState]=VALID&sort=-uploadedDate&limit=1", headers)
+            build_id = resp['data']&.first&.dig('id')
+            if build_id
+              puts "Build ready: #{build_id}"
+              break
+            end
+            puts "Attempt #{i+1}/30 — not ready yet, waiting 30s..."
+            sleep 30
+          end
+          abort "Build never became ready — skipping group distribution" unless build_id
+
+          # ── Find Beta 1 and Test1 group IDs ──────────────────────────────
+          groups = asc_get("/v1/apps/#{app_id}/betaGroups", headers)
+          target_names = ['Beta 1', 'Test1']
+          target_groups = groups['data']&.select { |g| target_names.include?(g.dig('attributes', 'name')) } || []
+          puts "Found groups: #{target_groups.map { |g| g.dig('attributes', 'name') }.join(', ')}"
+
+          # ── Add build to each group ────────────────────────────────────────
+          target_groups.each do |group|
+            group_id   = group['id']
+            group_name = group.dig('attributes', 'name')
+            body = { data: [{ type: 'builds', id: build_id }] }
+            res = asc_post("/v1/betaGroups/#{group_id}/relationships/builds", body, headers)
+            puts "#{group_name}: HTTP #{res.code}"
+          end
+          puts "Distribution complete"
+          RUBY
+
+      # ── 10. Cleanup keychain ──────────────────────────────────────────────────
       - name: Cleanup keychain
         if: always()
         run: security delete-keychain $RUNNER_TEMP/build.keychain-db || true
