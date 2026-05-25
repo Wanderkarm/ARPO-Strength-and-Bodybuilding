@@ -14,12 +14,10 @@ import {
   useWindowDimensions,
   Keyboard,
   Linking,
-  InputAccessoryView,
 } from "react-native";
 
-const NUMPAD_INPUT_ID = "workout-numpad";
 import YoutubePlayer from "react-native-youtube-iframe";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardAvoidingView, KeyboardToolbar } from "react-native-keyboard-controller";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -2093,7 +2091,7 @@ export default function WorkoutScreen() {
                         onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
                         onEndEditing={() => handleWeightEndEditing(currentExerciseIndex, si, set)}
                         keyboardType="decimal-pad"
-                        inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
+
                         placeholder="—"
                         placeholderTextColor={Colors.textMuted}
                         style={{
@@ -2115,7 +2113,7 @@ export default function WorkoutScreen() {
                       onFocus={() => { focusedFieldRef.current = { exIndex: currentExerciseIndex, si, field: "reps" }; }}
                       onBlur={() => handleFieldBlur(currentExerciseIndex, si)}
                       keyboardType="decimal-pad"
-                      inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
+        
                       placeholder="—"
                       placeholderTextColor={Colors.textMuted}
                       style={{
@@ -3762,7 +3760,7 @@ export default function WorkoutScreen() {
                 }
               }}
               keyboardType="decimal-pad"
-              inputAccessoryViewID={Platform.OS === "ios" ? NUMPAD_INPUT_ID : undefined}
+
               placeholder="e.g. 185"
               placeholderTextColor={Colors.textMuted}
               style={{
@@ -3858,90 +3856,23 @@ export default function WorkoutScreen() {
       </Modal>
     </KeyboardAvoidingView>
 
-    {/* ── Numpad Done toolbar (iOS only) ── */}
-    {Platform.OS === "ios" && (
-      <InputAccessoryView nativeID={NUMPAD_INPUT_ID}>
-        <View style={{
-          backgroundColor: "#2C2C2E",
-          borderTopWidth: 1,
-          borderTopColor: "#444",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 10,
-        }}>
-          {/* Next → advances weight→reps→next weight→next reps */}
-          <Pressable
-            onPress={() => {
-              const f = focusedFieldRef.current;
-              if (!f) { Keyboard.dismiss(); return; }
-              const { exIndex, si, field } = f;
-              const sets = plan?.exercises[exIndex]?.sets ?? [];
-              const isBodyweightEx = plan?.exercises[exIndex]?.exercise.equipment === "BODYWEIGHT";
-              if (field === "weight" && !isBodyweightEx) {
-                // weight → reps (same set)
-                repsInputRefs.current[`${exIndex}-${si}`]?.focus();
-              } else {
-                // reps (or bodyweight weight) → weight of next set
-                const nextSi = si + 1;
-                if (nextSi < sets.length) {
-                  if (isBodyweightEx) {
-                    repsInputRefs.current[`${exIndex}-${nextSi}`]?.focus();
-                  } else {
-                    weightInputRefs.current[`${exIndex}-${nextSi}`]?.focus();
-                  }
-                } else {
-                  Keyboard.dismiss();
-                }
-              }
-            }}
-            hitSlop={12}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.6 : 1,
-              paddingHorizontal: 20,
-              paddingVertical: 7,
-              borderRadius: 6,
-              borderWidth: 1,
-              borderColor: Colors.primary,
-            })}
-          >
-            <Text style={{
-              fontFamily: "Rubik_700Bold",
-              fontSize: 14,
-              color: Colors.primary,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}>
-              Next →
-            </Text>
-          </Pressable>
-
-          {/* Done — always dismisses keyboard */}
-          <Pressable
-            onPress={() => Keyboard.dismiss()}
-            hitSlop={12}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.6 : 1,
-              backgroundColor: Colors.primary,
-              paddingHorizontal: 20,
-              paddingVertical: 7,
-              borderRadius: 6,
-            })}
-          >
-            <Text style={{
-              fontFamily: "Rubik_700Bold",
-              fontSize: 14,
-              color: "#fff",
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}>
-              Done
-            </Text>
-          </Pressable>
-        </View>
-      </InputAccessoryView>
-    )}
+    {/* ── Keyboard toolbar (Prev / Next / Done) ── */}
+    <KeyboardToolbar
+      theme={{
+        dark: {
+          primary: Colors.primary,
+          disabled: Colors.textMuted,
+          background: "#2C2C2E",
+          ripple: Colors.primary + "44",
+        },
+        light: {
+          primary: Colors.primary,
+          disabled: Colors.textMuted,
+          background: "#F3F3F4",
+          ripple: Colors.primary + "44",
+        },
+      }}
+    />
     </View>
   );
 }
