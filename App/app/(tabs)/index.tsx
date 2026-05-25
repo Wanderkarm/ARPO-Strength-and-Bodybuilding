@@ -207,6 +207,10 @@ export default function DashboardScreen() {
     async function runSilentSync() {
       const uid = await AsyncStorage.getItem("userId");
       if (!uid) return;
+      // Don't request permissions mid-session — only sync if the user has already
+      // gone through the health-permissions onboarding screen.
+      const healthReady = await AsyncStorage.getItem("healthPermissionsRequested");
+      if (!healthReady) return;
       const result = await silentDailySync(uid);
       if (result.stepsSynced) {
         const [updated, s] = await Promise.all([getTodaySteps(uid), getStreakInfo(uid)]);

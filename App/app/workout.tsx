@@ -759,7 +759,9 @@ export default function WorkoutScreen() {
       const isLastSet = setIndex === snapEx.sets.length - 1;
       const jumpingToPartner = hasActiveSupersertPartner(exIndex);
       const isMyo = snapSet.setType === 'myo_activation' || snapSet.setType === 'myo_mini';
-      const shouldStartTimer = !isLastSet && !jumpingToPartner && !isMyo;
+      // Show timer after every set completion (including the last set of an exercise)
+      // so navigating to the next exercise carries the rest period with you.
+      const shouldStartTimer = !jumpingToPartner && !isMyo;
       const restSeconds = shouldStartTimer
         ? calculateRestTime(snapEx.exercise.category, (plan?.goalType ?? "hypertrophy") as any)
         : 0;
@@ -830,12 +832,11 @@ export default function WorkoutScreen() {
     const feedback = getFeedback(reps, weight, set.targetWeight, set.targetReps, isBodyweight);
     updateSet(exIndex, setIndex, "feedback", feedback);
 
-    const isLastSet = setIndex === ex.sets.length - 1;
     // Don't start the rest timer if we're about to jump to a superset partner.
     // The timer fires after the partner set instead (end of the superset round).
     const jumpingToPartner = hasActiveSupersertPartner(exIndex);
     const isMyo = ex.sets[setIndex]?.setType === 'myo_activation' || ex.sets[setIndex]?.setType === 'myo_mini';
-    if (!isLastSet && !jumpingToPartner && !isMyo) {
+    if (!jumpingToPartner && !isMyo) {
       const category = ex.exercise.category;
       const restSeconds = calculateRestTime(category, (plan?.goalType ?? "hypertrophy") as any);
       setRestTimerSeconds(restSeconds);
@@ -917,7 +918,8 @@ export default function WorkoutScreen() {
       return;
     }
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setRestTimerVisible(false);
+    // Don't clear the rest timer here — if one is running from the last set it should
+    // persist onto the next exercise so the user still gets their full rest period.
     // Find the next incomplete exercise (search forward, then wrap from beginning)
     let nextIdx = -1;
     for (let i = currentExerciseIndex + 1; i < exerciseStates.length; i++) {

@@ -86,17 +86,28 @@ export default function HealthPermissions() {
       if (Platform.OS === "ios") {
         const _hkModule = require("@kingstinct/react-native-healthkit");
         const HealthKit = _hkModule.default ?? _hkModule;
-        await HealthKit.requestAuthorization({
-          toRead: [
-            "HKQuantityTypeIdentifierBodyMass",
-            "HKQuantityTypeIdentifierBodyFatPercentage",
-            "HKQuantityTypeIdentifierStepCount",
-            "HKQuantityTypeIdentifierRestingHeartRate",
-            "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
-            "HKCategoryTypeIdentifierSleepAnalysis",
-          ],
-          toShare: [],
-        });
+        // Split into two calls so a failure on one group (e.g. sleep category type)
+        // doesn't silently prevent the other types from being requested.
+        try {
+          await HealthKit.requestAuthorization({
+            toRead: [
+              "HKQuantityTypeIdentifierBodyMass",
+              "HKQuantityTypeIdentifierBodyFatPercentage",
+              "HKQuantityTypeIdentifierStepCount",
+            ],
+            toShare: [],
+          });
+        } catch { /* non-fatal */ }
+        try {
+          await HealthKit.requestAuthorization({
+            toRead: [
+              "HKQuantityTypeIdentifierRestingHeartRate",
+              "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+              "HKCategoryTypeIdentifierSleepAnalysis",
+            ],
+            toShare: [],
+          });
+        } catch { /* non-fatal */ }
       } else if (Platform.OS === "android") {
         const _hcModule = require("react-native-health-connect");
         const { initialize, requestPermission } = _hcModule.default ?? _hcModule;

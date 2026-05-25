@@ -261,9 +261,11 @@ jobs:
 
           # ── Find Beta 1 and Test1 group IDs ──────────────────────────────
           groups = asc_get("/v1/apps/#{app_id}/betaGroups", headers)
+          all_names = groups['data']&.map { |g| g.dig('attributes', 'name') } || []
+          puts "All available groups: #{all_names.join(', ')}"
           target_names = ['Beta 1', 'Test1']
           target_groups = groups['data']&.select { |g| target_names.include?(g.dig('attributes', 'name')) } || []
-          puts "Found groups: #{target_groups.map { |g| g.dig('attributes', 'name') }.join(', ')}"
+          puts "Matched groups: #{target_groups.map { |g| g.dig('attributes', 'name') }.join(', ')}"
 
           # ── Add build to each group ────────────────────────────────────────
           target_groups.each do |group|
@@ -271,7 +273,7 @@ jobs:
             group_name = group.dig('attributes', 'name')
             body = { data: [{ type: 'builds', id: build_id }] }
             res = asc_post("/v1/betaGroups/#{group_id}/relationships/builds", body, headers)
-            puts "#{group_name}: HTTP #{res.code}"
+            puts "#{group_name}: HTTP #{res.code} #{res.body}"
           end
           puts "Distribution complete"
           RUBY
