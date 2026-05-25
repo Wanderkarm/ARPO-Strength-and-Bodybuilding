@@ -62,8 +62,11 @@ jobs:
           CERTIFICATE_P12: ${{ secrets.IOS_DIST_CERTIFICATE_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.IOS_DIST_CERTIFICATE_PASSWORD }}
         run: |
-          # Install Apple intermediate certificate for trust chain
+          # Install full Apple certificate chain: Root CA G3 + WWDR G3 intermediate
+          # Without the root CA trusted, codesign fails with errSecInternalComponent
+          curl -s -o /tmp/AppleRootCAG3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
           curl -s -o /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          sudo security add-trusted-cert -d -r trustRoot   -k /Library/Keychains/System.keychain /tmp/AppleRootCAG3.cer || true
           sudo security add-trusted-cert -d -r trustAsRoot -k /Library/Keychains/System.keychain /tmp/AppleWWDRCAG3.cer || true
 
           # Use full path — avoids .keychain vs .keychain-db naming issues on modern macOS
