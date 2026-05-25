@@ -59,7 +59,8 @@ export default function PaywallScreen() {
     setDevTaps(next);
     if (next >= DEV_TAP_TARGET) {
       setDevTaps(0);
-      await devUnlock(); // updates context state + AsyncStorage — navigation fires via useEffect
+      await devUnlock();
+      router.replace("/(tabs)"); // navigate directly — don't rely on useEffect timing
     }
   }
 
