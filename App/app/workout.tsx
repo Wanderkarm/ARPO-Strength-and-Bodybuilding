@@ -3857,23 +3857,32 @@ export default function WorkoutScreen() {
     {Platform.OS === "ios" && (
       <InputAccessoryView nativeID={NUMPAD_INPUT_ID}>
         <View style={{
-          backgroundColor: "#1C1C1E",
+          backgroundColor: "#2C2C2E",
           borderTopWidth: 1,
-          borderTopColor: Colors.border,
+          borderTopColor: "#444",
           flexDirection: "row",
           justifyContent: "flex-end",
+          alignItems: "center",
           paddingHorizontal: 16,
-          paddingVertical: 8,
+          paddingVertical: 10,
         }}>
           <Pressable
             onPress={() => Keyboard.dismiss()}
             hitSlop={12}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.6 : 1,
+              backgroundColor: Colors.primary,
+              paddingHorizontal: 20,
+              paddingVertical: 7,
+              borderRadius: 6,
+            })}
           >
             <Text style={{
-              fontFamily: "Rubik_600SemiBold",
-              fontSize: 16,
-              color: Colors.primary,
+              fontFamily: "Rubik_700Bold",
+              fontSize: 14,
+              color: "#fff",
+              textTransform: "uppercase",
+              letterSpacing: 1,
             }}>
               Done
             </Text>
