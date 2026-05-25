@@ -125,8 +125,10 @@ jobs:
             2>&1 | tee /tmp/xcodebuild.log || true
           echo "===== BUILD RESULT ====="
           grep -E "ARCHIVE (FAILED|SUCCEEDED)|BUILD (FAILED|SUCCEEDED)" /tmp/xcodebuild.log || echo "No final result line found"
-          echo "===== 80 LINES BEFORE FAILURE (actual error is here) ====="
-          grep -B 80 "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log | tail -85 || tail -30 /tmp/xcodebuild.log
+          echo "===== EMBED PODS FRAMEWORKS SCRIPT OUTPUT ====="
+          grep -A 60 "Embed Pods Frameworks" /tmp/xcodebuild.log | head -65 || echo "PhaseScriptExecution line not found"
+          echo "===== ALL LINES WITH error (case insensitive, no notes/warnings) ====="
+          grep -i "error" /tmp/xcodebuild.log | grep -v "^note:" | grep -v "warning:" || echo "No error lines found"
           # Exit 1 if build failed
           grep -q "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log && exit 1 || true
 
