@@ -99,6 +99,16 @@ jobs:
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< $(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/powrlog_appstore.mobileprovision))
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
+      # ── 5b. Verify code signing setup ────────────────────────────────────────
+      - name: Check signing identities
+        run: |
+          echo "=== Keychain search list ==="
+          security list-keychains
+          echo "=== Valid signing identities ==="
+          security find-identity -v -p codesigning || echo "none found"
+          echo "=== Profile UUID ==="
+          echo "$PROFILE_UUID"
+
       # ── 6. Xcode archive ─────────────────────────────────────────────────────
       - name: Build archive
         run: |
@@ -112,13 +122,11 @@ jobs:
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
             DEVELOPMENT_TEAM="Q2MSA33256" \
-            2>&1 | tee /tmp/xcodebuild.log | grep -E "^.*(error:|CodeSign| FAILED| SUCCEEDED).*$" || true
+            2>&1 | tee /tmp/xcodebuild.log || true
           echo "===== BUILD RESULT ====="
           grep -E "ARCHIVE (FAILED|SUCCEEDED)|BUILD (FAILED|SUCCEEDED)" /tmp/xcodebuild.log || echo "No final result line found"
-          echo "===== ERRORS ONLY ====="
-          grep " error:" /tmp/xcodebuild.log || echo "No error lines found"
-          echo "===== LAST 30 LINES ====="
-          tail -30 /tmp/xcodebuild.log
+          echo "===== 80 LINES BEFORE FAILURE (actual error is here) ====="
+          grep -B 80 "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log | tail -85 || tail -30 /tmp/xcodebuild.log
           # Exit 1 if build failed
           grep -q "ARCHIVE FAILED\|BUILD FAILED" /tmp/xcodebuild.log && exit 1 || true
 
