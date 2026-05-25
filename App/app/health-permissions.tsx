@@ -18,31 +18,37 @@ const IOS_PERMISSIONS = [
     icon: "footsteps-outline" as const,
     label: "Steps",
     description: "Daily step count toward your activity goal",
+    impact: "Activity",
   },
   {
     icon: "scale-outline" as const,
     label: "Body Weight",
-    description: "Auto-log weigh-ins from your smart scale",
+    description: "Auto-logs weigh-ins from your smart scale — no manual entry",
+    impact: "Composition",
   },
   {
     icon: "body-outline" as const,
     label: "Body Fat %",
-    description: "Track composition changes alongside weight",
+    description: "Tracks composition changes alongside weight over time",
+    impact: "Composition",
   },
   {
     icon: "heart-outline" as const,
     label: "Resting Heart Rate",
-    description: "Used to calculate your daily Recovery score",
+    description: "Powers your daily Recovery score",
+    impact: "Recovery",
   },
   {
     icon: "pulse-outline" as const,
     label: "Heart Rate Variability",
-    description: "Key signal for nervous system recovery",
+    description: "The strongest signal for nervous system readiness",
+    impact: "Recovery",
   },
   {
     icon: "moon-outline" as const,
     label: "Sleep",
-    description: "Sleep duration feeds directly into Recovery",
+    description: "Sleep quality directly determines your Recovery score",
+    impact: "Recovery",
   },
 ];
 
@@ -51,26 +57,31 @@ const ANDROID_PERMISSIONS = [
     icon: "footsteps-outline" as const,
     label: "Steps",
     description: "Daily step count toward your activity goal",
+    impact: "Activity",
   },
   {
     icon: "scale-outline" as const,
     label: "Body Weight",
-    description: "Auto-log weigh-ins from your smart scale",
+    description: "Auto-logs weigh-ins from your smart scale — no manual entry",
+    impact: "Composition",
   },
   {
     icon: "heart-outline" as const,
     label: "Resting Heart Rate",
-    description: "Used to calculate your daily Recovery score",
+    description: "Powers your daily Recovery score",
+    impact: "Recovery",
   },
   {
     icon: "pulse-outline" as const,
     label: "Heart Rate Variability",
-    description: "Key signal for nervous system recovery",
+    description: "The strongest signal for nervous system readiness",
+    impact: "Recovery",
   },
   {
     icon: "moon-outline" as const,
     label: "Sleep",
-    description: "Sleep duration feeds directly into Recovery",
+    description: "Sleep quality directly determines your Recovery score",
+    impact: "Recovery",
   },
 ];
 
@@ -86,28 +97,20 @@ export default function HealthPermissions() {
       if (Platform.OS === "ios") {
         const _hkModule = require("@kingstinct/react-native-healthkit");
         const HealthKit = _hkModule.default ?? _hkModule;
-        // Split into two calls so a failure on one group (e.g. sleep category type)
-        // doesn't silently prevent the other types from being requested.
-        try {
-          await HealthKit.requestAuthorization({
-            toRead: [
-              "HKQuantityTypeIdentifierBodyMass",
-              "HKQuantityTypeIdentifierBodyFatPercentage",
-              "HKQuantityTypeIdentifierStepCount",
-            ],
-            toShare: [],
-          });
-        } catch { /* non-fatal */ }
-        try {
-          await HealthKit.requestAuthorization({
-            toRead: [
-              "HKQuantityTypeIdentifierRestingHeartRate",
-              "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
-              "HKCategoryTypeIdentifierSleepAnalysis",
-            ],
-            toShare: [],
-          });
-        } catch { /* non-fatal */ }
+        // Single call — all 6 types in one iOS permission dialog.
+        // silentDailySync is guarded so it won't fire before this screen,
+        // which was the original reason this dialog only showed 2 types.
+        await HealthKit.requestAuthorization({
+          toRead: [
+            "HKQuantityTypeIdentifierBodyMass",
+            "HKQuantityTypeIdentifierBodyFatPercentage",
+            "HKQuantityTypeIdentifierStepCount",
+            "HKQuantityTypeIdentifierRestingHeartRate",
+            "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+            "HKCategoryTypeIdentifierSleepAnalysis",
+          ],
+          toShare: [],
+        });
       } else if (Platform.OS === "android") {
         const _hcModule = require("react-native-health-connect");
         const { initialize, requestPermission } = _hcModule.default ?? _hcModule;
@@ -123,7 +126,7 @@ export default function HealthPermissions() {
         }
       }
     } catch {
-      // Permission errors are non-fatal — user can grant later in settings
+      // Non-fatal — user can grant permissions later in Settings
     } finally {
       setRequesting(false);
       await AsyncStorage.setItem("healthPermissionsRequested", "1");
@@ -137,96 +140,146 @@ export default function HealthPermissions() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 28, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={{ alignItems: "center", marginTop: 40, marginBottom: 36, gap: 14 }}>
+        <View style={{ alignItems: "center", marginTop: 36, marginBottom: 28, gap: 12 }}>
           <View style={{
-            width: 72, height: 72, borderRadius: 18,
+            width: 68, height: 68, borderRadius: 16,
             backgroundColor: Colors.primary + "22",
             borderWidth: 1, borderColor: Colors.primary + "44",
             alignItems: "center", justifyContent: "center",
           }}>
-            <Ionicons name="heart" size={36} color={Colors.primary} />
+            <Ionicons name="heart" size={34} color={Colors.primary} />
           </View>
           <Text style={{
-            fontFamily: "Rubik_700Bold", fontSize: 24,
+            fontFamily: "Rubik_700Bold", fontSize: 22,
             color: Colors.text, textAlign: "center",
           }}>
             Connect Health Data
           </Text>
           <Text style={{
-            fontFamily: "Rubik_400Regular", fontSize: 14,
-            color: Colors.textSecondary, textAlign: "center", lineHeight: 22,
+            fontFamily: "Rubik_400Regular", fontSize: 13,
+            color: Colors.textSecondary, textAlign: "center", lineHeight: 20,
           }}>
             POWRLOG reads the following from{" "}
-            <Text style={{ color: Colors.text, fontFamily: "Rubik_500Medium" }}>
+            <Text style={{ color: Colors.text, fontFamily: "Rubik_600SemiBold" }}>
               {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}
             </Text>{" "}
-            to automate your progress tracking. We never write or share your data.
+            to automate your tracking. Grant all six for the full experience.
           </Text>
         </View>
 
         {/* Permission list */}
-        <View style={{ gap: 10, marginBottom: 36 }}>
+        <View style={{ gap: 8, marginBottom: 20 }}>
           {permissions.map((p) => (
             <View
               key={p.label}
               style={{
-                flexDirection: "row", alignItems: "center", gap: 14,
+                flexDirection: "row", alignItems: "center", gap: 12,
                 backgroundColor: Colors.bgAccent,
                 borderWidth: 1, borderColor: Colors.border,
-                paddingHorizontal: 16, paddingVertical: 14,
+                paddingHorizontal: 14, paddingVertical: 12,
               }}
             >
               <View style={{
-                width: 38, height: 38, borderRadius: 10,
+                width: 36, height: 36, borderRadius: 9,
                 backgroundColor: Colors.primary + "18",
                 alignItems: "center", justifyContent: "center",
               }}>
-                <Ionicons name={p.icon} size={20} color={Colors.primary} />
+                <Ionicons name={p.icon} size={18} color={Colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{
-                  fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2,
+                  fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 1,
                 }}>
                   {p.label}
                 </Text>
                 <Text style={{
-                  fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16,
+                  fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 15,
                 }}>
                   {p.description}
                 </Text>
               </View>
-              <Ionicons name="checkmark-circle" size={20} color={Colors.primary + "99"} />
+              <View style={{
+                backgroundColor: Colors.primary + "22",
+                borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
+              }}>
+                <Text style={{
+                  fontFamily: "Rubik_600SemiBold", fontSize: 9,
+                  color: Colors.primary, textTransform: "uppercase", letterSpacing: 0.5,
+                }}>
+                  {p.impact}
+                </Text>
+              </View>
             </View>
           ))}
         </View>
 
-        {/* Privacy note */}
+        {/* What you miss without it */}
+        <View style={{
+          borderWidth: 1, borderColor: Colors.primary + "44",
+          borderLeftWidth: 3, borderLeftColor: Colors.primary,
+          backgroundColor: Colors.primary + "0A",
+          padding: 14, marginBottom: 16,
+        }}>
+          <Text style={{
+            fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.primary,
+            textTransform: "uppercase", letterSpacing: 1, marginBottom: 6,
+          }}>
+            Without this, you miss out on
+          </Text>
+          <View style={{ gap: 4 }}>
+            {[
+              "Automatic weigh-in logging from your scale",
+              "Daily Recovery score (HRV + sleep + RHR)",
+              "Step tracking toward your activity goal",
+            ].map((item) => (
+              <View key={item} style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+                <Ionicons name="close-circle" size={14} color={Colors.primary + "88"} style={{ marginTop: 1 }} />
+                <Text style={{
+                  flex: 1, fontFamily: "Rubik_400Regular", fontSize: 12,
+                  color: Colors.textSecondary, lineHeight: 17,
+                }}>
+                  {item}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Privacy guarantee */}
         <View style={{
           flexDirection: "row", gap: 10, alignItems: "flex-start",
           backgroundColor: Colors.bgAccent,
           borderWidth: 1, borderColor: Colors.border,
-          padding: 14, marginBottom: 32,
+          padding: 12, marginBottom: 8,
         }}>
-          <Ionicons name="lock-closed-outline" size={16} color={Colors.textMuted} style={{ marginTop: 1 }} />
+          <Ionicons name="lock-closed" size={15} color={Colors.primary} style={{ marginTop: 1 }} />
           <Text style={{
             flex: 1, fontFamily: "Rubik_400Regular", fontSize: 11,
-            color: Colors.textMuted, lineHeight: 17,
+            color: Colors.textMuted, lineHeight: 16,
           }}>
-            All health data stays on your device and in{" "}
-            {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}.
-            POWRLOG only reads — it never uploads or shares your health data.
+            <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>
+              Your data never leaves your phone.{" "}
+            </Text>
+            POWRLOG reads from {Platform.OS === "ios" ? "Apple Health" : "Health Connect"} locally.
+            Nothing is uploaded, sold, or shared — ever.
           </Text>
         </View>
       </ScrollView>
 
-      {/* Bottom CTAs */}
-      <View style={{ paddingHorizontal: 28, gap: 12, paddingBottom: Math.max(insets.bottom, 20) }}>
+      {/* Bottom CTAs — fixed so they're always visible */}
+      <View style={{
+        paddingHorizontal: 24, gap: 10,
+        paddingTop: 12,
+        paddingBottom: Math.max(insets.bottom, 20),
+        borderTopWidth: 1, borderTopColor: Colors.border,
+        backgroundColor: Colors.bg,
+      }}>
         <Pressable
           onPress={requestAndContinue}
           disabled={requesting}
@@ -255,12 +308,12 @@ export default function HealthPermissions() {
           )}
         </Pressable>
 
-        <Pressable onPress={skipAndContinue} hitSlop={8}>
+        <Pressable onPress={skipAndContinue} hitSlop={8} disabled={requesting}>
           <Text style={{
-            fontFamily: "Rubik_400Regular", fontSize: 13,
+            fontFamily: "Rubik_400Regular", fontSize: 12,
             color: Colors.textMuted, textAlign: "center",
           }}>
-            Skip for now — connect later in Settings
+            Skip — I'll set this up later in Settings
           </Text>
         </Pressable>
       </View>
