@@ -72,15 +72,16 @@ jobs:
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "ci_keychain_pass" $KEYCHAIN_PATH
 
-          # Import with -A (allow ALL applications) so CocoaPods embed script can codesign frameworks
+          # Import the full p12 (cert + private key) — no -t flag so the private key is included
           echo "$CERTIFICATE_P12" | base64 --decode -o /tmp/certificate.p12
           security import /tmp/certificate.p12 \
             -k $KEYCHAIN_PATH \
             -P "$CERTIFICATE_PASSWORD" \
-            -A -t cert -f pkcs12
+            -A
+          # Grant non-interactive access to the private key (no || true — we want to see failures)
           security set-key-partition-list \
             -S apple-tool:,apple:,codesign: \
-            -s -k "ci_keychain_pass" $KEYCHAIN_PATH || true
+            -s -k "ci_keychain_pass" $KEYCHAIN_PATH
           rm /tmp/certificate.p12
 
           # Set as default and add to search list
