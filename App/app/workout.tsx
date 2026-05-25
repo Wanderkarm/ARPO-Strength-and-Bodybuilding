@@ -1368,7 +1368,9 @@ export default function WorkoutScreen() {
     const idx = currentExerciseIndexRef.current;
     const ex = exerciseStatesRef.current[idx];
     if (!ex || myoActive) return;
-    const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
+    // Use the FIRST incomplete set — that's the one the user is about to do next.
+    // (.pop() was grabbing the last set which meant sets in between still fired the regular timer)
+    const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).find(({ s }) => !s.feedback);
     if (!incompleteIdx) return;
     const { s: targetSet, i: setIndex } = incompleteIdx;
     const newGroupId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
@@ -1378,6 +1380,8 @@ export default function WorkoutScreen() {
       Alert.alert("Myo Error", `Could not activate myo mode: ${String(e)}`);
       return;
     }
+    // Cancel any regular rest timer that was already running
+    setRestTimerVisible(false);
     setExerciseStates((prev) => {
       const next = [...prev];
       const exNext = { ...next[idx] };
@@ -2336,7 +2340,7 @@ export default function WorkoutScreen() {
       </View>{/* end non-scrollable content */}
 
       {/* ── Scrollable lower area: rating (post-exercise) + guide ───────────── */}
-      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}>
+      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} keyboardDismissMode="interactive">
 
         {/* Per-exercise ratings — appear once all sets are complete */}
         {isExerciseComplete(currentEx) && (
