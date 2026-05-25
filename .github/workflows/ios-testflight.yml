@@ -71,6 +71,8 @@ jobs:
           security default-keychain -s build.keychain
           security unlock-keychain -p "ci_keychain_pass" build.keychain
           security set-keychain-settings -t 7200 -u build.keychain
+          # Add to search list so codesign (used by CocoaPods embed script) can find the key
+          security list-keychains -d user -s build.keychain login.keychain-db
 
           echo "$CERTIFICATE_P12" | base64 --decode -o /tmp/certificate.p12
           security import /tmp/certificate.p12 \
