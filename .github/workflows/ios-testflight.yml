@@ -66,24 +66,27 @@ jobs:
           curl -s -o /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
           sudo security add-trusted-cert -d -r trustAsRoot -k /Library/Keychains/System.keychain /tmp/AppleWWDRCAG3.cer || true
 
-          # Create a temporary keychain so the certificate is isolated to this run
-          security create-keychain -p "ci_keychain_pass" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "ci_keychain_pass" build.keychain
-          security set-keychain-settings -t 7200 -u build.keychain
-          # Add to search list so codesign (used by CocoaPods embed script) can find the key
-          security list-keychains -d user -s build.keychain login.keychain-db
+          # Use full path — avoids .keychain vs .keychain-db naming issues on modern macOS
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
+          security create-keychain -p "ci_keychain_pass" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "ci_keychain_pass" $KEYCHAIN_PATH
 
+          # Import with -A (allow ALL applications) so CocoaPods embed script can codesign frameworks
           echo "$CERTIFICATE_P12" | base64 --decode -o /tmp/certificate.p12
           security import /tmp/certificate.p12 \
-            -k build.keychain \
+            -k $KEYCHAIN_PATH \
             -P "$CERTIFICATE_PASSWORD" \
-            -T /usr/bin/codesign \
-            -T /usr/bin/security
+            -A -t cert -f pkcs12
           security set-key-partition-list \
-            -S apple-tool:,apple: \
-            -s -k "ci_keychain_pass" build.keychain
+            -S apple-tool:,apple:,codesign: \
+            -s -k "ci_keychain_pass" $KEYCHAIN_PATH || true
           rm /tmp/certificate.p12
+
+          # Set as default and add to search list
+          security default-keychain -s $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH login.keychain-db
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
 
       - name: Install provisioning profile
         env:
@@ -172,4 +175,4 @@ jobs:
       # ── 9. Cleanup keychain ───────────────────────────────────────────────────
       - name: Cleanup keychain
         if: always()
-        run: security delete-keychain build.keychain || true
+        run: security delete-keychain $RUNNER_TEMP/build.keychain-db || true
