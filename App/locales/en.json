@@ -1,0 +1,6 @@
+{
+  "_meta": {
+    "language": "English",
+    "note": "Strings migrated from components incrementally after launch. Add keys here first, then es.json, then update the component."
+  }
+}

@@ -1,3 +1,4 @@
+import "@/lib/i18n"; // initialise i18n before anything renders — side-effect only
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
