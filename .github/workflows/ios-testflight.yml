@@ -201,13 +201,18 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           APP_BUNDLE_ID: "com.powrlog.app"
         run: |
+          # Read the exact build number from app.json so we wait for THIS build, not a previous one
+          BUILD_NUMBER=$(python3 -c "import json; d=json.load(open('app.json')); print(d['expo']['ios']['buildNumber'])")
+          echo "Waiting for build number: $BUILD_NUMBER"
           gem install jwt --quiet 2>/dev/null
-          ruby - <<'RUBY'
+          BUILD_NUMBER="$BUILD_NUMBER" ruby - <<'RUBY'
           require 'jwt'
           require 'base64'
           require 'net/http'
           require 'json'
           require 'uri'
+
+          build_number = ENV['BUILD_NUMBER']
 
           # ── Build JWT ──────────────────────────────────────────────────────
           key_id      = ENV['ASC_KEY_ID']
@@ -238,19 +243,21 @@ jobs:
           abort "Could not find app" unless app_id
           puts "App ID: #{app_id}"
 
-          # ── Poll for the latest processed build (up to 15 min) ────────────
+          # ── Poll for THIS specific build number (up to 15 min) ────────────
+          # Filter by version (build number) so we never accidentally distribute
+          # a previous build that was already valid when we started polling.
           build_id = nil
           30.times do |i|
-            resp = asc_get("/v1/builds?filter[app]=#{app_id}&filter[processingState]=VALID&sort=-uploadedDate&limit=1", headers)
+            resp = asc_get("/v1/builds?filter[app]=#{app_id}&filter[version]=#{build_number}&filter[processingState]=VALID&sort=-uploadedDate&limit=1", headers)
             build_id = resp['data']&.first&.dig('id')
             if build_id
-              puts "Build ready: #{build_id}"
+              puts "Build #{build_number} ready: #{build_id}"
               break
             end
-            puts "Attempt #{i+1}/30 — not ready yet, waiting 30s..."
+            puts "Attempt #{i+1}/30 — build #{build_number} not ready yet, waiting 30s..."
             sleep 30
           end
-          abort "Build never became ready — skipping group distribution" unless build_id
+          abort "Build #{build_number} never became ready — skipping group distribution" unless build_id
 
           # ── Find Beta 1 and Test1 group IDs ──────────────────────────────
           groups = asc_get("/v1/apps/#{app_id}/betaGroups", headers)
