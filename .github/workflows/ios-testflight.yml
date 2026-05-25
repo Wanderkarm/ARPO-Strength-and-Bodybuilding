@@ -66,8 +66,8 @@ jobs:
           # Without the root CA trusted, codesign fails with errSecInternalComponent
           curl -s -o /tmp/AppleRootCAG3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
           curl -s -o /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          sudo security add-trusted-cert -d -r trustRoot   -k /Library/Keychains/System.keychain /tmp/AppleRootCAG3.cer || true
-          sudo security add-trusted-cert -d -r trustAsRoot -k /Library/Keychains/System.keychain /tmp/AppleWWDRCAG3.cer || true
+          sudo security import /tmp/AppleRootCAG3.cer -k /Library/Keychains/System.keychain -t cert || true
+          sudo security import /tmp/AppleWWDRCAG3.cer -k /Library/Keychains/System.keychain -t cert || true
 
           # Use full path — avoids .keychain vs .keychain-db naming issues on modern macOS
           KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
@@ -126,6 +126,7 @@ jobs:
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
             DEVELOPMENT_TEAM="Q2MSA33256" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" \
             2>&1 | tee /tmp/xcodebuild.log || true
           echo "===== BUILD RESULT ====="
           grep -E "ARCHIVE (FAILED|SUCCEEDED)|BUILD (FAILED|SUCCEEDED)" /tmp/xcodebuild.log || echo "No final result line found"
