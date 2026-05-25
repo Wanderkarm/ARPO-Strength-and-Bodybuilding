@@ -1499,8 +1499,6 @@ export default function WorkoutScreen() {
     if (exerciseStates.length === 0 || myoActive || myoUsedThisSessionRef.current) return;
     const ex = exerciseStates[currentExerciseIndex];
     if (!ex) return;
-    // Only recommend on the last exercise
-    if (currentExerciseIndex !== exerciseStates.length - 1) return;
     // Eligibility
     if (!isMyoEligible(ex.exercise.category, ex.exercise.name)) return;
     // Skip on deload week
@@ -3866,57 +3864,19 @@ export default function WorkoutScreen() {
           borderTopWidth: 1,
           borderTopColor: "#444",
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
           paddingHorizontal: 16,
           paddingVertical: 10,
         }}>
-          {/* Next → advances weight→reps→next set */}
-          <Pressable
-            onPress={() => {
-              const f = focusedFieldRef.current;
-              if (!f) { Keyboard.dismiss(); return; }
-              const { exIndex, si, field } = f;
-              const sets = plan?.exercises[exIndex]?.sets ?? [];
-              const isBodyweightEx = plan?.exercises[exIndex]?.exercise.equipment === "BODYWEIGHT";
-              if (field === "weight" && !isBodyweightEx) {
-                repsInputRefs.current[`${exIndex}-${si}`]?.focus();
-              } else {
-                const nextSi = si + 1;
-                if (nextSi < sets.length) {
-                  if (isBodyweightEx) {
-                    repsInputRefs.current[`${exIndex}-${nextSi}`]?.focus();
-                  } else {
-                    weightInputRefs.current[`${exIndex}-${nextSi}`]?.focus();
-                  }
-                } else {
-                  Keyboard.dismiss();
-                }
-              }
-            }}
-            hitSlop={12}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.6 : 1,
-              paddingHorizontal: 20,
-              paddingVertical: 7,
-              borderRadius: 6,
-              borderWidth: 1,
-              borderColor: Colors.primary,
-            })}
-          >
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-              Next →
-            </Text>
-          </Pressable>
-
           <Pressable
             onPress={() => Keyboard.dismiss()}
             hitSlop={12}
             style={({ pressed }) => ({
               opacity: pressed ? 0.6 : 1,
               backgroundColor: Colors.primary,
-              paddingHorizontal: 20,
-              paddingVertical: 7,
+              paddingHorizontal: 24,
+              paddingVertical: 8,
               borderRadius: 6,
             })}
           >
