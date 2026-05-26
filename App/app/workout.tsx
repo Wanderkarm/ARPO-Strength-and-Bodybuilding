@@ -1707,9 +1707,10 @@ export default function WorkoutScreen() {
         </View>
       )}
 
-      {/* ── Non-scrollable content: exercise header + set table ─────────────
-           TextInputs live here so iOS never auto-scrolls the screen          ── */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+      {/* ── Single ScrollView: exercise header + set table + ratings ──────────
+           Merging into one scrollable area keeps set rows visible above the keyboard ── */}
+      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 }} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled">
+
         {/* ── Exercise name row ── */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 18, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, flex: 1 }}>
@@ -2340,15 +2341,10 @@ export default function WorkoutScreen() {
           );
         })()}
 
-      </View>{/* end non-scrollable content */}
-
-      {/* ── Scrollable lower area: rating (post-exercise) + guide ───────────── */}
-      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} keyboardDismissMode="interactive">
-
         {/* Per-exercise ratings — appear once all sets are complete */}
         {isExerciseComplete(currentEx) && (
           <View
-            style={{ marginHorizontal: 20, marginTop: 20, borderWidth: 1, borderColor: Colors.primary + "66", padding: 16 }}
+            style={{ marginTop: 20, borderWidth: 1, borderColor: Colors.primary + "66", padding: 16 }}
           >
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14 }}>
               Rate This Exercise
