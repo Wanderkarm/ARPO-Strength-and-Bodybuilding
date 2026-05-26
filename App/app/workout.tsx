@@ -1366,8 +1366,7 @@ export default function WorkoutScreen() {
     const idx = currentExerciseIndexRef.current;
     const ex = exerciseStatesRef.current[idx];
     if (!ex || myoActive) return;
-    // Use the FIRST incomplete set — that's the one the user is about to do next.
-    // (.pop() was grabbing the last set which meant sets in between still fired the regular timer)
+    // Activate on the FIRST incomplete set (the one the user is about to do next).
     const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).find(({ s }) => !s.feedback);
     if (!incompleteIdx) return;
     const { s: targetSet, i: setIndex } = incompleteIdx;
@@ -1378,6 +1377,13 @@ export default function WorkoutScreen() {
       Alert.alert("Myo Error", `Could not activate myo mode: ${String(e)}`);
       return;
     }
+    // Drop all pending (no feedback) regular sets that come AFTER the activation set.
+    // Without this, the rest-timer UI never shows (it requires the activation set to be
+    // the last set), and mini-sets get appended after the dangling regular sets.
+    const pendingAfter = ex.sets.slice(setIndex + 1).filter((s) => !s.feedback);
+    for (let k = 0; k < pendingAfter.length; k++) {
+      await removeLastSetFromLog(ex.logId);
+    }
     // Cancel any regular rest timer that was already running
     setRestTimerVisible(false);
     setExerciseStates((prev) => {
@@ -1385,7 +1391,10 @@ export default function WorkoutScreen() {
       const exNext = { ...next[idx] };
       const setsNext = [...exNext.sets];
       setsNext[setIndex] = { ...setsNext[setIndex], setType: 'myo_activation', myoGroupId: newGroupId };
-      exNext.sets = setsNext;
+      // Remove the pending regular sets we deleted from the DB
+      const filtered = setsNext.filter((s, i) => i <= setIndex || !!s.feedback);
+      exNext.sets = filtered;
+      exNext.targetSets = filtered.length;
       next[idx] = exNext;
       return next;
     });
@@ -1983,18 +1992,26 @@ export default function WorkoutScreen() {
             </View>
           </View>
 
-          {currentEx.sets.map((set, si) => {
+          {(() => {
+            // Index of the most recently completed myo set in the active group.
+            // Used to show the amber rest countdown after the right row regardless
+            // of how many sets remain in the list.
+            const lastCompletedMyoIdx = (myoActive && myoGroupId)
+              ? currentEx.sets.reduce<number>(
+                  (last, s, i) => (s.myoGroupId === myoGroupId && s.feedback !== null ? i : last),
+                  -1
+                )
+              : -1;
+            return currentEx.sets.map((set, si) => {
             const isSetDone = isBodyweight
               ? set.repsCompleted !== ""
               : set.repsCompleted !== "" && set.weightUsed !== "";
             const isMyo = set.setType === 'myo_activation' || set.setType === 'myo_mini';
             const myoAccent = "#F59E0B";
-            // Show myo rest timer between completed myo set and next pending mini-set
+            // Show rest countdown after the most recently completed myo set in the group
             const isLastMyoCompletedBeforeRest =
               myoRestActive &&
-              set.feedback !== null &&
-              isMyo &&
-              si === currentEx.sets.length - 1;
+              si === lastCompletedMyoIdx;
             return (
               <View key={set.setLogId}>
                 {/* Myo rest timer — inline amber countdown */}
@@ -2181,7 +2198,8 @@ export default function WorkoutScreen() {
                 )}
               </View>
             );
-          })}
+          }); // close sets.map
+          })()}  {/* close lastCompletedMyoIdx IIFE */}
         </View>
 
         {/* Plate calculator shortcut — barbell only */}
