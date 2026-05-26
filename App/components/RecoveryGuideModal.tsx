@@ -1,15 +1,8 @@
 /**
  * RecoveryGuideModal
  *
- * A comprehensive, scrollable explainer for the Recovery Intelligence system.
- * Opened by a "Learn More →" button on the Recovery Intelligence cards
- * (dashboard tile and post-workout summary).
- *
- * Covers:
- *  1. Why personal baselines beat fixed thresholds
- *  2. The four status levels with colour indicators
- *  3. How HRV and RHR are combined
- *  4. Mesocycle-aware interpretation
+ * Plain-English explainer for the Recovery Intelligence system.
+ * Structure: purpose → define terms → how it helps → how it's calculated.
  */
 
 import React from "react";
@@ -31,39 +24,37 @@ interface RecoveryGuideModalProps {
   onClose: () => void;
 }
 
-// ─── Status level definitions ─────────────────────────────────────────────────
 const STATUS_LEVELS = [
   {
     label: "Primed",
     color: "#43A047",
-    deviation: "≥ +10% vs baseline",
+    deviation: "≥ +10% vs your normal",
     description:
-      "Peak readiness. Your HRV is elevated and/or RHR is below your normal — your nervous system is primed for high output. Ideal day to push intensity, chase rep ceilings, or attempt a PR.",
+      "Your body is signalling peak readiness. Great day to push harder — add a rep, go heavier, or chase a personal best.",
   },
   {
     label: "Recovered",
     color: "#29B6F6",
-    deviation: "Within ±10%",
+    deviation: "Within ±10% of your normal",
     description:
-      "Normal training state. Metrics are within your personal range. Stick to your planned session — this is where most productive training happens.",
+      "You're in good shape. Stick to your plan. This is where most of your progress actually happens.",
   },
   {
     label: "Fatigued",
     color: "#F59E0B",
-    deviation: "−10% to −20%",
+    deviation: "−10% to −20% below normal",
     description:
-      "Accumulated stress is building. Train, but reduce volume slightly — drop one working set per exercise and prioritise 8+ hrs sleep tonight. In Week 3 (Overreach) this is expected and intended.",
+      "Stress is building up. Still train, but back off slightly — drop one set per exercise and prioritise sleep tonight.",
   },
   {
     label: "Accumulating",
     color: "#E53935",
-    deviation: "> −20% below baseline",
+    deviation: "> −20% below normal",
     description:
-      "Significant systemic fatigue. Consider substituting your session with active recovery — a walk, mobility work, or light movement. If in Week 3, this is the intended overreach stimulus; the upcoming deload will convert this into your biggest gains.",
+      "Your body needs a break. Consider swapping today's session for a walk or light stretching. If you're in Week 3 of your plan, this is expected — the upcoming deload will turn this fatigue into your biggest gains.",
   },
 ];
 
-// ─── Section component ────────────────────────────────────────────────────────
 function Section({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
@@ -76,7 +67,15 @@ function Section({ icon, title, children }: { icon: string; title: string; child
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+function DefinitionBox({ term, definition }: { term: string; definition: string }) {
+  return (
+    <View style={styles.definitionBox}>
+      <Text style={styles.definitionTerm}>{term}</Text>
+      <Text style={styles.definitionText}>{definition}</Text>
+    </View>
+  );
+}
+
 export default function RecoveryGuideModal({ visible, onClose }: RecoveryGuideModalProps) {
   function handleClose() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -94,7 +93,6 @@ export default function RecoveryGuideModal({ visible, onClose }: RecoveryGuideMo
         <Pressable style={styles.backdrop} onPress={handleClose} />
 
         <View style={styles.sheet}>
-          {/* ── Header ── */}
           <View style={styles.handle} />
           <View style={styles.headerRow}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
@@ -113,24 +111,48 @@ export default function RecoveryGuideModal({ visible, onClose }: RecoveryGuideMo
             showsVerticalScrollIndicator={false}
           >
 
-            {/* ── Why baselines? ── */}
-            <Section icon="person-outline" title="Your Personal Baseline">
+            {/* ── Purpose ── */}
+            <Section icon="help-circle-outline" title="What is this?">
               <Text style={styles.body}>
-                Fixed thresholds ("HRV below 30 ms = poor") ignore the fact that every body is different. A 40 ms HRV is excellent for a 50-year-old and a warning sign for a 22-year-old trained athlete.
+                Every morning, POWRLOG checks two signals from Apple Health to answer one question:{" "}
+                <Text style={styles.emphasis}>is your body ready to train hard today, or does it need to be managed carefully?</Text>
               </Text>
               <Text style={styles.body}>
-                POWRLOG builds your baseline from the last 7 synced readings and grades today's data against <Text style={styles.emphasis}>your</Text> normal — not a population average. After 3 readings, personalised insights unlock. By day 7, the baseline is stable.
+                The answer changes how you should approach today's session — whether to push for new records, follow the plan as written, or pull back slightly to avoid digging yourself into a hole.
+              </Text>
+            </Section>
+
+            {/* ── Define the terms ── */}
+            <Section icon="book-outline" title="The Two Signals — Explained Simply">
+              <DefinitionBox
+                term="Heart Rate Variability (HRV)"
+                definition="Your heart doesn't beat like a metronome — the tiny gaps between beats vary slightly. A healthy, recovered nervous system produces more variation. A stressed or fatigued one produces less. HRV measures this variation in milliseconds. Higher = more recovered. It's the most sensitive early-warning signal for fatigue — it often drops 1–2 days before you consciously feel tired."
+              />
+              <DefinitionBox
+                term="Resting Heart Rate (RHR)"
+                definition="How many times your heart beats per minute when you're completely at rest (usually measured while you sleep). Lower = better. When your body is under stress — from hard training, poor sleep, or illness — your heart has to work harder, so RHR rises above your normal. It's a reliable backup signal when HRV data isn't available."
+              />
+            </Section>
+
+            {/* ── Why personal baseline ── */}
+            <Section icon="person-outline" title="Why It's Personal to You">
+              <Text style={styles.body}>
+                A score of 40 ms HRV might be excellent for one person and a warning sign for another. Generic thresholds ("below 30 = bad") don't work because every body is different.
+              </Text>
+              <Text style={styles.body}>
+                POWRLOG builds <Text style={styles.emphasis}>your personal baseline</Text> from your last 7 readings — then grades today against{" "}
+                <Text style={styles.emphasis}>your</Text> normal, not a population average. After 3 readings you'll start seeing personalised insights. By day 7 the baseline is stable.
               </Text>
             </Section>
 
             {/* ── Status levels ── */}
-            <Section icon="layers-outline" title="Status Levels">
+            <Section icon="layers-outline" title="What the Colours Mean">
               {STATUS_LEVELS.map((s) => (
                 <View key={s.label} style={styles.statusRow}>
                   <View style={[styles.statusDot, { backgroundColor: s.color }]} />
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                      <Text style={[styles.statusLabel, { color: s.color }]}>{s.label}</Text>
+                      <Text style={[styles.statusLabel, { color: s.color }]}>{s.label.toUpperCase()}</Text>
                       <View style={[styles.deviationBadge, { borderColor: s.color + "55", backgroundColor: s.color + "18" }]}>
                         <Text style={[styles.deviationText, { color: s.color }]}>{s.deviation}</Text>
                       </View>
@@ -141,65 +163,42 @@ export default function RecoveryGuideModal({ visible, onClose }: RecoveryGuideMo
               ))}
             </Section>
 
-            {/* ── The signals ── */}
-            <Section icon="analytics-outline" title="The Signals: HRV + RHR">
+            {/* ── How it's calculated ── */}
+            <Section icon="calculator-outline" title="How the Score is Calculated">
               <Text style={styles.body}>
-                Both metrics are pulled from Apple Health or Health Connect and compared to your 7-day average.
+                Both signals are compared to your 7-day average, then combined into one composite score:
               </Text>
-
-              <View style={styles.signalRow}>
-                <Ionicons name="pulse-outline" size={14} color={Colors.primary} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.signalName}>Heart Rate Variability (HRV) — 60% weight</Text>
-                  <Text style={styles.signalDesc}>
-                    The variation in time between heartbeats (milliseconds). Higher = more adaptable nervous system = better recovered. HRV is the most sensitive early indicator of fatigue — it often drops 1–2 days before you consciously feel tired. It carries more weight in the composite score for this reason.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.signalRow}>
-                <Ionicons name="heart-outline" size={14} color="#F59E0B" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.signalName}>Resting Heart Rate (RHR) — 40% weight</Text>
-                  <Text style={styles.signalDesc}>
-                    Beats per minute at full rest. Lower = better. An elevated RHR relative to your baseline indicates your cardiovascular system is working harder than normal to maintain homeostasis — a reliable secondary fatigue signal.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.formulaBox]}>
-                <Text style={styles.formulaLabel}>Composite Score</Text>
+              <View style={styles.formulaBox}>
+                <Text style={styles.formulaLabel}>Composite Recovery Score</Text>
                 <Text style={styles.formulaText}>
-                  = (HRV deviation × 0.6) + (RHR deviation × 0.4){"\n"}
-                  <Text style={styles.formulaNote}>RHR deviation is inverted — below baseline = positive (good)</Text>
+                  HRV change from your normal × 60%{"\n"}
+                  RHR change from your normal × 40%
+                </Text>
+                <Text style={styles.formulaNote}>
+                  HRV gets more weight because it responds to fatigue faster. RHR is a strong supporting signal.
                 </Text>
               </View>
+              <Text style={[styles.body, { marginTop: 10 }]}>
+                If HRV or RHR data isn't available, POWRLOG falls back to your sleep duration vs your rolling average. Sleep is a weaker signal but still useful — consistently short nights reduce strength by 2–8%.
+              </Text>
             </Section>
 
-            {/* ── Mesocycle context ── */}
-            <Section icon="calendar-outline" title="Mesocycle Context">
+            {/* ── Week context ── */}
+            <Section icon="calendar-outline" title="It Changes Week by Week">
               <Text style={styles.body}>
-                The same recovery reading means different things at different points in your 4-week training block:
+                The same fatigue reading means something different depending on where you are in your 4-week training block:
               </Text>
-
               {[
-                { week: "Week 1 — Accumulation", copy: "Fatigue this early is an early-warning signal. Your last block may not have fully cleared. Consider an extra rest day before continuing." },
-                { week: "Week 2 — Intensification", copy: "Some fatigue is normal as volume builds. Monitor trends across two sessions before adjusting load." },
-                { week: "Week 3 — Overreach", copy: "Deep fatigue is intentional. This is the stimulus that, once followed by deload, produces supercompensation. Push through with planned loads." },
-                { week: "Week 4 — Deload", copy: "Fatigue should be dissipating. Light loads let accumulated stress clear so fitness gains from weeks 1–3 can express fully." },
+                { week: "Week 1 — Accumulation", color: "#29B6F6", copy: "Fatigue this early is a warning. Your previous block may not have fully cleared. Consider an extra rest day." },
+                { week: "Week 2 — Intensification", color: "#29B6F6", copy: "Some fatigue is normal as volume builds. Watch the trend over two sessions before adjusting." },
+                { week: "Week 3 — Overreach", color: "#F59E0B", copy: "Deep fatigue is the goal this week. This controlled stress, followed by deload, is what produces your biggest gains. Push through." },
+                { week: "Week 4 — Deload", color: "#43A047", copy: "Fatigue should be clearing. Light loads let your body absorb the work from weeks 1–3. Don't skip this week." },
               ].map((item) => (
-                <View key={item.week} style={styles.mesoRow}>
-                  <Text style={styles.mesoWeek}>{item.week}</Text>
+                <View key={item.week} style={[styles.mesoRow, { borderLeftColor: item.color }]}>
+                  <Text style={[styles.mesoWeek, { color: item.color }]}>{item.week}</Text>
                   <Text style={styles.mesoCopy}>{item.copy}</Text>
                 </View>
               ))}
-            </Section>
-
-            {/* ── Sleep note ── */}
-            <Section icon="moon-outline" title="Sleep as a Fallback">
-              <Text style={styles.body}>
-                If no HRV or RHR data is available, POWRLOG uses sleep duration vs your rolling average. Sleep is a weaker signal but still informative — consistently short nights predict next-day strength reductions of 2–8%.
-              </Text>
             </Section>
 
           </ScrollView>
@@ -229,8 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgAccent,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    maxHeight: "88%",
-    paddingBottom: 0,
+    maxHeight: "90%",
   },
   handle: {
     width: 36,
@@ -267,8 +265,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 8,
   },
-
-  // Section
   section: {
     marginBottom: 24,
   },
@@ -296,8 +292,27 @@ const styles = StyleSheet.create({
     fontFamily: "Rubik_600SemiBold",
     color: Colors.text,
   },
-
-  // Status levels
+  definitionBox: {
+    backgroundColor: Colors.bg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
+    padding: 12,
+    marginBottom: 10,
+  },
+  definitionTerm: {
+    fontFamily: "Rubik_700Bold",
+    fontSize: 12,
+    color: Colors.text,
+    marginBottom: 5,
+  },
+  definitionText: {
+    fontFamily: "Rubik_400Regular",
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
   statusRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -315,7 +330,6 @@ const styles = StyleSheet.create({
   statusLabel: {
     fontFamily: "Rubik_700Bold",
     fontSize: 12,
-    textTransform: "uppercase",
     letterSpacing: 0.8,
   },
   deviationBadge: {
@@ -330,26 +344,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   statusDesc: {
-    fontFamily: "Rubik_400Regular",
-    fontSize: 12,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-
-  // Signals
-  signalRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-    alignItems: "flex-start",
-  },
-  signalName: {
-    fontFamily: "Rubik_600SemiBold",
-    fontSize: 12,
-    color: Colors.text,
-    marginBottom: 3,
-  },
-  signalDesc: {
     fontFamily: "Rubik_400Regular",
     fontSize: 12,
     color: Colors.textSecondary,
@@ -370,21 +364,21 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     textTransform: "uppercase",
     letterSpacing: 1.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   formulaText: {
     fontFamily: "Rubik_500Medium",
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.text,
-    lineHeight: 18,
+    lineHeight: 22,
+    marginBottom: 8,
   },
   formulaNote: {
     fontFamily: "Rubik_400Regular",
     fontSize: 11,
     color: Colors.textMuted,
+    lineHeight: 16,
   },
-
-  // Mesocycle rows
   mesoRow: {
     borderLeftWidth: 2,
     borderLeftColor: Colors.border,
@@ -403,8 +397,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 18,
   },
-
-  // Close button
   closeBtn: {
     borderTopWidth: 1,
     borderTopColor: Colors.border,
