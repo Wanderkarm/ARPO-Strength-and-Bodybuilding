@@ -37,6 +37,10 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
+      # ── 2b. TypeScript type-check — fail fast before the 20-min iOS build ────
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
       # ── 3. Generate native iOS project ───────────────────────────────────────
       - name: Expo prebuild
         run: npx expo prebuild --platform ios --clean
