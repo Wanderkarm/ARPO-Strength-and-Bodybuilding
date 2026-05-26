@@ -17,7 +17,7 @@ import {
 } from "react-native";
 
 import YoutubePlayer from "react-native-youtube-iframe";
-import { KeyboardAvoidingView, KeyboardStickyView } from "react-native-keyboard-controller";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -2125,24 +2125,31 @@ export default function WorkoutScreen() {
                         flex: 1,
                       }}
                     />
-                    {isSetDone && !set.feedback && (
-                      <Pressable
-                        onPress={() => handleLogSet(currentExerciseIndex, si)}
-                        hitSlop={8}
-                        style={{ paddingRight: 8 }}
-                      >
-                        <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
-                      </Pressable>
-                    )}
-                    {set.feedback && (
-                      <View style={{ paddingRight: 8 }}>
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color={set.feedback.color}
-                        />
-                      </View>
-                    )}
+                    {/* Checkmark — always visible. Dim outline = waiting for input,
+                        bright filled = ready to confirm (tap to log + dismiss keyboard),
+                        coloured = set confirmed. This is the primary confirmation affordance. */}
+                    <Pressable
+                      onPress={() => {
+                        if (set.feedback) return; // already logged
+                        if (!isSetDone) return;   // values not yet entered
+                        Keyboard.dismiss();
+                        handleLogSet(currentExerciseIndex, si);
+                      }}
+                      hitSlop={12}
+                      style={{ paddingRight: 10, paddingLeft: 4 }}
+                    >
+                      <Ionicons
+                        name={set.feedback ? "checkmark-circle" : isSetDone ? "checkmark-circle" : "checkmark-circle-outline"}
+                        size={24}
+                        color={
+                          set.feedback
+                            ? set.feedback.color
+                            : isSetDone
+                            ? Colors.primary
+                            : Colors.border
+                        }
+                      />
+                    </Pressable>
                   </View>
                 </View>
 
@@ -3856,37 +3863,7 @@ export default function WorkoutScreen() {
       </Modal>
     </KeyboardAvoidingView>
 
-    {/* ── Keyboard toolbar — sticks to top of keyboard via native frame, never misses ── */}
-    {keyboardVisible && (
-      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
-        <View style={{
-          backgroundColor: "#2C2C2E",
-          borderTopWidth: 1,
-          borderTopColor: "#444",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 10,
-        }}>
-          <Pressable
-            onPress={() => Keyboard.dismiss()}
-            hitSlop={12}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.6 : 1,
-              backgroundColor: Colors.primary,
-              paddingHorizontal: 24,
-              paddingVertical: 8,
-              borderRadius: 6,
-            })}
-          >
-            <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#fff", textTransform: "uppercase", letterSpacing: 1 }}>
-              Done
-            </Text>
-          </Pressable>
-        </View>
-      </KeyboardStickyView>
-    )}
+    {/* Keyboard dismissed by tapping the ✓ on each row, or swiping down (keyboardDismissMode="interactive") */}
     </View>
   );
 }
