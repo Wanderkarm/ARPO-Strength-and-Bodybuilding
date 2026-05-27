@@ -1230,13 +1230,17 @@ export async function skipSession(
           "SELECT category FROM exercises WHERE id = ?",
           [log.exercise_id]
         );
+        // Exclude myo_mini sets from the average — mini-sets are deliberately
+        // taken to failure and their sub-target rep counts should NOT drive
+        // the autoregulation algorithm (only normal + myo_activation sets count).
         const avgRepsResult = await db.getFirstAsync<{ avg_reps: number }>(
           `SELECT COALESCE(AVG(sl.reps_completed), 10) as avg_reps
            FROM set_logs sl
            JOIN workout_logs wl ON sl.workout_log_id = wl.id
            WHERE wl.workout_plan_id = ? AND wl.week_number = ? AND wl.exercise_id = ? AND wl.day_number = ?
              AND sl.reps_completed IS NOT NULL AND sl.reps_completed > 0
-             AND wl.is_skipped = 0`,
+             AND wl.is_skipped = 0
+             AND (sl.set_type IS NULL OR sl.set_type != 'myo_mini')`,
           [workoutPlanId, plan.current_week, log.exercise_id, log.day_number]
         );
         const sorenessResult = await db.getFirstAsync<{ soreness_rating: number | null; pump_rating: number | null }>(

@@ -222,8 +222,22 @@ function getFeedback(
   weightUsed: number,
   targetWeight: number,
   targetReps: number,
-  isBodyweight = false
+  isBodyweight = false,
+  setType: string = 'normal'
 ): { text: string; color: string } {
+  // Myo mini-sets are taken to intentional failure — comparing their rep count
+  // against the target is meaningless and the autoregulation language would
+  // be incorrect (weight should never be adjusted based on mini-set reps).
+  if (setType === 'myo_mini') {
+    const atFloor = repsCompleted < MYO_MIN_REPS;
+    return {
+      text: atFloor
+        ? `Mini-set complete · ${repsCompleted} rep${repsCompleted === 1 ? '' : 's'} — block ends here`
+        : `Mini-set complete · ${repsCompleted} rep${repsCompleted === 1 ? '' : 's'}`,
+      color: "#F59E0B", // myo amber — never uses autoregulation red/green
+    };
+  }
+
   const weightOk = targetWeight === 0 || weightUsed >= targetWeight;
   const repsOk   = repsCompleted >= targetReps;
 
@@ -233,10 +247,12 @@ function getFeedback(
     const exceeded = isBodyweight
       ? repsCompleted > targetReps
       : repsCompleted > targetReps || (targetWeight > 0 && weightUsed > targetWeight);
+    // For the myo activation set, label it clearly so the user understands
+    const prefix = setType === 'myo_activation' ? "Activation set — " : "";
     return {
       text: exceeded
-        ? "Target exceeded. Progressive overload achieved."
-        : "Target met. Progressive overload achieved.",
+        ? `${prefix}Target exceeded. Progressive overload achieved.`
+        : `${prefix}Target met. Progressive overload achieved.`,
       color: Colors.success,
     };
   }
@@ -513,7 +529,7 @@ export default function WorkoutScreen() {
             repsCompleted: s.repsCompleted !== null ? String(s.repsCompleted) : "",
             weightUsed: s.weightUsed !== null ? String(s.weightUsed) : "",
             feedback: hasData
-              ? getFeedback(s.repsCompleted!, s.weightUsed ?? 0, s.targetWeight, s.targetReps, isBodyweightEx)
+              ? getFeedback(s.repsCompleted!, s.weightUsed ?? 0, s.targetWeight, s.targetReps, isBodyweightEx, s.setType ?? 'normal')
               : null,
             setType: s.setType ?? 'normal',
             myoGroupId: s.myoGroupId ?? null,
@@ -759,7 +775,7 @@ export default function WorkoutScreen() {
       // ── Compute feedback and timer values OUTSIDE the updater ────────────────
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const weight = parseFloat(snapSet.weightUsed) || 0;
-      const feedback = getFeedback(reps, weight, snapSet.targetWeight, snapSet.targetReps, isBodyweight);
+      const feedback = getFeedback(reps, weight, snapSet.targetWeight, snapSet.targetReps, isBodyweight, snapSet.setType);
 
       const isLastSet = setIndex === snapEx.sets.length - 1;
       const jumpingToPartner = hasActiveSupersertPartner(exIndex);
@@ -834,7 +850,7 @@ export default function WorkoutScreen() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const isBodyweight = ex.exercise.equipment === "BODYWEIGHT";
-    const feedback = getFeedback(reps, weight, set.targetWeight, set.targetReps, isBodyweight);
+    const feedback = getFeedback(reps, weight, set.targetWeight, set.targetReps, isBodyweight, set.setType);
     updateSet(exIndex, setIndex, "feedback", feedback);
 
     // Don't start the rest timer if we're about to jump to a superset partner.
