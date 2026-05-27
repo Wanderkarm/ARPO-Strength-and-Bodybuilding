@@ -66,6 +66,7 @@ import { firePRNotification } from "@/lib/notifications";
 import { usePurchase } from "@/contexts/PurchaseContext";
 import * as Notifications from "expo-notifications";
 import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
+import * as Crypto from "expo-crypto";
 
 const SCIENCE_TIPS: { icon: string; text: string }[] = [
   { icon: "flask-outline",       text: "RIR 3 is the hypertrophy sweet spot — hard enough to grow, controlled enough for clean technique." },
@@ -1367,52 +1368,63 @@ export default function WorkoutScreen() {
   }
 
   async function activateMyoModeConfirmed() {
-    const idx = currentExerciseIndexRef.current;
-    const ex = exerciseStatesRef.current[idx];
-    if (!ex || myoActive) return;
-    // Use the index captured when the modal opened — don't search again.
-    // If we search again, the set may have received feedback (from the blur
-    // that iOS fires when the modal appeared) and we'd find nothing.
-    const setIndex = myoTargetSetIndexRef.current;
-    if (setIndex < 0 || setIndex >= ex.sets.length) return;
-    const targetSet = ex.sets[setIndex];
-    // targetSet.feedback may already be set if blur fired during the modal —
-    // that's fine: the myo effect checks feedback and will fire the rest
-    // timer immediately on the next exerciseStates update.
-    const newGroupId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
     try {
+      const idx = currentExerciseIndexRef.current;
+      const ex = exerciseStatesRef.current[idx];
+      if (!ex) {
+        Alert.alert("Myo Error", "No exercise found. Please try again.");
+        return;
+      }
+      if (myoActive) {
+        // Already active — nothing to do (guard prevents double-activation)
+        return;
+      }
+      // Use the index captured when the modal opened — don't search again.
+      // If we search again, the set may have received feedback (from the blur
+      // that iOS fires when the modal appeared) and we'd find nothing.
+      const setIndex = myoTargetSetIndexRef.current;
+      if (setIndex < 0 || setIndex >= ex.sets.length) {
+        Alert.alert("Myo Error", `Invalid set index (${setIndex}). Please tap the button again.`);
+        return;
+      }
+      const targetSet = ex.sets[setIndex];
+      // Use expo-crypto's Crypto.randomUUID() which is guaranteed to work on all
+      // Expo/Hermes environments (bare crypto.randomUUID can be unavailable in some builds).
+      const newGroupId = Crypto.randomUUID();
+      // targetSet.feedback may already be set if blur fired during the modal —
+      // that's fine: the myo effect checks feedback and will fire the rest
+      // timer immediately on the next exerciseStates update.
       await convertSetToMyoActivation(targetSet.setLogId, newGroupId);
+      // Drop all pending (no feedback) regular sets that come AFTER the activation set.
+      // Without this, the rest-timer UI never shows (it requires the activation set to be
+      // the last set), and mini-sets get appended after the dangling regular sets.
+      const pendingAfter = ex.sets.slice(setIndex + 1).filter((s) => !s.feedback);
+      for (let k = 0; k < pendingAfter.length; k++) {
+        await removeLastSetFromLog(ex.logId);
+      }
+      // Cancel any regular rest timer that was already running
+      setRestTimerVisible(false);
+      setExerciseStates((prev) => {
+        const next = [...prev];
+        const exNext = { ...next[idx] };
+        const setsNext = [...exNext.sets];
+        setsNext[setIndex] = { ...setsNext[setIndex], setType: 'myo_activation', myoGroupId: newGroupId };
+        // Remove the pending regular sets we deleted from the DB
+        const filtered = setsNext.filter((s, i) => i <= setIndex || !!s.feedback);
+        exNext.sets = filtered;
+        exNext.targetSets = filtered.length;
+        next[idx] = exNext;
+        return next;
+      });
+      setMyoActive(true);
+      setMyoGroupId(newGroupId);
+      myoMiniCountRef.current = 0;
+      setMyoMiniCount(0);
+      setMyoRecommendVisible(false);
+      if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (e) {
-      Alert.alert("Myo Error", `Could not activate myo mode: ${String(e)}`);
-      return;
+      Alert.alert("Myo Error", `Activation failed: ${String(e)}`);
     }
-    // Drop all pending (no feedback) regular sets that come AFTER the activation set.
-    // Without this, the rest-timer UI never shows (it requires the activation set to be
-    // the last set), and mini-sets get appended after the dangling regular sets.
-    const pendingAfter = ex.sets.slice(setIndex + 1).filter((s) => !s.feedback);
-    for (let k = 0; k < pendingAfter.length; k++) {
-      await removeLastSetFromLog(ex.logId);
-    }
-    // Cancel any regular rest timer that was already running
-    setRestTimerVisible(false);
-    setExerciseStates((prev) => {
-      const next = [...prev];
-      const exNext = { ...next[idx] };
-      const setsNext = [...exNext.sets];
-      setsNext[setIndex] = { ...setsNext[setIndex], setType: 'myo_activation', myoGroupId: newGroupId };
-      // Remove the pending regular sets we deleted from the DB
-      const filtered = setsNext.filter((s, i) => i <= setIndex || !!s.feedback);
-      exNext.sets = filtered;
-      exNext.targetSets = filtered.length;
-      next[idx] = exNext;
-      return next;
-    });
-    setMyoActive(true);
-    setMyoGroupId(newGroupId);
-    myoMiniCountRef.current = 0;
-    setMyoMiniCount(0);
-    setMyoRecommendVisible(false);
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }
 
   function startMyoRestTimer() {
@@ -2364,6 +2376,45 @@ export default function WorkoutScreen() {
                   <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
                 </Pressable>
               </View>
+            </View>
+          );
+        })()}
+
+        {/* ── Myo-Active instruction banner ──────────────────────────────── */}
+        {/* Shown when myo mode is active but the activation set hasn't been logged yet.
+            Gives the user an unmissable cue so they know to log the activation set. */}
+        {myoActive && !myoRestActive && (() => {
+          const activationSet = myoGroupId
+            ? currentEx.sets.find((s) => s.setType === 'myo_activation' && s.myoGroupId === myoGroupId)
+            : undefined;
+          const activationLogged = !!activationSet?.feedback;
+          if (activationLogged) return null; // rest timer / mini-set UI takes over
+          return (
+            <View style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 14,
+              backgroundColor: "#F59E0B1A",
+              borderWidth: 1,
+              borderColor: "#F59E0B88",
+              borderLeftWidth: 4,
+              borderLeftColor: "#F59E0B",
+            }}>
+              <Text style={{ fontSize: 20 }}>〰</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}>
+                  Myo-Reps Active
+                </Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 3, lineHeight: 17 }}>
+                  Log your activation set (the ACT row) — aim for ~1 RIR. Rest timer fires automatically after.
+                </Text>
+              </View>
+              <Pressable onPress={terminateMyoBlock} hitSlop={8}>
+                <Ionicons name="stop-circle-outline" size={22} color={Colors.textMuted} />
+              </Pressable>
             </View>
           );
         })()}
