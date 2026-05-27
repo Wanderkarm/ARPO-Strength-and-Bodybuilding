@@ -295,6 +295,9 @@ export default function WorkoutScreen() {
   // Ref mirror of myoActive — lets appendMyoMiniSet check liveness AFTER an
   // async DB await without relying on a potentially-stale state closure.
   const myoActiveRef = useRef(false);
+  // Ref mirror of myoGroupId — avoids stale closure in appendMyoMiniSet which
+  // is captured by a setInterval and may outlive the render it was created in.
+  const myoGroupIdRef = useRef<string | null>(null);
   const [myoRestActive, setMyoRestActive] = useState(false);
   const [myoRestSecsLeft, setMyoRestSecsLeft] = useState(MYO_REST_SECONDS);
   const myoRestTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -758,7 +761,11 @@ export default function WorkoutScreen() {
         handleConfirmRecoveryRef.current();
       }, 1200);
     }
-  }, [exerciseStates]);
+  // myoActive is intentionally in the dep array: when the last myo block terminates
+  // (myoActive flips false) without exerciseStates changing, this effect must re-run
+  // to detect that the workout is now complete and trigger auto-finish.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseStates, myoActive]);
 
   function handleFieldBlur(exIndex: number, setIndex: number) {
     setTimeout(() => {
@@ -1438,6 +1445,7 @@ export default function WorkoutScreen() {
       setMyoActive(true);
       myoActiveRef.current = true;
       setMyoGroupId(newGroupId);
+      myoGroupIdRef.current = newGroupId;
       myoMiniCountRef.current = 0;
       setMyoMiniCount(0);
       setMyoRecommendVisible(false);
@@ -1455,12 +1463,15 @@ export default function WorkoutScreen() {
       setMyoRestSecsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(myoRestTimerRef.current!);
-          setMyoRestActive(false);
-          // Double haptic — distinct cue to start mini-set without looking
-          if (Platform.OS !== "web") {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 180);
-          }
+          // ⚠️  Do NOT call setMyoRestActive(false) here.
+          // Setting it here triggers a React re-render before appendMyoMiniSet's
+          // async DB insert resolves.  The myo effect then fires with
+          // myoRestActive=false but no pending mini-set row, sees the activation
+          // set as still "last with feedback", and erroneously calls
+          // startMyoRestTimer() again — creating a phantom 15-second timer that
+          // later appends a duplicate mini-set.
+          // appendMyoMiniSet() calls setMyoRestActive(false) itself, batched with
+          // the new mini-set row, so the effect always sees both changes together.
           appendMyoMiniSet();
           return 0;
         }
@@ -1472,8 +1483,11 @@ export default function WorkoutScreen() {
   async function appendMyoMiniSet() {
     const idx = currentExerciseIndexRef.current;
     const ex = exerciseStatesRef.current[idx];
-    if (!ex || !myoGroupId) return;
-    const newMini = await addMyoMiniSet(ex.logId, ex.targetWeight, myoGroupId);
+    // Use the ref — the closure captured by the setInterval may be from a stale
+    // render where myoGroupId state was not yet updated.
+    const groupId = myoGroupIdRef.current;
+    if (!ex || !groupId) return;
+    const newMini = await addMyoMiniSet(ex.logId, ex.targetWeight, groupId);
     if (!newMini) return;
     // Race-condition guard: terminateMyoBlock() may have been called while we
     // were awaiting the DB insert (e.g. the previous mini-set came back below
@@ -1488,6 +1502,17 @@ export default function WorkoutScreen() {
     const newCount = myoMiniCountRef.current + 1;
     myoMiniCountRef.current = newCount;
     setMyoMiniCount(newCount);
+    // Double haptic — distinct cue to start mini-set without looking
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 180);
+    }
+    // Batch setMyoRestActive(false) with the new mini-set row into the same render.
+    // The myo effect depends on [exerciseStates, myoActive, myoRestActive].  By
+    // batching these together the effect always sees myoRestActive=false AND a new
+    // pending mini-set (no feedback yet) in the same render, so it correctly
+    // returns early instead of restarting the rest timer.
+    setMyoRestActive(false);
     setExerciseStates((prev) => {
       const next = [...prev];
       const exNext = { ...next[idx] };
@@ -1502,7 +1527,7 @@ export default function WorkoutScreen() {
           weightUsed:    String(ex.targetWeight), // pre-fill same weight
           feedback:      null,
           setType:       'myo_mini',
-          myoGroupId:    myoGroupId,
+          myoGroupId:    groupId,
         },
       ];
       next[idx] = exNext;
@@ -1512,9 +1537,10 @@ export default function WorkoutScreen() {
 
   function terminateMyoBlock() {
     if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
-    // Flip the ref immediately — appendMyoMiniSet checks this after its DB
+    // Flip both refs immediately — appendMyoMiniSet checks these after its DB
     // await so any in-flight append is discarded even if React hasn't re-rendered yet.
     myoActiveRef.current = false;
+    myoGroupIdRef.current = null;
     setMyoRestActive(false);
     setMyoActive(false);
     myoUsedThisSessionRef.current = true;
@@ -1548,6 +1574,7 @@ export default function WorkoutScreen() {
     if (myoActive) {
       if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
       myoActiveRef.current = false;
+      myoGroupIdRef.current = null;
       setMyoRestActive(false);
       setMyoActive(false);
       setMyoGroupId(null);

@@ -2534,9 +2534,13 @@ export async function getPreviousSessionSets(
   const sets = await db.getAllAsync<{
     set_number: number; weight_used: number | null; reps_completed: number | null;
   }>(
+    // Exclude myo_mini sets: they are taken to intentional failure (3–5 reps)
+    // and would inflate the set count and dilute the weight reference in the
+    // "LAST" display shown to the user before each exercise.
     `SELECT set_number, weight_used, reps_completed
      FROM set_logs WHERE workout_log_id = ?
        AND reps_completed IS NOT NULL AND reps_completed > 0
+       AND (set_type IS NULL OR set_type != 'myo_mini')
      ORDER BY set_number ASC`,
     [lastLog.id]
   );
@@ -3009,10 +3013,14 @@ export async function addMyoMiniSet(
   const newSetNumber = lastSet.set_number + 1;
   const id = Crypto.randomUUID();
   const targetReps = 5; // standard myo mini-set target
+  // Persist weight_used immediately so that when previous-session data is
+  // loaded on the next visit, mini-set entries show the actual weight instead
+  // of 0 / null (the UI pre-fills the field from state, but the DB row was
+  // previously left with weight_used = NULL until the user explicitly edited it).
   await db.runAsync(
-    `INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps, set_type, myo_group_id)
-     VALUES (?, ?, ?, ?, ?, 'myo_mini', ?)`,
-    [id, workoutLogId, newSetNumber, targetWeight, targetReps, myoGroupId]
+    `INSERT INTO set_logs (id, workout_log_id, set_number, target_weight, target_reps, set_type, myo_group_id, weight_used)
+     VALUES (?, ?, ?, ?, ?, 'myo_mini', ?, ?)`,
+    [id, workoutLogId, newSetNumber, targetWeight, targetReps, myoGroupId, targetWeight]
   );
   return { id, setNumber: newSetNumber, targetWeight, targetReps };
 }
