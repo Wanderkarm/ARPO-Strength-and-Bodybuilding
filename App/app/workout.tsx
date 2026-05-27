@@ -281,6 +281,10 @@ export default function WorkoutScreen() {
   const [myoRecommendVisible, setMyoRecommendVisible] = useState(false);
   const myoUsedThisSessionRef = useRef(false);
   const [myoExplainVisible, setMyoExplainVisible] = useState(false);
+  // Captures the target set index when the explainer opens so that
+  // activateMyoModeConfirmed uses the same set even if the field blurs
+  // (and gets feedback) while the modal is open.
+  const myoTargetSetIndexRef = useRef<number>(-1);
   const [exerciseStates, setExerciseStates] = useState<ExerciseState[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [finishing, setFinishing] = useState(false);
@@ -1353,12 +1357,12 @@ export default function WorkoutScreen() {
     const idx = currentExerciseIndexRef.current;
     const ex = exerciseStatesRef.current[idx];
     if (!ex || myoActive) return;
-    // Find the last incomplete set
-    const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).filter(({ s }) => !s.feedback).pop();
-    if (!incompleteIdx) return;
-
-    // Always show the explainer modal so the user gets a clear confirm step.
-    // The modal's "Let's go" button calls activateMyoModeConfirmed().
+    // Find the first incomplete set — same logic as confirmed so they agree
+    const incompleteEntry = [...ex.sets].map((s, i) => ({ s, i })).find(({ s }) => !s.feedback);
+    if (!incompleteEntry) return;
+    // Store the index NOW so confirmed uses the same set even if the field
+    // blurs (and feedback is written) while the explainer modal is open.
+    myoTargetSetIndexRef.current = incompleteEntry.i;
     setMyoExplainVisible(true);
   }
 
@@ -1366,10 +1370,15 @@ export default function WorkoutScreen() {
     const idx = currentExerciseIndexRef.current;
     const ex = exerciseStatesRef.current[idx];
     if (!ex || myoActive) return;
-    // Activate on the FIRST incomplete set (the one the user is about to do next).
-    const incompleteIdx = [...ex.sets].map((s, i) => ({ s, i })).find(({ s }) => !s.feedback);
-    if (!incompleteIdx) return;
-    const { s: targetSet, i: setIndex } = incompleteIdx;
+    // Use the index captured when the modal opened — don't search again.
+    // If we search again, the set may have received feedback (from the blur
+    // that iOS fires when the modal appeared) and we'd find nothing.
+    const setIndex = myoTargetSetIndexRef.current;
+    if (setIndex < 0 || setIndex >= ex.sets.length) return;
+    const targetSet = ex.sets[setIndex];
+    // targetSet.feedback may already be set if blur fired during the modal —
+    // that's fine: the myo effect checks feedback and will fire the rest
+    // timer immediately on the next exerciseStates update.
     const newGroupId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
     try {
       await convertSetToMyoActivation(targetSet.setLogId, newGroupId);
