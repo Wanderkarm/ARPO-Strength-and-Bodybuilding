@@ -292,6 +292,9 @@ export default function WorkoutScreen() {
   const [myoGroupId, setMyoGroupId] = useState<string | null>(null);
   const [myoMiniCount, setMyoMiniCount] = useState(0);
   const myoMiniCountRef = useRef(0);
+  // Ref mirror of myoActive — lets appendMyoMiniSet check liveness AFTER an
+  // async DB await without relying on a potentially-stale state closure.
+  const myoActiveRef = useRef(false);
   const [myoRestActive, setMyoRestActive] = useState(false);
   const [myoRestSecsLeft, setMyoRestSecsLeft] = useState(MYO_REST_SECONDS);
   const myoRestTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -1433,6 +1436,7 @@ export default function WorkoutScreen() {
         return next;
       });
       setMyoActive(true);
+      myoActiveRef.current = true;
       setMyoGroupId(newGroupId);
       myoMiniCountRef.current = 0;
       setMyoMiniCount(0);
@@ -1471,6 +1475,16 @@ export default function WorkoutScreen() {
     if (!ex || !myoGroupId) return;
     const newMini = await addMyoMiniSet(ex.logId, ex.targetWeight, myoGroupId);
     if (!newMini) return;
+    // Race-condition guard: terminateMyoBlock() may have been called while we
+    // were awaiting the DB insert (e.g. the previous mini-set came back below
+    // MYO_MIN_REPS and the myo effect ran before our await resolved).
+    // Check the ref — it's flipped to false synchronously by terminateMyoBlock,
+    // so this is always current regardless of React's render cycle.
+    if (!myoActiveRef.current) {
+      // Remove the orphaned DB row we just inserted so it doesn't pollute future loads.
+      removeLastSetFromLog(ex.logId).catch(() => {});
+      return;
+    }
     const newCount = myoMiniCountRef.current + 1;
     myoMiniCountRef.current = newCount;
     setMyoMiniCount(newCount);
@@ -1498,6 +1512,9 @@ export default function WorkoutScreen() {
 
   function terminateMyoBlock() {
     if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
+    // Flip the ref immediately — appendMyoMiniSet checks this after its DB
+    // await so any in-flight append is discarded even if React hasn't re-rendered yet.
+    myoActiveRef.current = false;
     setMyoRestActive(false);
     setMyoActive(false);
     myoUsedThisSessionRef.current = true;
@@ -1530,6 +1547,7 @@ export default function WorkoutScreen() {
   useEffect(() => {
     if (myoActive) {
       if (myoRestTimerRef.current) clearInterval(myoRestTimerRef.current);
+      myoActiveRef.current = false;
       setMyoRestActive(false);
       setMyoActive(false);
       setMyoGroupId(null);
