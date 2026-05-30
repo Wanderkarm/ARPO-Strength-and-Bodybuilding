@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": {
     "noRoutineActive": "Hakuna ratiba inayoendelea",
     "browseTemplates": "Tazama mifano ya mazoezi →",
@@ -551,6 +551,7 @@
       "done": "Imekamilika",
       "setReminders": "Weka vikumbusho →",
       "continueButton": "Endelea →",
+      "tapToChange": "Gusa kubadilisha",
       "notNow": "Si sasa"
     }
   },

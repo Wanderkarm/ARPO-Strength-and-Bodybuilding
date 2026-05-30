@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": {
     "noRoutineActive": "No Routine Active",
     "browseTemplates": "Browse Workout Templates →",
@@ -551,6 +551,7 @@
       "done": "Done",
       "setReminders": "Set Reminders →",
       "continueButton": "Continue →",
+      "tapToChange": "Tap to change",
       "notNow": "Not now"
     }
   },

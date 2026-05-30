@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": {
     "noRoutineActive": "لا توجد روتين نشط",
     "browseTemplates": "استعرض قوالب التمرين →",
@@ -551,6 +551,7 @@
       "done": "تم",
       "setReminders": "تعيين التذكيرات →",
       "continueButton": "متابعة →",
+      "tapToChange": "اضغط للتغيير",
       "notNow": "ليس الآن"
     }
   },

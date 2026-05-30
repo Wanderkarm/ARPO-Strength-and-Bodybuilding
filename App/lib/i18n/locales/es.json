@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": {
     "noRoutineActive": "Sin rutina activa",
     "browseTemplates": "Explorar plantillas de entrenamiento →",
@@ -551,6 +551,7 @@
       "done": "Listo",
       "setReminders": "Configurar recordatorios →",
       "continueButton": "Continuar →",
+      "tapToChange": "Toca para cambiar",
       "notNow": "Ahora no"
     }
   },

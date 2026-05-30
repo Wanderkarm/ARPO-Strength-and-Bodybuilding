@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": {
     "noRoutineActive": "未设置训练计划",
     "browseTemplates": "浏览训练模板 →",
@@ -551,6 +551,7 @@
       "done": "完成",
       "setReminders": "设置提醒 →",
       "continueButton": "继续 →",
+      "tapToChange": "点击更改",
       "notNow": "暂时不要"
     }
   },

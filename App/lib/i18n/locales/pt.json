@@ -1,4 +1,4 @@
-{
+﻿{
   "dashboard": {
     "noRoutineActive": "Nenhuma rotina ativa",
     "browseTemplates": "Explorar modelos de treino →",
@@ -551,6 +551,7 @@
       "done": "Concluído",
       "setReminders": "Configurar lembretes →",
       "continueButton": "Continuar →",
+      "tapToChange": "Toque para alterar",
       "notNow": "Agora não"
     }
   },
