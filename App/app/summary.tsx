@@ -660,7 +660,7 @@ export default function SummaryScreen() {
                   <Pressable onPress={() => setShowWorkoutPicker((v) => !v)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: Colors.primary, backgroundColor: Colors.primary + "11", paddingHorizontal: 12, paddingVertical: 8, opacity: pressed ? 0.75 : 1 })}>
                     <Ionicons name="time-outline" size={14} color={Colors.primary} />
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, flex: 1 }}>{formatTime(workoutHour, workoutMinute)}</Text>
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>{showWorkoutPicker ? "Done" : "Tap to change"}</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>{showWorkoutPicker ? t('common.done') : t('summary.notificationsPrompt.continueButton').replace(' →', '')}</Text>
                   </Pressable>
                   {showWorkoutPicker && (
                     <DateTimePicker
@@ -703,7 +703,7 @@ export default function SummaryScreen() {
                   <Pressable onPress={() => setShowWeighinPicker((v) => !v)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: Colors.primary, backgroundColor: Colors.primary + "11", paddingHorizontal: 12, paddingVertical: 8, opacity: pressed ? 0.75 : 1 })}>
                     <Ionicons name="time-outline" size={14} color={Colors.primary} />
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, flex: 1 }}>{formatTime(weighinHour, weighinMinute)}</Text>
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>{showWeighinPicker ? "Done" : "Tap to change"}</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>{showWeighinPicker ? t('common.done') : t('summary.notificationsPrompt.continueButton').replace(' →', '')}</Text>
                   </Pressable>
                   {showWeighinPicker && (
                     <DateTimePicker

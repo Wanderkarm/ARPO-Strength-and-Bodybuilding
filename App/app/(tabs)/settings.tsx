@@ -147,9 +147,11 @@ export default function SettingsScreen() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [currentLang, setCurrentLang] = useState<LanguageCode>(
-    i18n.language.startsWith("es") ? "es" : "en"
-  );
+  const [currentLang, setCurrentLang] = useState<LanguageCode>(() => {
+    const lang = i18n.language;
+    const match = SUPPORTED_LANGUAGES.find((l) => lang.startsWith(l.code));
+    return (match?.code ?? "en") as LanguageCode;
+  });
   const [userId, setUserId] = useState<string | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   // User profile
@@ -327,14 +329,14 @@ export default function SettingsScreen() {
 
   async function handleProgressionModeChange(newMode: ProgressionMode) {
     if (!userId || newMode === progressionMode) return;
-    const label = newMode === "double_progression" ? "Double Progression" : "ARPO (Autoregulation)";
+    const label = newMode === "double_progression" ? t('settings.items.doubleProgression') : t('settings.items.arpo');
     Alert.alert(
-      "Change Progression Method?",
-      `Switching to ${label} will affect how targets are calculated from the next session onward.`,
+      t('settings.alerts.progressionChangeTitle'),
+      t('settings.alerts.progressionChangeMessage'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Switch",
+          text: t('settings.alerts.goalChangeSub'),
           onPress: async () => {
             setSaving(true);
             try {
@@ -357,12 +359,12 @@ export default function SettingsScreen() {
   async function handleGoalChange(newGoal: GoalType) {
     if (!planId || newGoal === goalType) return;
     Alert.alert(
-      "Change Goal?",
-      `Switching to ${GOAL_META.find(g => g.key === newGoal)?.label} will update rep targets on future sessions. Current week is unaffected.`,
+      t('settings.alerts.goalChangeTitle'),
+      t('settings.alerts.goalChangeMessage'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Change Goal",
+          text: t('settings.alerts.goalChangeSub'),
           style: "destructive",
           onPress: async () => {
             setSaving(true);
@@ -385,16 +387,14 @@ export default function SettingsScreen() {
 
   async function handleGymTypeChange(newGymType: GymType) {
     if (!planId || newGymType === gymType) return;
-    const label = newGymType === "HOME" ? "Home Gym" : "Full Gym";
+    const label = newGymType === "HOME" ? t('settings.items.homeGym') : t('settings.items.gym');
     Alert.alert(
-      `Switch to ${label}?`,
-      newGymType === "HOME"
-        ? "Barbell and machine exercises will be swapped to dumbbell/bodyweight alternatives. Your progress on each exercise is preserved independently."
-        : "Exercises will switch back to barbell and machine versions. Your previous full-gym weights will be restored where available.",
+      t('settings.alerts.gymChangeTitle'),
+      t('settings.alerts.gymChangeMessage'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: `Switch to ${label}`,
+          text: t('settings.alerts.goalChangeSub'),
           onPress: async () => {
             setSwitchingGym(true);
             try {
@@ -1383,21 +1383,21 @@ export default function SettingsScreen() {
           <Pressable
             onPress={() => {
               Alert.alert(
-                "Delete All Data",
-                "This will permanently erase your entire profile, workout history, body measurements, and all plans. There is no undo.\n\nAre you sure?",
+                t('settings.dangerZone.deleteTitle'),
+                t('settings.dangerZone.deleteMessage'),
                 [
-                  { text: "Cancel", style: "cancel" },
+                  { text: t('common.cancel'), style: "cancel" },
                   {
-                    text: "Delete Everything",
+                    text: t('settings.dangerZone.deleteConfirm'),
                     style: "destructive",
                     onPress: () => {
                       Alert.alert(
-                        "Final Confirmation",
-                        "Last chance — all data will be gone forever.",
+                        t('settings.dangerZone.step2Title'),
+                        t('settings.dangerZone.step2Message'),
                         [
-                          { text: "Go Back", style: "cancel" },
+                          { text: t('common.back'), style: "cancel" },
                           {
-                            text: "Yes, Delete All",
+                            text: t('settings.dangerZone.deleteConfirm'),
                             style: "destructive",
                             onPress: async () => {
                               try {
@@ -1405,7 +1405,7 @@ export default function SettingsScreen() {
                                 await AsyncStorage.clear();
                                 router.replace("/");
                               } catch (err) {
-                                Alert.alert("Error", "Something went wrong. Please try again.");
+                                Alert.alert(t('common.error'), "Something went wrong. Please try again.");
                               }
                             },
                           },
