@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -33,6 +34,7 @@ interface DayState {
 const DAYS_OPTIONS = [1, 2, 3, 4, 5, 6];
 
 export default function CustomBuilderScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -136,7 +138,7 @@ export default function CustomBuilderScreen() {
         Alert.alert(
           "Routine Slots Full",
           "You can save up to 3 custom routines. Delete one from the routines screen to create a new one.",
-          [{ text: "OK" }]
+          [{ text: t('common.ok') }]
         );
         return;
       }
@@ -167,7 +169,7 @@ export default function CustomBuilderScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            Custom Routine
+            {t('customBuilder.title')}
           </Text>
         </View>
         <View style={{ width: 24 }} />
@@ -175,7 +177,7 @@ export default function CustomBuilderScreen() {
 
       <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
         <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-          Routine Name
+          {t('customBuilder.routineName')}
         </Text>
         <TextInput
           testID="routine-name-input"
@@ -197,7 +199,7 @@ export default function CustomBuilderScreen() {
         />
 
         <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-          Days Per Week
+          {t('customBuilder.daysPerWeek')}
         </Text>
         <View style={{ flexDirection: "row", gap: 6, marginBottom: 24 }}>
           {DAYS_OPTIONS.map((d) => (
@@ -274,7 +276,7 @@ export default function CustomBuilderScreen() {
             >
               <Ionicons name="add" size={16} color={Colors.primary} />
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                Add Exercise
+                {t('customBuilder.addExercise')}
               </Text>
             </Pressable>
           </View>
@@ -296,7 +298,7 @@ export default function CustomBuilderScreen() {
             <ActivityIndicator color={Colors.text} />
           ) : (
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: canSave() ? Colors.text : Colors.textMuted, textAlign: "center", textTransform: "uppercase", letterSpacing: 2 }}>
-              Save Custom Routine
+              {t('customBuilder.saveRoutine')}
             </Text>
           )}
         </Pressable>
@@ -312,7 +314,7 @@ export default function CustomBuilderScreen() {
           <View style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border, maxHeight: "75%" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Add Exercises — Day {activeDayIndex !== null ? dayStates[activeDayIndex]?.dayNumber : ""}
+                {t('customBuilder.exerciseModal.title', { day: activeDayIndex !== null ? dayStates[activeDayIndex]?.dayNumber : "" })}
               </Text>
               <Pressable
                 testID="close-exercise-modal"
@@ -320,7 +322,7 @@ export default function CustomBuilderScreen() {
                 hitSlop={12}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Done
+                  {t('customBuilder.exerciseModal.done')}
                 </Text>
               </Pressable>
             </View>
@@ -332,7 +334,7 @@ export default function CustomBuilderScreen() {
                   testID="exercise-search-input"
                   value={searchText}
                   onChangeText={setSearchText}
-                  placeholder="Search exercises..."
+                  placeholder={t('customBuilder.exerciseModal.searchPlaceholder')}
                   placeholderTextColor={Colors.textMuted}
                   style={{
                     flex: 1,
@@ -424,7 +426,7 @@ export default function CustomBuilderScreen() {
                 <View style={{ paddingVertical: 40, alignItems: "center" }}>
                   <Ionicons name="barbell-outline" size={32} color={Colors.textMuted} />
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.textMuted, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-                    No exercises found
+                    {t('customBuilder.exerciseModal.noExercisesFound')}
                   </Text>
                 </View>
               }

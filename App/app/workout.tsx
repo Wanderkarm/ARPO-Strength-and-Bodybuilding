@@ -1718,17 +1718,17 @@ export default function WorkoutScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            Day {dayNumber}
+            {t('workout.header.day', { number: dayNumber })}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-              Week {plan?.currentWeek}
+              {t('workout.header.week', { number: plan?.currentWeek })}
             </Text>
             {plan && ((plan.currentWeek - 1) % 4) + 1 === 4 && (
               <>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>·</Text>
                 <GlossaryTerm
-                  text="DELOAD"
+                  text={t('workout.header.deload')}
                   termKey="Deload"
                   style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}
                 />
@@ -1796,7 +1796,7 @@ export default function WorkoutScreen() {
               style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1 }}
             />
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 1 }}>
-              Reduced volume, same weight. Focus on form and recovery.
+              {t('workout.deloadBanner')}
             </Text>
           </View>
         </View>
@@ -1854,7 +1854,7 @@ export default function WorkoutScreen() {
           >
             <Ionicons name="pencil-outline" size={14} color={Colors.textMuted} />
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-              Edit
+              {t('workout.actions.edit')}
             </Text>
           </Pressable>
 
@@ -1870,7 +1870,7 @@ export default function WorkoutScreen() {
           >
             <Ionicons name="swap-horizontal-outline" size={14} color={Colors.textMuted} />
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-              Swap
+              {t('workout.actions.swap')}
             </Text>
           </Pressable>
 
@@ -1886,7 +1886,7 @@ export default function WorkoutScreen() {
           >
             <Ionicons name="refresh-outline" size={14} color={Colors.textMuted} />
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-              Reset
+              {t('workout.actions.reset')}
             </Text>
           </Pressable>
 
@@ -1903,7 +1903,7 @@ export default function WorkoutScreen() {
             >
               <Ionicons name="play" size={14} color="#fff" />
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#fff", textTransform: "uppercase", letterSpacing: 1 }}>
-                Watch
+                {t('workout.actions.watch')}
               </Text>
             </Pressable>
           ) : (
@@ -1913,7 +1913,7 @@ export default function WorkoutScreen() {
             }}>
               <Ionicons name="play-outline" size={14} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Watch
+                {t('workout.actions.watch')}
               </Text>
             </View>
           )}
@@ -2117,7 +2117,7 @@ export default function WorkoutScreen() {
                       <Text style={{ fontSize: 14 }}>〰</Text>
                       <View>
                         <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: myoAccent, textTransform: "uppercase", letterSpacing: 1 }}>
-                          Rest — breathe deep
+                          {t('workout.myo.rest')}
                         </Text>
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textSecondary, marginTop: 1 }}>
                           Mini-set incoming · aim for 3–5 reps
@@ -2137,7 +2137,7 @@ export default function WorkoutScreen() {
                         }}
                       >
                         <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: myoAccent, textTransform: "uppercase", letterSpacing: 1 }}>
-                          Skip
+                          {t('common.skip')}
                         </Text>
                       </Pressable>
                       <Pressable hitSlop={10} onPress={terminateMyoBlock}>
@@ -2416,7 +2416,7 @@ export default function WorkoutScreen() {
                     })}
                   >
                     <Ionicons name="stop-circle-outline" size={12} color="#F59E0B" />
-                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#F59E0B", letterSpacing: 0.5 }}>STOP MYO</Text>
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: "#F59E0B", letterSpacing: 0.5 }}>{t('workout.myo.stopMyo')}</Text>
                   </Pressable>
                 ) : null}
                 <Pressable
@@ -2436,7 +2436,7 @@ export default function WorkoutScreen() {
                     textTransform: "uppercase",
                     letterSpacing: 1,
                   }}>
-                    Add Set
+                    {t('workout.exercisePanel.addSet')}
                   </Text>
                   <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
                 </Pressable>
@@ -3058,7 +3058,7 @@ export default function WorkoutScreen() {
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, width: "100%", padding: 24 }}>
             <Ionicons name="alert-circle" size={32} color={Colors.warning} style={{ alignSelf: "center", marginBottom: 12 }} />
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
-              Missing Data
+              {t('workout.incompleteModal.title')}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 18, marginBottom: 24 }}>
               Some sets are missing reps or weight. Fill them in, or skip this exercise to log it as zeros.
@@ -3075,7 +3075,7 @@ export default function WorkoutScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Go Back & Fill In
+                {t('workout.incompleteModal.goBack')}
               </Text>
             </Pressable>
             <Pressable
@@ -3109,7 +3109,7 @@ export default function WorkoutScreen() {
             {/* ── RESET SESSION DATA ── */}
             <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                Reset Session Data
+                {t('workout.resetModal.title')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
                 Clear all reps, weights, and recovery ratings entered today. Cannot be undone.
@@ -3129,7 +3129,7 @@ export default function WorkoutScreen() {
                   <ActivityIndicator color={Colors.text} size="small" />
                 ) : (
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                    Reset Session Data
+                    {t('workout.resetModal.title')}
                   </Text>
                 )}
               </Pressable>
@@ -3191,7 +3191,7 @@ export default function WorkoutScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                Cancel
+                {t('common.cancel')}
               </Text>
             </Pressable>
           </View>
@@ -3209,7 +3209,7 @@ export default function WorkoutScreen() {
           <View style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border }}>
             <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>
-                Apply change to...
+                {t('workout.swapScopeModal.title')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
                 How long should this swap last?
@@ -3227,7 +3227,7 @@ export default function WorkoutScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                Just this session
+                {t('workout.swapScopeModal.justToday')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
                 Next session reverts to the original exercise
@@ -3249,7 +3249,7 @@ export default function WorkoutScreen() {
               ) : (
                 <>
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                    Every session from now on
+                    {t('workout.swapScopeModal.everySession')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
                     Updates all future sessions in this plan
@@ -3263,7 +3263,7 @@ export default function WorkoutScreen() {
               style={({ pressed }) => ({ padding: 18, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                Cancel
+                {t('workout.swapScopeModal.cancel')}
               </Text>
             </Pressable>
           </View>
@@ -3281,10 +3281,10 @@ export default function WorkoutScreen() {
           <View style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border }}>
             <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>
-                {setManageModal === 'add' ? 'Add a Set' : 'Remove Last Set'}
+                {setManageModal === 'add' ? t('workout.setManageModal.addTitle') : t('workout.setManageModal.removeTitle')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
-                Apply change to...
+                {t('workout.setManageModal.applyTo')}
               </Text>
             </View>
 
@@ -3299,10 +3299,10 @@ export default function WorkoutScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                Just this session
+                {t('workout.setManageModal.justThisSession')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
-                Next session reverts to the original set count
+                {t('workout.setManageModal.justThisSessionSub')}
               </Text>
             </Pressable>
 
@@ -3321,10 +3321,10 @@ export default function WorkoutScreen() {
               ) : (
                 <>
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                    Every session from now on
+                    {t('workout.setManageModal.everySession')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
-                    Updates all future sessions in this plan
+                    {t('workout.setManageModal.everySessionSub')}
                   </Text>
                 </>
               )}
@@ -3335,7 +3335,7 @@ export default function WorkoutScreen() {
               style={({ pressed }) => ({ padding: 18, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                Cancel
+                {t('workout.setManageModal.cancel')}
               </Text>
             </Pressable>
           </View>
@@ -3352,7 +3352,7 @@ export default function WorkoutScreen() {
           <View style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border, maxHeight: "70%" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Swap Exercise
+                {t('workout.swapModal.title')}
               </Text>
               <Pressable onPress={() => { setSwapModalVisible(false); setHomeGymOnly(false); }} hitSlop={12}>
                 <Ionicons name="close" size={22} color={Colors.textMuted} />
@@ -3363,10 +3363,10 @@ export default function WorkoutScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <View>
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                    Dumbbells / Bodyweight Only
+                    {t('workout.swapModal.homeGymFilter')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 2 }}>
-                    Filter for home gym equipment
+                    {t('workout.swapModal.homeGymFilterSub')}
                   </Text>
                 </View>
                 <Switch
@@ -3379,7 +3379,7 @@ export default function WorkoutScreen() {
               </View>
               <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Category:
+                  {t('workout.swapModal.categoryLabel')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
                   {currentCategory}
@@ -3395,7 +3395,7 @@ export default function WorkoutScreen() {
               <View style={{ paddingVertical: 40, alignItems: "center" }}>
                 <Ionicons name="barbell-outline" size={32} color={Colors.textMuted} />
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.textMuted, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-                  No alternatives available
+                  {t('workout.swapModal.noAlternatives')}
                 </Text>
               </View>
             ) : (
@@ -3447,7 +3447,7 @@ export default function WorkoutScreen() {
             <Pressable onPress={() => {}} style={{ backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Edit Exercise
+                  {t('workout.editExerciseModal.title')}
                 </Text>
                 <Pressable onPress={() => setEditModalVisible(false)} hitSlop={12}>
                   <Ionicons name="close" size={22} color={Colors.textMuted} />
@@ -3456,13 +3456,13 @@ export default function WorkoutScreen() {
 
               <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}>
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                  Exercise Name
+                  {t('workout.editExerciseModal.exerciseName')}
                 </Text>
                 <TextInput
                   testID="edit-exercise-name"
                   value={editName}
                   onChangeText={setEditName}
-                  placeholder="Exercise name"
+                  placeholder={t('workout.editExerciseModal.exerciseNamePlaceholder')}
                   placeholderTextColor={Colors.textMuted}
                   style={{
                     fontFamily: "Rubik_500Medium",
@@ -3478,13 +3478,13 @@ export default function WorkoutScreen() {
                 />
 
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                  Video URL
+                  {t('workout.editExerciseModal.videoUrl')}
                 </Text>
                 <TextInput
                   testID="edit-video-url"
                   value={editVideoUrl}
                   onChangeText={setEditVideoUrl}
-                  placeholder="https://youtu.be/..."
+                  placeholder={t('workout.editExerciseModal.videoUrlPlaceholder')}
                   placeholderTextColor={Colors.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -3506,12 +3506,12 @@ export default function WorkoutScreen() {
                 {(editEquipment === "BODYWEIGHT" || editEquipment === "WEIGHTED_BODYWEIGHT") && (
                   <View style={{ marginBottom: 20 }}>
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-                      Weight Type
+                      {t('workout.editExerciseModal.weightType')}
                     </Text>
                     <View style={{ flexDirection: "row", gap: 8 }}>
                       {[
-                        { value: "BODYWEIGHT",          label: "Bodyweight Only" },
-                        { value: "WEIGHTED_BODYWEIGHT", label: "+ Belt / Dumbbell" },
+                        { value: "BODYWEIGHT",          label: t('workout.editExerciseModal.bodweightOnly') },
+                        { value: "WEIGHTED_BODYWEIGHT", label: t('workout.editExerciseModal.weightedBW') },
                       ].map((opt) => (
                         <Pressable
                           key={opt.value}
@@ -3550,7 +3550,7 @@ export default function WorkoutScreen() {
                     <ActivityIndicator color={Colors.text} size="small" />
                   ) : (
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                      Save Changes
+                      {t('workout.editExerciseModal.saveChanges')}
                     </Text>
                   )}
                 </Pressable>
@@ -3610,7 +3610,7 @@ export default function WorkoutScreen() {
             }}
           >
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-              Step {tourStep + 1} of {TOUR_STEPS.length}
+              {t('workout.tourOverlay.stepOf', { current: tourStep + 1, total: TOUR_STEPS.length })}
             </Text>
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, marginBottom: 8 }}>
               {TOUR_STEPS[tourStep].title}
@@ -3626,7 +3626,7 @@ export default function WorkoutScreen() {
                   style={{ borderWidth: 1, borderColor: "#333333", paddingVertical: 10, paddingHorizontal: 14 }}
                 >
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                    Back
+                    {t('workout.tourOverlay.back')}
                   </Text>
                 </Pressable>
               )}
@@ -3635,7 +3635,7 @@ export default function WorkoutScreen() {
                 style={{ borderWidth: 1, borderColor: "#333333", paddingVertical: 10, paddingHorizontal: 14 }}
               >
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Skip
+                  {t('workout.tourOverlay.skip')}
                 </Text>
               </Pressable>
               <Pressable
@@ -3643,7 +3643,7 @@ export default function WorkoutScreen() {
                 style={{ flex: 1, backgroundColor: Colors.primary, paddingVertical: 10, alignItems: "center" }}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                  {tourStep === TOUR_STEPS.length - 1 ? "Got It" : "Next →"}
+                  {tourStep === TOUR_STEPS.length - 1 ? t('workout.tourOverlay.gotIt') : t('workout.tourOverlay.next')}
                 </Text>
               </Pressable>
             </View>
@@ -3680,10 +3680,10 @@ export default function WorkoutScreen() {
               <Text style={{ fontSize: 18 }}>〰</Text>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1.5 }}>
-                  Myo-Rep Sets
+                  {t('workout.myoExplainer.title')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 1 }}>
-                  More effective reps in less time
+                  {t('workout.myoExplainer.subtitle')}
                 </Text>
               </View>
               <Pressable onPress={() => setMyoExplainVisible(false)} hitSlop={12}>
@@ -3698,9 +3698,9 @@ export default function WorkoutScreen() {
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#000" }}>1</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Activation Set</Text>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('workout.myoExplainer.step1Title')}</Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
-                    Do your set to near failure — aim for 10–15 reps. This primes your motor units.
+                    {t('workout.myoExplainer.step1Text')}
                   </Text>
                 </View>
               </View>
@@ -3711,9 +3711,9 @@ export default function WorkoutScreen() {
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#000" }}>2</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>15-Second Rest</Text>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('workout.myoExplainer.step2Title')}</Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
-                    A countdown timer appears automatically. Take 3–5 deep breaths — just enough to clear lactic acid.
+                    {t('workout.myoExplainer.step2Text')}
                   </Text>
                 </View>
               </View>
@@ -3724,9 +3724,9 @@ export default function WorkoutScreen() {
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#000" }}>3</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Mini-Sets (M1, M2 …)</Text>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('workout.myoExplainer.step3Title')}</Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
-                    A new row appears — do 3–5 reps with the same weight and log it. Rest timer fires again automatically.
+                    {t('workout.myoExplainer.step3Text')}
                   </Text>
                 </View>
               </View>
@@ -3737,9 +3737,9 @@ export default function WorkoutScreen() {
                   <Ionicons name="stop" size={11} color="#000" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Stop When …</Text>
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('workout.myoExplainer.stopTitle')}</Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 }}>
-                    You can't hit 3 reps, or after 5 mini-sets. Tap STOP MYO anytime to end early.
+                    {t('workout.myoExplainer.stopText')}
                   </Text>
                 </View>
               </View>
@@ -3747,8 +3747,8 @@ export default function WorkoutScreen() {
               {/* Tip */}
               <View style={{ backgroundColor: Colors.bg, borderLeftWidth: 3, borderLeftColor: "#F59E0B", padding: 10, marginTop: 2 }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 16 }}>
-                  <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>Best for: </Text>
-                  isolation exercises like curls, lateral raises, and tricep extensions — not heavy compounds.
+                  <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>{t('workout.myoExplainer.bestFor')}</Text>
+                  {t('workout.myoExplainer.bestForDetail')}
                 </Text>
               </View>
             </View>
@@ -3759,7 +3759,7 @@ export default function WorkoutScreen() {
                 onPress={() => setMyoExplainVisible(false)}
                 style={({ pressed }) => ({ flex: 1, paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.7 : 1, borderRightWidth: 1, borderRightColor: Colors.border })}
               >
-                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>Maybe later</Text>
+                <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted }}>{t('workout.myoExplainer.maybeLater')}</Text>
               </Pressable>
               <Pressable
                 onPress={async () => {
@@ -3770,7 +3770,7 @@ export default function WorkoutScreen() {
                 style={({ pressed }) => ({ flex: 1.4, paddingVertical: 14, alignItems: "center", backgroundColor: "#F59E0B", opacity: pressed ? 0.85 : 1 })}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#000", textTransform: "uppercase", letterSpacing: 1 }}>
-                  Let's go →
+                  {t('workout.myoExplainer.letsGo')}
                 </Text>
               </Pressable>
             </View>
@@ -3795,7 +3795,7 @@ export default function WorkoutScreen() {
             {/* Header */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Plate Calculator
+                {t('workout.plateCalc.title')}
               </Text>
               <Pressable onPress={() => { Keyboard.dismiss(); setPlateCalcVisible(false); }} hitSlop={12}>
                 <Ionicons name="close" size={22} color={Colors.textMuted} />
@@ -3807,12 +3807,12 @@ export default function WorkoutScreen() {
               <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.primary, padding: 14, marginBottom: 16 }}>
                 {plateResult.platesPerSide.length === 0 ? (
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                    Bar only ({plateResult.barWeight} {unit})
+                    {t('workout.plateCalc.barOnly', { weight: plateResult.barWeight, unit })}
                   </Text>
                 ) : (
                   <>
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                      Each Side
+                      {t('workout.plateCalc.eachSide')}
                     </Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                       {plateResult.platesPerSide.flatMap((p, i) =>
@@ -3834,10 +3834,10 @@ export default function WorkoutScreen() {
                       )}
                     </View>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text }}>
-                      Total: {plateResult.totalWeight} {unit}
+                      {t('workout.plateCalc.total')} {plateResult.totalWeight} {unit}
                       {!plateResult.canMatch && (
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.warning }}>
-                          {" "}(nearest possible)
+                          {" "}{t('workout.plateCalc.nearestPossible')}
                         </Text>
                       )}
                     </Text>
@@ -3850,14 +3850,14 @@ export default function WorkoutScreen() {
             ) : (
               <View style={{ borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", padding: 14, marginBottom: 16, alignItems: "center" }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted }}>
-                  Enter a weight to see plate breakdown
+                  {t('workout.plateCalc.enterWeight')}
                 </Text>
               </View>
             )}
 
             {/* Bar weight selector */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-              Bar
+              {t('workout.plateCalc.barLabel')}
             </Text>
             <View style={{ flexDirection: "row", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {BAR_PRESETS[unit].map((preset) => {
@@ -3891,7 +3891,7 @@ export default function WorkoutScreen() {
 
             {/* Target weight input — at the bottom, closest to the keyboard */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-              Target Weight ({unit})
+              {t('workout.plateCalc.targetWeight', { unit })}
             </Text>
             <TextInput
               key={plateCalcInputKey}
@@ -3974,7 +3974,7 @@ export default function WorkoutScreen() {
                 <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
                   <Ionicons name="videocam-off-outline" size={40} color={Colors.textMuted} />
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 14, color: Colors.textMuted }}>
-                    No video available for this exercise.
+                    {t('workout.videoModal.noVideo')}
                   </Text>
                 </View>
               )}
@@ -3989,9 +3989,9 @@ export default function WorkoutScreen() {
                   })}
                 >
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted }}>
-                    Can't play?{" "}
+                    {t('workout.videoModal.cantPlay')}{" "}
                     <Text style={{ color: Colors.primary, textDecorationLine: "underline" }}>
-                      Open in YouTube
+                      {t('workout.videoModal.openInYouTube')}
                     </Text>
                   </Text>
                 </Pressable>

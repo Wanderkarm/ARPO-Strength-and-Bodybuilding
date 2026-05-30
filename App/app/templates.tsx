@@ -152,7 +152,7 @@ export default function TemplatesScreen() {
           Alert.alert(
             "Some Exercises Kept",
             `No unique home-gym alternative was found for: ${unswappedNames.join(", ")}. These have been kept as-is — you can swap them manually in the workout screen.`,
-            [{ text: "OK" }]
+            [{ text: t('common.ok') }]
           );
         }
       }
@@ -172,7 +172,7 @@ export default function TemplatesScreen() {
       });
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Couldn't create plan. Please try again.", [{ text: "OK" }]);
+      Alert.alert("Error", "Couldn't create plan. Please try again.", [{ text: t('common.ok') }]);
     } finally {
       setCreating(false);
     }
@@ -210,7 +210,7 @@ export default function TemplatesScreen() {
       Alert.alert(
         "Routine Slots Full",
         `You can save up to ${MAX_CUSTOM_SLOTS} custom routines. Delete one to create a new one.`,
-        [{ text: "OK" }]
+        [{ text: t('common.ok') }]
       );
       return;
     }
@@ -372,7 +372,7 @@ export default function TemplatesScreen() {
 
         {isOnboarding && (
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-            Step {onboardingCurrentStep} of {onboardingTotalSteps}
+            {t('postOnboarding.stepLabel', { current: onboardingCurrentStep, total: onboardingTotalSteps })}
           </Text>
         )}
 
@@ -749,7 +749,7 @@ export default function TemplatesScreen() {
                     letterSpacing: 1,
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
           </View>
@@ -886,7 +886,7 @@ export default function TemplatesScreen() {
                     letterSpacing: 1,
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
             </View>
