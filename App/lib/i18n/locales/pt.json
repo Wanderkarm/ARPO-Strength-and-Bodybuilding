@@ -1,0 +1,755 @@
+{
+  "dashboard": {
+    "noRoutineActive": "Nenhuma rotina ativa",
+    "browseTemplates": "Explorar modelos de treino →",
+    "powrHub": "POWR Hub",
+    "startWorkout": "Iniciar treino",
+    "startDeload": "Iniciar semana de deload",
+    "skipSession": "Pular sessão",
+    "sessionComplete": "Sessão concluída",
+    "myProgram": "Meu programa",
+    "changeRoutine": "Trocar rotina",
+    "trialCountdown_one": "{{count}} sessão gratuita restante",
+    "trialCountdown_other": "{{count}} sessões gratuitas restantes",
+    "trialCountdownSub": "Desbloqueie o POWRLOG para continuar →",
+    "unlockBanner": "Faça upgrade para continuar treinando",
+    "recoveryTile": {
+      "title": "Recuperação",
+      "noData": "Sem dados ainda",
+      "learnMore": "Saiba mais"
+    },
+    "stepsModal": {
+      "title": "Registrar passos de hoje",
+      "save": "Salvar passos",
+      "syncApple": "Sincronizar do Apple Health",
+      "placeholder": "ex: 8500"
+    },
+    "alerts": {
+      "skipSessionTitle": "Pular sessão?",
+      "skipSessionMessage": "Esta sessão será marcada como pulada e suas metas serão transferidas para a próxima semana.",
+      "skipSessionConfirm": "Pular",
+      "skipSessionCancel": "Cancelar",
+      "restartSetupTitle": "Reiniciar configuração",
+      "restartSetupMessage": "Isso vai redefinir seu perfil e configuração de treino. Seu histórico de treinos será mantido. Continuar?",
+      "restartSetupConfirm": "Reiniciar",
+      "restartSetupCancel": "Cancelar"
+    },
+    "nudgeBanners": {
+      "logWeightTitle": "Registre seu peso",
+      "logWeightDesc": "Acompanhe o progresso da composição corporal",
+      "setupNutritionTitle": "Configure a nutrição",
+      "setupNutritionDesc": "Calorias e macros personalizados"
+    }
+  },
+  "progress": {
+    "title": "Progresso",
+    "strengthProgress": "Progresso de força",
+    "volumeTracker": "Rastreador de volume",
+    "theScience": "A ciência",
+    "couldntLoad": "Não foi possível carregar o progresso",
+    "noActivePlan": "Nenhum plano ativo",
+    "retry": "Tentar novamente",
+    "moreDataNextWeek": "Mais dados na próxima semana",
+    "volumeStatus": {
+      "rest": "Descanso",
+      "belowMev": "Abaixo do MEV",
+      "inMav": "No MAV ✓",
+      "aboveMrv": "Acima do MRV",
+      "building": "Aumentando",
+      "nearMrv": "Perto do MRV"
+    }
+  },
+  "body": {
+    "title": "Corpo",
+    "tabs": {
+      "nutrition": "Nutrição",
+      "weighIn": "Pesagem",
+      "composition": "Composição",
+      "measurements": "Medidas",
+      "oneRmCalc": "Calculadora de 1RM"
+    },
+    "setupNutrition": "Configurar metas nutricionais",
+    "caloriesMacros": "Calorias, macros e exemplos de refeições",
+    "noWeighIns": "Nenhuma pesagem registrada ainda.",
+    "logged": "Registrado ✓",
+    "logWeight": "Registrar peso",
+    "macros": {
+      "protein": "Proteína",
+      "carbs": "Carboidratos",
+      "fat": "Gordura"
+    },
+    "stats": {
+      "bmi": "IMC",
+      "ffmi": "FFMI",
+      "bodyFat": "Gordura corporal",
+      "leanMass": "Massa magra"
+    },
+    "bmiNote": "O IMC é enganoso para atletas treinados.",
+    "syncButton": "Sincronizar",
+    "sources": {
+      "navyFormula": "Fórmula Naval",
+      "appleHealth": "Apple Health",
+      "healthConnect": "Health Connect",
+      "smartScale": "Balança inteligente"
+    },
+    "logMeasurements": "Registrar medidas",
+    "measurementsDesc": "Peito, cintura, braços e mais",
+    "unlockComposition": "Desbloqueie as métricas de composição corporal",
+    "addWaistNeck": "Adicione cintura e pescoço para desbloquear % de gordura e FFMI"
+  },
+  "history": {
+    "title": "Histórico",
+    "trainingCalendar": "Calendário de treino",
+    "pastSessions": "Sessões anteriores",
+    "noActivityThisMonth": "Sem atividade este mês",
+    "noSessionsLogged": "Nenhuma sessão registrada ainda",
+    "skipped": "Pulada",
+    "undo": "Desfazer",
+    "editSets": "Editar séries",
+    "setTableHeaders": {
+      "set": "Série",
+      "weight": "Peso",
+      "reps": "Reps"
+    },
+    "noSetsRecorded": "Nenhuma série registrada",
+    "sessionSkippedNote": "Sessão foi pulada. Metas transferidas para a próxima semana.",
+    "alerts": {
+      "undoSkipTitle": "Desfazer pulo",
+      "undoSkipMessage": "Isso vai restaurar esta sessão e removê-la das sessões puladas. Suas metas voltarão ao estado anterior.",
+      "undoSkipConfirm": "Desfazer",
+      "undoSkipCancel": "Cancelar"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "sections": {
+      "preferences": "Preferências",
+      "activePlan": "Plano ativo",
+      "exerciseLibrary": "Biblioteca de exercícios",
+      "devices": "Dispositivos",
+      "notifications": "Notificações",
+      "streak": "Sequência",
+      "dailySteps": "Passos diários",
+      "backupRestore": "Backup e restauração",
+      "profile": "Perfil",
+      "trainingSchedule": "Agenda de treino",
+      "legal": "Jurídico",
+      "dangerZone": "Zona de perigo",
+      "devTools": "Ferramentas do desenvolvedor"
+    },
+    "items": {
+      "language": "Idioma",
+      "units": "Unidades",
+      "lbs": "lbs",
+      "kg": "kg",
+      "gymType": "Local de treino",
+      "gym": "Academia",
+      "homeGym": "Academia em casa",
+      "progressionMethod": "Método de progressão",
+      "arpo": "ARPO (Auto)",
+      "doubleProgression": "Progressão dupla",
+      "goal": "Objetivo",
+      "strength": "Força",
+      "powerbuilding": "Força e volume",
+      "hypertrophy": "Hipertrofia",
+      "customExercises": "Exercícios personalizados",
+      "connectHealth": "Conectar dados de saúde",
+      "workoutReminder": "Lembrete de treino",
+      "weighInReminder": "Lembrete de pesagem",
+      "currentStreak": "Sequência atual",
+      "longestStreak": "Maior sequência",
+      "dailyStepGoal": "Meta de passos diários",
+      "backup": "Backup",
+      "restore": "Restaurar",
+      "exportData": "Exportar dados",
+      "privacyPolicy": "Política de privacidade",
+      "termsOfUse": "Termos de uso",
+      "acknowledgements": "Agradecimentos",
+      "legalDisclaimer": "Aviso legal",
+      "deleteAllData": "Excluir todos os dados",
+      "resetApp": "Redefinir app"
+    },
+    "descriptions": {
+      "homeGymMode": "O modo academia em casa troca exercícios com barra e máquinas por alternativas com halteres e peso corporal.",
+      "arpoDesc": "O POWRLOG ajusta automaticamente peso e volume a cada semana com base no seu desempenho.",
+      "doubleProgressionDesc": "Aumente as reps dentro de uma faixa antes de adicionar peso. Controle manual.",
+      "dailyStepGoalDesc": "Defina uma meta diária de passos para monitorar a atividade junto com o treino."
+    },
+    "backup": {
+      "modalTitle": "Backup e restauração",
+      "backupDesc": "Salve seu histórico de treinos e configurações em um arquivo que pode ser restaurado depois.",
+      "backupButton": "Criar backup",
+      "restoreDesc": "Restaurar a partir de um arquivo de backup salvo anteriormente.",
+      "restoreButton": "Restaurar do backup",
+      "backingUp": "Fazendo backup...",
+      "restoring": "Restaurando...",
+      "backupSuccess": "Backup criado com sucesso.",
+      "restoreSuccess": "Restauração concluída.",
+      "backupFailed": "Backup falhou. Tente novamente.",
+      "restoreFailed": "Restauração falhou. O arquivo pode ser inválido ou corrompido."
+    },
+    "dangerZone": {
+      "deleteTitle": "Excluir todos os dados",
+      "deleteMessage": "Isso vai excluir permanentemente todo o seu histórico de treinos, planos e dados de perfil. Não pode ser desfeito.",
+      "deleteConfirm": "Excluir tudo",
+      "deleteCancel": "Cancelar",
+      "confirmPhrase": "Digite DELETE para confirmar",
+      "confirmPlaceholder": "DELETE",
+      "step2Title": "Tem certeza absoluta?",
+      "step2Message": "Todos os dados serão apagados permanentemente. Você será levado de volta ao onboarding."
+    },
+    "alerts": {
+      "goalChangeTitle": "Alterar objetivo",
+      "goalChangeMessage": "Alterar seu objetivo vai recalcular suas metas de progressão. Continuar?",
+      "gymChangeTitle": "Alterar local de treino",
+      "gymChangeMessage": "Isso vai trocar os exercícios relevantes no seu plano ativo. Continuar?",
+      "progressionChangeTitle": "Alterar método de progressão",
+      "progressionChangeMessage": "Isso vai mudar como seus pesos são calculados daqui em diante. Continuar?",
+      "goalChangeSub": "Continuar",
+      "cancel": "Cancelar"
+    },
+    "trial": {
+      "activeTrial": "Período de teste ativo",
+      "trialRemaining_one": "{{count}} sessão restante",
+      "trialRemaining_other": "{{count}} sessões restantes",
+      "unlockNow": "Desbloquear agora →"
+    },
+    "purchase": {
+      "unlocked": "POWRLOG desbloqueado",
+      "thankYou": "Obrigado pelo seu apoio.",
+      "managePurchase": "Gerenciar compra"
+    },
+    "legalDisclaimer": "O POWRLOG é uma ferramenta de treino e não substitui aconselhamento médico profissional. Consulte um profissional de saúde qualificado antes de iniciar qualquer programa de exercícios, especialmente se tiver condições preexistentes. Os dados de treino exibidos são apenas para fins informativos."
+  },
+  "workout": {
+    "recovery": {
+      "veryFatigued": "Muito fatigado",
+      "fatigued": "Fatigado",
+      "neutral": "Neutro",
+      "fresh": "Descansado",
+      "veryFresh": "Muito descansado"
+    },
+    "header": {
+      "day": "Dia {{number}}",
+      "week": "Semana {{number}}",
+      "deload": "DELOAD"
+    },
+    "deloadBanner": "Semana de deload — volume e intensidade reduzidos. Foque na técnica e na recuperação.",
+    "actions": {
+      "edit": "Editar",
+      "swap": "Trocar",
+      "reset": "Reiniciar",
+      "watch": "Ver vídeo"
+    },
+    "setFeedback": {
+      "targetExceeded": "Meta superada — o peso aumenta na próxima sessão",
+      "targetMet": "Meta atingida",
+      "weightBelowTarget": "Peso abaixo da meta",
+      "repsBelowTarget": "Reps abaixo da meta"
+    },
+    "myo": {
+      "act": "ATIV",
+      "rest": "Descanso — respire fundo",
+      "miniSetIncoming": "Mini-série chegando",
+      "stopMyo": "PARAR MYO"
+    },
+    "watchBanner": "Apple Watch detectado — registre séries pelo pulso",
+    "incompleteModal": {
+      "title": "Dados incompletos",
+      "message": "Algumas séries estão sem peso ou reps. Finalizar a sessão mesmo assim?",
+      "finish": "Finalizar mesmo assim",
+      "goBack": "Voltar e preencher"
+    },
+    "resetModal": {
+      "title": "Reiniciar dados da sessão",
+      "message": "Isso vai apagar todas as séries registradas nesta sessão. Continuar?",
+      "confirm": "Reiniciar dados da sessão",
+      "cancel": "Cancelar"
+    },
+    "swapScopeModal": {
+      "title": "Aplicar troca em",
+      "justToday": "Apenas esta sessão",
+      "everySession": "Todas as sessões a partir de agora",
+      "cancel": "Cancelar"
+    },
+    "exercisePanel": {
+      "addSet": "Adicionar série",
+      "removeSet": "Remover última série",
+      "myoReps": "Séries Myo-Rep",
+      "plateCalc": "Calculadora de anilhas",
+      "editExercise": "Editar exercício",
+      "swapExercise": "Trocar exercício"
+    },
+    "setManageModal": {
+      "addTitle": "Adicionar uma série",
+      "removeTitle": "Remover última série",
+      "applyTo": "Aplicar mudança em...",
+      "justThisSession": "Apenas esta sessão",
+      "justThisSessionSub": "A próxima sessão volta ao número original de séries",
+      "everySession": "Todas as sessões a partir de agora",
+      "everySessionSub": "Atualiza todas as sessões futuras neste plano",
+      "cancel": "Cancelar"
+    },
+    "swapModal": {
+      "title": "Trocar exercício",
+      "homeGymFilter": "Apenas halteres / peso corporal",
+      "homeGymFilterSub": "Filtrar por equipamento de academia em casa",
+      "categoryLabel": "Categoria:",
+      "noAlternatives": "Nenhuma alternativa disponível"
+    },
+    "editExerciseModal": {
+      "title": "Editar exercício",
+      "exerciseName": "Nome do exercício",
+      "exerciseNamePlaceholder": "Nome do exercício",
+      "videoUrl": "URL do vídeo",
+      "videoUrlPlaceholder": "https://youtu.be/...",
+      "weightType": "Tipo de peso",
+      "bodweightOnly": "Apenas peso corporal",
+      "weightedBW": "+ Cinto / Halter",
+      "saveChanges": "Salvar alterações"
+    },
+    "myoExplainer": {
+      "title": "Séries Myo-Rep",
+      "subtitle": "Mais reps efetivas em menos tempo",
+      "step1Title": "Série de ativação",
+      "step1Text": "Faça sua série até perto da falha — mire em 10–15 reps. Isso ativa suas unidades motoras.",
+      "step2Title": "Descanso de 15 segundos",
+      "step2Text": "Um cronômetro regressivo aparece automaticamente. Respire fundo 3–5 vezes — suficiente para eliminar o ácido lático.",
+      "step3Title": "Mini-séries (M1, M2…)",
+      "step3Text": "Uma nova linha aparece — faça 3–5 reps com o mesmo peso e registre. O timer de descanso dispara novamente automaticamente.",
+      "stopTitle": "Pare quando…",
+      "stopText": "Você não conseguir mais 3 reps, ou após 5 mini-séries. Toque PARAR MYO a qualquer momento para encerrar.",
+      "bestFor": "Ideal para: ",
+      "bestForDetail": "exercícios de isolamento como rosca, elevação lateral e extensão de tríceps — não para compostos pesados.",
+      "maybeLater": "Talvez depois",
+      "letsGo": "Vamos lá →"
+    },
+    "plateCalc": {
+      "title": "Calculadora de anilhas",
+      "barLabel": "Barra",
+      "targetWeight": "Peso alvo ({{unit}})",
+      "placeholder": "ex: 185",
+      "eachSide": "Cada lado",
+      "total": "Total:",
+      "nearestPossible": "(mais próximo possível)",
+      "barOnly": "Apenas barra ({{weight}} {{unit}})",
+      "enterWeight": "Digite um peso para ver a distribuição de anilhas"
+    },
+    "videoModal": {
+      "noVideo": "Nenhum vídeo disponível para este exercício.",
+      "cantPlay": "Não consegue reproduzir?",
+      "openInYouTube": "Abrir no YouTube"
+    },
+    "tourOverlay": {
+      "stepOf": "Passo {{current}} de {{total}}",
+      "back": "Voltar",
+      "skip": "Pular",
+      "next": "Próximo →",
+      "gotIt": "Entendi"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "Treine com inteligência.\nProgresso em cada sessão.",
+      "subheadline": "Programação baseada em ciência que se ajusta automaticamente.",
+      "cta": "Começar →",
+      "alreadyHaveAccount": "Já tem uma conta?"
+    },
+    "units": {
+      "title": "Libras ou quilogramas?",
+      "subtitle": "Escolha sua unidade de peso preferida. Você pode alterar isso depois em Configurações.",
+      "lbs": "Libras (lbs)",
+      "lbsSub": "Usadas nos EUA e Reino Unido",
+      "kg": "Quilogramas (kg)",
+      "kgSub": "Uso internacional",
+      "continue": "Continuar →"
+    },
+    "identity": {
+      "title": "Sobre você",
+      "subtitle": "Isso nos ajuda a personalizar seu programa e os pesos iniciais.",
+      "biologicalSex": "Sexo biológico",
+      "male": "Masculino",
+      "female": "Feminino",
+      "experience": "Experiência em treino",
+      "beginner": "Iniciante",
+      "beginnerDesc": "Menos de 1 ano de treino consistente",
+      "beginnerDetail": "Os pesos iniciais serão conservadores. O ARPO vai aumentar rapidamente conforme você progride.",
+      "intermediate": "Intermediário",
+      "intermediateDesc": "1–3 anos de treino consistente",
+      "intermediateDetail": "Base sólida. Pronto para progressão estruturada e blocos de volume.",
+      "advanced": "Avançado",
+      "advancedDesc": "3+ anos de treino estruturado",
+      "advancedDetail": "Próximo ao limite genético. Periodização e gerenciamento de volume são fundamentais.",
+      "continue": "Continuar →"
+    },
+    "physical": {
+      "title": "Dados físicos",
+      "subtitle": "Usados para calcular seus pesos iniciais e metas nutricionais.",
+      "height": "Altura",
+      "heightFt": "pés",
+      "heightIn": "pol",
+      "heightCm": "cm",
+      "age": "Idade",
+      "ageSuffix": "anos",
+      "bodyweight": "Peso corporal",
+      "continue": "Continuar →"
+    },
+    "goals": {
+      "title": "Seu objetivo",
+      "subtitle": "Isso define seu foco de treino e metas nutricionais.",
+      "strength": "Força",
+      "strengthTagline": "Maximize seus 1RMs",
+      "powerbuilding": "Força e volume",
+      "powerbuildingTagline": "Equilíbrio entre força e tamanho",
+      "hypertrophy": "Hipertrofia",
+      "hypertrophyTagline": "Máximo crescimento muscular",
+      "continue": "Continuar →"
+    },
+    "trainingSetup": {
+      "activityLevel": "Nível de atividade",
+      "sedentary": "Sedentário",
+      "sedentaryDesc": "Pouco ou nenhum exercício",
+      "lightlyActive": "Levemente ativo",
+      "lightlyActiveDesc": "Exercício leve 1–3 dias/semana",
+      "moderatelyActive": "Moderadamente ativo",
+      "moderatelyActiveDesc": "Exercício moderado 3–5 dias/semana",
+      "veryActive": "Muito ativo",
+      "veryActiveDesc": "Exercício intenso 6–7 dias/semana",
+      "extraActive": "Extremamente ativo",
+      "extraActiveDesc": "Exercício muito intenso, trabalho físico",
+      "progressionMethod": "Método de progressão",
+      "arpo": "ARPO (Recomendado)",
+      "arpoDesc": "Ajusta automaticamente peso e volume a cada semana com base no seu desempenho.",
+      "doubleProgression": "Progressão dupla",
+      "doubleProgressionDesc": "Aumente reps manualmente até o intervalo-alvo, depois aumente o peso.",
+      "continue": "Continuar →"
+    },
+    "summary": {
+      "title": "Tudo pronto.",
+      "subtitle": "Aqui está seu perfil personalizado.",
+      "tdeeCard": "TDEE",
+      "tdeeUnit": "kcal/dia",
+      "continue": "Vamos montar seu programa →"
+    },
+    "alerts": {
+      "missingInfoTitle": "Informação faltando",
+      "missingInfoMessage": "Por favor, preencha todos os campos obrigatórios antes de continuar.",
+      "setupFailedTitle": "Configuração falhou",
+      "setupFailedMessage": "Algo deu errado ao salvar seu perfil. Tente novamente."
+    }
+  },
+  "paywall": {
+    "headline": "{{count}} sessões concluídas.\nHora de desbloquear.",
+    "payOnce": "Você viu o que o POWRLOG faz.\nPague uma vez. Tenha para sempre. Sem assinatura.",
+    "featuresHeading": "Tudo incluído",
+    "unlockButton": "Desbloquear POWRLOG — {{price}}",
+    "restorePurchase": "Restaurar compra anterior",
+    "legalText": "Pagamento cobrado no seu Apple ID na confirmação.\nGerencie em Configurações → [Seu nome] → App Store.",
+    "privacyPolicy": "Política de privacidade",
+    "termsOfUse": "Termos de uso",
+    "alerts": {
+      "purchaseFailedTitle": "Compra falhou",
+      "noPurchaseFoundTitle": "Nenhuma compra encontrada",
+      "noPurchaseFoundDefault": "Nenhuma compra anterior encontrada para este Apple ID.",
+      "button": "OK"
+    }
+  },
+  "autoBuilder": {
+    "title": "Gerar rotina",
+    "steps": {
+      "basics": "Básico",
+      "muscleFocus": "Foco muscular",
+      "preview": "Prévia"
+    },
+    "step1": {
+      "routineName": "Nome da rotina",
+      "trainingDaysPerWeek": "Dias de treino por semana",
+      "setMuscleFocus": "Definir foco muscular →"
+    },
+    "step2": {
+      "instructions": "Defina a prioridade de cada grupo muscular. O POWRLOG vai distribuir o volume de acordo.",
+      "priorities": {
+        "skip": "Pular",
+        "maintain": "Manter",
+        "medium": "Médio",
+        "high": "Alto"
+      },
+      "generate": "Gerar rotina →"
+    },
+    "step3": {
+      "shuffle": "Embaralhar",
+      "allMusclesSkipped": "Todos os músculos definidos como Pular neste dia.",
+      "saveRoutine": "Salvar rotina"
+    }
+  },
+  "customBuilder": {
+    "title": "Rotina personalizada",
+    "routineName": "Nome da rotina",
+    "daysPerWeek": "Dias por semana",
+    "addExercise": "Adicionar exercício",
+    "exerciseModal": {
+      "title": "Adicionar exercícios — Dia {{day}}",
+      "done": "Concluído",
+      "searchPlaceholder": "Buscar exercícios...",
+      "noExercisesFound": "Nenhum exercício encontrado"
+    },
+    "saveRoutine": "Salvar rotina personalizada"
+  },
+  "templates": {
+    "title": "Escolher rotina",
+    "buildManually": "Criar manualmente",
+    "buildManuallyDesc": "Escolha exercícios dia a dia",
+    "autoBuild": "POWR Auto-Build",
+    "autoBuildDesc": "Defina prioridades, nós montamos",
+    "myCustomRoutines": "Minhas rotinas personalizadas",
+    "preBuiltTemplates": "Modelos prontos",
+    "noTemplatesAvailable": "Nenhum modelo disponível",
+    "gymModal": {
+      "title": "Local de treino",
+      "description": "O modo academia em casa troca exercícios com barra e máquinas por alternativas com halteres e peso corporal.",
+      "fullGym": "Academia completa",
+      "homeGym": "Academia em casa"
+    },
+    "deleteModal": {
+      "title": "Excluir rotina?",
+      "warningText": "Isso vai excluir permanentemente esta rotina e todos os dados associados. Não pode ser desfeito.",
+      "confirm": "Excluir permanentemente",
+      "cancel": "Cancelar"
+    },
+    "switchPlanModals": {
+      "endCurrentTitle": "Encerrar plano atual?",
+      "startNewPlan": "Iniciar novo plano",
+      "keepCurrentPlan": "Manter plano atual",
+      "alreadyActiveTitle": "Já ativo",
+      "continuePlan": "Continuar plano",
+      "startFresh": "Recomeçar (Semana 1)"
+    }
+  },
+  "summary": {
+    "workoutComplete": "Treino concluído",
+    "weekDay": "Semana {{week}} — Dia {{day}}",
+    "sessionLogged": "Sessão registrada. Recupere-se bem — suas próximas metas estão prontas.",
+    "stats": {
+      "volume": "Volume",
+      "volumeSub": "{{unit}} movidos",
+      "exercises": "Exercícios",
+      "exercisesSub": "concluídos",
+      "week": "Semana",
+      "weekSub": "de 4",
+      "rir": "RIR",
+      "rirSub": "esta sem."
+    },
+    "personalRecords": "Recordes pessoais",
+    "prFirstLogged": "(primeiro máximo registrado)",
+    "returnToDashboard": "Voltar ao início",
+    "editSets": "Editar séries",
+    "notificationsPrompt": {
+      "title": "Mantenha a consistência",
+      "body": "Ótima primeira sessão. Os atletas que mais progridem aparecem consistentemente — quer que o POWRLOG te lembre?",
+      "workoutReminder": "Lembrete de treino",
+      "weighInReminder": "Lembrete de pesagem",
+      "done": "Concluído",
+      "setReminders": "Configurar lembretes →",
+      "continueButton": "Continuar →",
+      "notNow": "Agora não"
+    }
+  },
+  "myPlans": {
+    "title": "Meu programa",
+    "noActivePlans": "Nenhum plano ativo.",
+    "tapToStart": "Toque para iniciar um →",
+    "otherPlans": "Outros planos",
+    "startNewPlan": "Iniciar novo plano",
+    "planCard": {
+      "active": "Ativo",
+      "weekLabel": "Semana",
+      "phaseLabel": "Fase",
+      "targetRir": "RIR alvo",
+      "goToWorkout": "Ir para o treino",
+      "switchToThis": "Mudar para este"
+    },
+    "alerts": {
+      "abandonTitle": "Abandonar plano",
+      "abandonMessage": "Remover \"{{name}}\" dos seus planos ativos? Seu histórico de treinos será mantido.",
+      "abandonConfirm": "Abandonar",
+      "abandonCancel": "Cancelar"
+    }
+  },
+  "mesoComplete": {
+    "title": "Mesociclo concluído",
+    "quote": "Fadiga dissipada. Tecido adaptado.",
+    "stats": {
+      "totalVolume": "Volume total",
+      "volumeSub": "{{unit}} movidos",
+      "sessions": "Sessões",
+      "sessionsSub": "concluídas"
+    },
+    "strengthGains": "Ganhos de força",
+    "tableHeaders": {
+      "exercise": "Exercício",
+      "week1": "Sem 1 ({{unit}})",
+      "peak": "Pico ({{unit}})",
+      "gain": "+Ganho"
+    },
+    "runItBack": "Repetir o ciclo",
+    "selectNewRoutine": "Escolher nova rotina"
+  },
+  "bodyMeasurements": {
+    "title": "Medidas corporais",
+    "form": {
+      "bodyFat": "Gordura corporal %",
+      "bodyFatPlaceholder": "ex: 14.5",
+      "circumferences": "Circunferências ({{unit}})",
+      "fields": {
+        "chest": "Peito",
+        "waist": "Cintura",
+        "hips": "Quadril",
+        "neck": "Pescoço",
+        "leftArm": "Braço esquerdo",
+        "rightArm": "Braço direito",
+        "leftThigh": "Coxa esquerda",
+        "rightThigh": "Coxa direita"
+      },
+      "notes": "Observações (opcional)",
+      "save": "Salvar medidas"
+    },
+    "history": {
+      "title": "Histórico",
+      "latest": "Mais recente"
+    },
+    "empty": "Acompanhe suas medidas ao longo do tempo para ver mudanças além da balança."
+  },
+  "bodyWeightLog": {
+    "title": "Registro de peso",
+    "logSection": "Registrar peso de hoje",
+    "logButton": "Registrar",
+    "history": "Histórico",
+    "empty": "Registre sua primeira pesagem acima.\nA média de 7 dias filtra as flutuações diárias.",
+    "alerts": {
+      "deleteTitle": "Excluir registro",
+      "deleteMessage": "Remover esta pesagem?",
+      "deleteConfirm": "Excluir",
+      "deleteCancel": "Cancelar"
+    }
+  },
+  "oneRepMax": {
+    "title": "Calculadora de 1RM",
+    "inputs": {
+      "weightLabel": "Peso levantado ({{unit}})",
+      "repsLabel": "Reps",
+      "weightPlaceholderLbs": "ex: 225",
+      "weightPlaceholderKg": "ex: 100",
+      "repsPlaceholder": "ex: 5"
+    },
+    "result": {
+      "label": "1 repetição máxima estimada",
+      "averageNote": "{{unit}} (média de 3 fórmulas)"
+    },
+    "formulaBreakdown": "Detalhes das fórmulas",
+    "trainingZones": "Zonas de treino",
+    "empty": "Digite um peso e número de reps para calcular sua 1RM estimada."
+  },
+  "schedulePicker": {
+    "almostDone": "Quase lá",
+    "titleTrainingDays": "Escolha os dias de treino",
+    "titleRestDays": "Escolha os dias de descanso",
+    "train": "Treino",
+    "rest": "Descanso",
+    "setSchedule": "Definir agenda",
+    "saving": "Salvando...",
+    "skipForNow": "Pular por agora"
+  },
+  "customExercise": {
+    "title": "Exercícios personalizados",
+    "form": {
+      "title": "Novo exercício",
+      "exerciseName": "Nome do exercício",
+      "exerciseNamePlaceholder": "ex: Hack Squat na máquina",
+      "muscleGroup": "Grupo muscular / Categoria",
+      "equipment": "Equipamento",
+      "addExercise": "Adicionar exercício"
+    },
+    "empty": "Adicione exercícios que não estão na biblioteca.\nEles aparecerão na busca por troca e no criador.",
+    "alerts": {
+      "duplicateTitle": "Duplicado",
+      "duplicateMessage": "Já existe um exercício com esse nome.",
+      "deleteTitle": "Excluir exercício",
+      "deleteMessage": "Remover \"{{name}}\" dos seus exercícios personalizados?",
+      "deleteConfirm": "Excluir",
+      "deleteCancel": "Cancelar"
+    }
+  },
+  "healthPermissions": {
+    "title": "Conectar dados de saúde",
+    "privacyNote": "Seus dados nunca saem do seu celular.",
+    "connectButton": "Conectar {{platform}}",
+    "skipButton": "Pular — vou configurar depois em Configurações"
+  },
+  "postOnboarding": {
+    "stepLabel": "Passo {{current}} de {{total}}",
+    "weights": {
+      "title": "O que você levanta atualmente?",
+      "subtitle": "Toque em uma faixa ou digite o seu valor — 2 exercícios por passo",
+      "next": "Próximo →",
+      "saveAndContinue": "Salvar e continuar →",
+      "skip": "Pular — usar estimativas do POWRLOG"
+    }
+  },
+  "nutrition": {
+    "title": "Metas nutricionais",
+    "editButton": "Editar",
+    "dailyMacros": "Macros diários",
+    "editGoal": "Editar objetivo ou detalhes"
+  },
+  "nutritionSetup": {
+    "titleOnboarding": "Configurar nutrição",
+    "titleEdit": "Configuração de nutrição",
+    "skip": "Pular",
+    "step1": {
+      "title": "Qual é seu objetivo?",
+      "continue": "Continuar →"
+    },
+    "step2": {
+      "title": "Seus dados",
+      "continue": "Continuar →"
+    },
+    "step3": {
+      "title": "Nível de atividade",
+      "continue": "Continuar →"
+    },
+    "step4": {
+      "title": "Sua meta",
+      "currentWeight": "Peso atual ({{unit}})",
+      "targetWeight": "Peso alvo ({{unit}})",
+      "continue": "Continuar →"
+    },
+    "step5": {
+      "title": "Prazo",
+      "checkButton": "Verificar se isso é realista",
+      "calculateTargets": "Calcular minhas metas →"
+    }
+  },
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "back": "Voltar",
+    "skip": "Pular",
+    "done": "Concluído",
+    "edit": "Editar",
+    "loading": "Carregando...",
+    "retry": "Tentar novamente",
+    "error": "Erro",
+    "ok": "OK",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "add": "Adicionar",
+    "remove": "Remover",
+    "reset": "Redefinir",
+    "yes": "Sim",
+    "no": "Não"
+  }
+}

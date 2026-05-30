@@ -5,15 +5,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import en from './locales/en.json';
 import es from './locales/es.json';
+import ar from './locales/ar.json';
+import zh from './locales/zh.json';
+import pt from './locales/pt.json';
+import sw from './locales/sw.json';
 
 export const LANGUAGE_STORAGE_KEY = '@powrlog_language';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'zh', label: '中文' },
+  { code: 'pt', label: 'Português' },
+  { code: 'sw', label: 'Kiswahili' },
 ] as const;
 
-export type LanguageCode = 'en' | 'es';
+export type LanguageCode = 'en' | 'es' | 'ar' | 'zh' | 'pt' | 'sw';
 
 const deviceLanguage = getLocales()?.[0]?.languageCode ?? 'en';
 const supported: string[] = SUPPORTED_LANGUAGES.map((l) => l.code);
@@ -25,6 +33,10 @@ i18n
     resources: {
       en: { translation: en },
       es: { translation: es },
+      ar: { translation: ar },
+      zh: { translation: zh },
+      pt: { translation: pt },
+      sw: { translation: sw },
     },
     lng: initialLng,
     fallbackLng: 'en',

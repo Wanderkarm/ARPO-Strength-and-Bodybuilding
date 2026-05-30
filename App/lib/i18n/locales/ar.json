@@ -1,0 +1,755 @@
+{
+  "dashboard": {
+    "noRoutineActive": "لا توجد روتين نشط",
+    "browseTemplates": "استعرض قوالب التمرين →",
+    "powrHub": "POWR Hub",
+    "startWorkout": "ابدأ التمرين",
+    "startDeload": "ابدأ أسبوع التخفيف",
+    "skipSession": "تخطي الجلسة",
+    "sessionComplete": "اكتملت الجلسة",
+    "myProgram": "برنامجي",
+    "changeRoutine": "تغيير الروتين",
+    "trialCountdown_one": "متبقي {{count}} جلسة مجانية",
+    "trialCountdown_other": "متبقي {{count}} جلسات مجانية",
+    "trialCountdownSub": "افتح POWRLOG لمواصلة التدريب →",
+    "unlockBanner": "قم بالترقية لمواصلة التدريب",
+    "recoveryTile": {
+      "title": "التعافي",
+      "noData": "لا توجد بيانات بعد",
+      "learnMore": "اعرف المزيد"
+    },
+    "stepsModal": {
+      "title": "سجّل خطوات اليوم",
+      "save": "حفظ الخطوات",
+      "syncApple": "مزامنة من Apple Health",
+      "placeholder": "مثال: 8500"
+    },
+    "alerts": {
+      "skipSessionTitle": "تخطي الجلسة؟",
+      "skipSessionMessage": "ستُعلَّم هذه الجلسة كمُتخطَّاة وستُنقل أهدافك إلى الأسبوع القادم.",
+      "skipSessionConfirm": "تخطي",
+      "skipSessionCancel": "إلغاء",
+      "restartSetupTitle": "إعادة الإعداد",
+      "restartSetupMessage": "سيؤدي هذا إلى إعادة تعيين ملفك الشخصي وإعداد التدريب. سيُحفظ سجل تمارينك. هل تريد المتابعة؟",
+      "restartSetupConfirm": "إعادة التشغيل",
+      "restartSetupCancel": "إلغاء"
+    },
+    "nudgeBanners": {
+      "logWeightTitle": "سجّل وزنك",
+      "logWeightDesc": "تتبع تقدم تكوين الجسم",
+      "setupNutritionTitle": "إعداد التغذية",
+      "setupNutritionDesc": "سعرات حرارية وماكرو مخصصة"
+    }
+  },
+  "progress": {
+    "title": "التقدم",
+    "strengthProgress": "تقدم القوة",
+    "volumeTracker": "متتبع الحجم",
+    "theScience": "العلم",
+    "couldntLoad": "تعذّر تحميل التقدم",
+    "noActivePlan": "لا توجد خطة نشطة",
+    "retry": "إعادة المحاولة",
+    "moreDataNextWeek": "مزيد من البيانات الأسبوع القادم",
+    "volumeStatus": {
+      "rest": "راحة",
+      "belowMev": "أقل من MEV",
+      "inMav": "ضمن MAV ✓",
+      "aboveMrv": "فوق MRV",
+      "building": "في تصاعد",
+      "nearMrv": "قريب من MRV"
+    }
+  },
+  "body": {
+    "title": "الجسم",
+    "tabs": {
+      "nutrition": "التغذية",
+      "weighIn": "قياس الوزن",
+      "composition": "تكوين الجسم",
+      "measurements": "القياسات",
+      "oneRmCalc": "حاسبة 1RM"
+    },
+    "setupNutrition": "إعداد أهداف التغذية",
+    "caloriesMacros": "السعرات الحرارية والماكرو وأمثلة الوجبات",
+    "noWeighIns": "لم يُسجَّل أي قياس للوزن بعد.",
+    "logged": "مسجَّل ✓",
+    "logWeight": "تسجيل الوزن",
+    "macros": {
+      "protein": "بروتين",
+      "carbs": "كربوهيدرات",
+      "fat": "دهون"
+    },
+    "stats": {
+      "bmi": "BMI",
+      "ffmi": "FFMI",
+      "bodyFat": "دهون الجسم",
+      "leanMass": "الكتلة العضلية"
+    },
+    "bmiNote": "مؤشر BMI مضلل للرياضيين المتدربين.",
+    "syncButton": "مزامنة",
+    "sources": {
+      "navyFormula": "معادلة البحرية",
+      "appleHealth": "Apple Health",
+      "healthConnect": "Health Connect",
+      "smartScale": "ميزان ذكي"
+    },
+    "logMeasurements": "تسجيل القياسات",
+    "measurementsDesc": "الصدر والخصر والذراعين والمزيد",
+    "unlockComposition": "افتح مقاييس تكوين الجسم",
+    "addWaistNeck": "أضف قياسات الخصر والرقبة لفتح نسبة الدهون وFFMI"
+  },
+  "history": {
+    "title": "السجل",
+    "trainingCalendar": "تقويم التدريب",
+    "pastSessions": "الجلسات السابقة",
+    "noActivityThisMonth": "لا نشاط هذا الشهر",
+    "noSessionsLogged": "لم تُسجَّل جلسات بعد",
+    "skipped": "متخطَّاة",
+    "undo": "تراجع",
+    "editSets": "تعديل المجموعات",
+    "setTableHeaders": {
+      "set": "المجموعة",
+      "weight": "الوزن",
+      "reps": "التكرارات"
+    },
+    "noSetsRecorded": "لم تُسجَّل مجموعات",
+    "sessionSkippedNote": "تم تخطي الجلسة. نُقلت الأهداف إلى الأسبوع القادم.",
+    "alerts": {
+      "undoSkipTitle": "التراجع عن التخطي",
+      "undoSkipMessage": "سيستعيد هذا الجلسة ويزيلها من الجلسات المتخطاة. ستعود أهدافك إلى ما كانت عليه قبل ذلك.",
+      "undoSkipConfirm": "تراجع",
+      "undoSkipCancel": "إلغاء"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "sections": {
+      "preferences": "التفضيلات",
+      "activePlan": "الخطة النشطة",
+      "exerciseLibrary": "مكتبة التمارين",
+      "devices": "الأجهزة",
+      "notifications": "الإشعارات",
+      "streak": "السلسلة",
+      "dailySteps": "الخطوات اليومية",
+      "backupRestore": "نسخ احتياطي واستعادة",
+      "profile": "الملف الشخصي",
+      "trainingSchedule": "جدول التدريب",
+      "legal": "القانونية",
+      "dangerZone": "منطقة الخطر",
+      "devTools": "أدوات المطوّر"
+    },
+    "items": {
+      "language": "اللغة",
+      "units": "الوحدات",
+      "lbs": "رطل",
+      "kg": "كجم",
+      "gymType": "موقع التدريب",
+      "gym": "صالة رياضية",
+      "homeGym": "جيم منزلي",
+      "progressionMethod": "طريقة التقدم",
+      "arpo": "ARPO (تلقائي)",
+      "doubleProgression": "التقدم المزدوج",
+      "goal": "الهدف",
+      "strength": "القوة",
+      "powerbuilding": "القوة والضخامة",
+      "hypertrophy": "تضخم العضلات",
+      "customExercises": "تمارين مخصصة",
+      "connectHealth": "ربط بيانات الصحة",
+      "workoutReminder": "تذكير التمرين",
+      "weighInReminder": "تذكير قياس الوزن",
+      "currentStreak": "السلسلة الحالية",
+      "longestStreak": "أطول سلسلة",
+      "dailyStepGoal": "هدف الخطوات اليومية",
+      "backup": "نسخ احتياطي",
+      "restore": "استعادة",
+      "exportData": "تصدير البيانات",
+      "privacyPolicy": "سياسة الخصوصية",
+      "termsOfUse": "شروط الاستخدام",
+      "acknowledgements": "شكر وتقدير",
+      "legalDisclaimer": "إخلاء المسؤولية",
+      "deleteAllData": "حذف جميع البيانات",
+      "resetApp": "إعادة تعيين التطبيق"
+    },
+    "descriptions": {
+      "homeGymMode": "وضع الجيم المنزلي يستبدل تمارين الأثقال والأجهزة بتمارين الدمبل ووزن الجسم.",
+      "arpoDesc": "يضبط POWRLOG الأوزان والحجم تلقائيًا كل أسبوع بناءً على أدائك.",
+      "doubleProgressionDesc": "زِد التكرارات ضمن نطاق معين قبل رفع الوزن. تحكم يدوي.",
+      "dailyStepGoalDesc": "حدد هدفًا يوميًا للخطوات لمراقبة النشاط جنبًا إلى جنب مع التدريب."
+    },
+    "backup": {
+      "modalTitle": "نسخ احتياطي واستعادة",
+      "backupDesc": "احفظ سجل تمارينك وإعداداتك في ملف يمكنك استعادته لاحقًا.",
+      "backupButton": "إنشاء نسخة احتياطية",
+      "restoreDesc": "استعادة من ملف نسخ احتياطي محفوظ مسبقًا.",
+      "restoreButton": "استعادة من نسخة احتياطية",
+      "backingUp": "جاري النسخ الاحتياطي...",
+      "restoring": "جاري الاستعادة...",
+      "backupSuccess": "تم إنشاء النسخة الاحتياطية بنجاح.",
+      "restoreSuccess": "اكتملت الاستعادة.",
+      "backupFailed": "فشل النسخ الاحتياطي. يرجى المحاولة مجددًا.",
+      "restoreFailed": "فشلت الاستعادة. قد يكون الملف غير صالح أو تالفًا."
+    },
+    "dangerZone": {
+      "deleteTitle": "حذف جميع البيانات",
+      "deleteMessage": "سيؤدي هذا إلى حذف جميع سجلات التمارين والخطط وبيانات الملف الشخصي نهائيًا. لا يمكن التراجع.",
+      "deleteConfirm": "حذف كل شيء",
+      "deleteCancel": "إلغاء",
+      "confirmPhrase": "اكتب DELETE للتأكيد",
+      "confirmPlaceholder": "DELETE",
+      "step2Title": "هل أنت متأكد تمامًا؟",
+      "step2Message": "ستُمحى جميع البيانات نهائيًا. ستعود إلى شاشة الإعداد الأولي."
+    },
+    "alerts": {
+      "goalChangeTitle": "تغيير الهدف",
+      "goalChangeMessage": "سيؤدي تغيير هدفك إلى إعادة حساب أهداف التقدم. هل تريد المتابعة؟",
+      "gymChangeTitle": "تغيير موقع التدريب",
+      "gymChangeMessage": "سيؤدي هذا إلى استبدال التمارين ذات الصلة في خطتك الحالية. هل تريد المتابعة؟",
+      "progressionChangeTitle": "تغيير طريقة التقدم",
+      "progressionChangeMessage": "سيؤدي هذا إلى تغيير طريقة حساب الأوزان من الآن فصاعدًا. هل تريد المتابعة؟",
+      "goalChangeSub": "متابعة",
+      "cancel": "إلغاء"
+    },
+    "trial": {
+      "activeTrial": "الفترة التجريبية المجانية",
+      "trialRemaining_one": "متبقي {{count}} جلسة",
+      "trialRemaining_other": "متبقي {{count}} جلسات",
+      "unlockNow": "افتح الآن →"
+    },
+    "purchase": {
+      "unlocked": "POWRLOG مفتوح",
+      "thankYou": "شكرًا لدعمك.",
+      "managePurchase": "إدارة الاشتراك"
+    },
+    "legalDisclaimer": "POWRLOG هو أداة تدريب وليس بديلاً عن الاستشارة الطبية المتخصصة. استشر متخصصًا صحيًا مؤهلاً قبل بدء أي برنامج رياضي، خاصةً إذا كنت تعاني من حالات صحية مسبقة. بيانات التدريب المعروضة هي لأغراض إعلامية فقط."
+  },
+  "workout": {
+    "recovery": {
+      "veryFatigued": "مرهق جدًا",
+      "fatigued": "مرهق",
+      "neutral": "محايد",
+      "fresh": "منتعش",
+      "veryFresh": "منتعش جدًا"
+    },
+    "header": {
+      "day": "اليوم {{number}}",
+      "week": "الأسبوع {{number}}",
+      "deload": "تخفيف"
+    },
+    "deloadBanner": "أسبوع التخفيف — حجم وكثافة مخفضة. ركّز على التقنية والتعافي.",
+    "actions": {
+      "edit": "تعديل",
+      "swap": "استبدال",
+      "reset": "إعادة تعيين",
+      "watch": "مشاهدة"
+    },
+    "setFeedback": {
+      "targetExceeded": "تجاوزت الهدف — الوزن يرتفع في الجلسة القادمة",
+      "targetMet": "تحقق الهدف",
+      "weightBelowTarget": "الوزن أقل من الهدف",
+      "repsBelowTarget": "التكرارات أقل من الهدف"
+    },
+    "myo": {
+      "act": "تنشيط",
+      "rest": "استرح — تنفس بعمق",
+      "miniSetIncoming": "مجموعة صغيرة قادمة",
+      "stopMyo": "إيقاف MYO"
+    },
+    "watchBanner": "تم اكتشاف Apple Watch — سجّل المجموعات من معصمك",
+    "incompleteModal": {
+      "title": "بيانات ناقصة",
+      "message": "بعض المجموعات تفتقر إلى الوزن أو التكرارات. هل تريد إنهاء الجلسة على أي حال؟",
+      "finish": "إنهاء على أي حال",
+      "goBack": "رجوع"
+    },
+    "resetModal": {
+      "title": "إعادة تعيين الجلسة",
+      "message": "سيؤدي هذا إلى مسح جميع المجموعات المسجلة في هذه الجلسة. هل تريد المتابعة؟",
+      "confirm": "إعادة تعيين",
+      "cancel": "إلغاء"
+    },
+    "swapScopeModal": {
+      "title": "تطبيق التغيير على",
+      "justToday": "هذه الجلسة فقط",
+      "everySession": "جميع الجلسات من الآن فصاعدًا",
+      "cancel": "إلغاء"
+    },
+    "exercisePanel": {
+      "addSet": "إضافة مجموعة",
+      "removeSet": "حذف آخر مجموعة",
+      "myoReps": "مجموعات Myo-Rep",
+      "plateCalc": "حاسبة الأقراص",
+      "editExercise": "تعديل التمرين",
+      "swapExercise": "استبدال التمرين"
+    },
+    "setManageModal": {
+      "addTitle": "إضافة مجموعة",
+      "removeTitle": "حذف آخر مجموعة",
+      "applyTo": "تطبيق التغيير على...",
+      "justThisSession": "هذه الجلسة فقط",
+      "justThisSessionSub": "ستعود الجلسة القادمة إلى عدد المجموعات الأصلي",
+      "everySession": "جميع الجلسات من الآن فصاعدًا",
+      "everySessionSub": "تحديث جميع الجلسات المستقبلية في هذه الخطة",
+      "cancel": "إلغاء"
+    },
+    "swapModal": {
+      "title": "استبدال التمرين",
+      "homeGymFilter": "دمبل / وزن الجسم فقط",
+      "homeGymFilterSub": "تصفية حسب معدات الجيم المنزلي",
+      "categoryLabel": "الفئة:",
+      "noAlternatives": "لا توجد بدائل متاحة"
+    },
+    "editExerciseModal": {
+      "title": "تعديل التمرين",
+      "exerciseName": "اسم التمرين",
+      "exerciseNamePlaceholder": "اسم التمرين",
+      "videoUrl": "رابط الفيديو",
+      "videoUrlPlaceholder": "https://youtu.be/...",
+      "weightType": "نوع الوزن",
+      "bodweightOnly": "وزن الجسم فقط",
+      "weightedBW": "+ حزام / دمبل",
+      "saveChanges": "حفظ التغييرات"
+    },
+    "myoExplainer": {
+      "title": "مجموعات Myo-Rep",
+      "subtitle": "تكرارات أكثر فعالية في وقت أقل",
+      "step1Title": "مجموعة التنشيط",
+      "step1Text": "أدِّ مجموعتك حتى الفشل القريب — استهدف 10–15 تكرارًا. هذا يُنشّط وحداتك الحركية.",
+      "step2Title": "راحة 15 ثانية",
+      "step2Text": "يظهر مؤقت تنازلي تلقائيًا. خذ 3–5 أنفاس عميقة — كافية لإزالة حمض اللاكتيك.",
+      "step3Title": "المجموعات الصغيرة (M1، M2 …)",
+      "step3Text": "تظهر صف جديد — أدِّ 3–5 تكرارات بنفس الوزن وسجّلها. يعود مؤقت الراحة تلقائيًا.",
+      "stopTitle": "توقف عندما …",
+      "stopText": "لا تستطيع أداء 3 تكرارات، أو بعد 5 مجموعات صغيرة. اضغط إيقاف MYO في أي وقت للإنهاء مبكرًا.",
+      "bestFor": "الأنسب لـ: ",
+      "bestForDetail": "تمارين العزل كالباي كيرل والرفع الجانبي وتمديدات الترايسبس — لا للتمارين المركبة الثقيلة.",
+      "maybeLater": "ربما لاحقًا",
+      "letsGo": "هيا نبدأ →"
+    },
+    "plateCalc": {
+      "title": "حاسبة الأقراص",
+      "barLabel": "البار",
+      "targetWeight": "الوزن المستهدف ({{unit}})",
+      "placeholder": "مثال: 185",
+      "eachSide": "كل جانب",
+      "total": "المجموع:",
+      "nearestPossible": "(أقرب قيمة ممكنة)",
+      "barOnly": "البار فقط ({{weight}} {{unit}})",
+      "enterWeight": "أدخل وزنًا لعرض توزيع الأقراص"
+    },
+    "videoModal": {
+      "noVideo": "لا يوجد فيديو لهذا التمرين.",
+      "cantPlay": "لا يمكن التشغيل؟",
+      "openInYouTube": "فتح في YouTube"
+    },
+    "tourOverlay": {
+      "stepOf": "الخطوة {{current}} من {{total}}",
+      "back": "رجوع",
+      "skip": "تخطي",
+      "next": "التالي →",
+      "gotIt": "فهمت"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "تدرّب بذكاء.\nتقدّم في كل جلسة.",
+      "subheadline": "برمجة مستندة إلى العلم تتكيف تلقائيًا.",
+      "cta": "ابدأ الآن →",
+      "alreadyHaveAccount": "هل لديك حساب بالفعل؟"
+    },
+    "units": {
+      "title": "رطل أم كيلوجرام؟",
+      "subtitle": "اختر وحدة الوزن المفضلة لديك. يمكنك تغييرها لاحقًا من الإعدادات.",
+      "lbs": "أرطال (lbs)",
+      "lbsSub": "مستخدمة في الولايات المتحدة والمملكة المتحدة",
+      "kg": "كيلوجرام (kg)",
+      "kgSub": "مستخدمة دوليًا",
+      "continue": "متابعة →"
+    },
+    "identity": {
+      "title": "عنك",
+      "subtitle": "يساعدنا هذا في تخصيص برنامجك وأوزانك الابتدائية.",
+      "biologicalSex": "الجنس البيولوجي",
+      "male": "ذكر",
+      "female": "أنثى",
+      "experience": "الخبرة التدريبية",
+      "beginner": "مبتدئ",
+      "beginnerDesc": "أقل من سنة من التدريب المنتظم",
+      "beginnerDetail": "ستكون الأوزان الابتدائية محافظة. سيرفع ARPO مستواها بسرعة مع تقدمك.",
+      "intermediate": "متوسط",
+      "intermediateDesc": "1–3 سنوات من التدريب المنتظم",
+      "intermediateDetail": "أساس متين. جاهز للتقدم المنظم وكتل الحجم.",
+      "advanced": "متقدم",
+      "advancedDesc": "أكثر من 3 سنوات من التدريب المنظم",
+      "advancedDetail": "قريب من سقف إمكاناتك. إدارة التدريب الدوري والحجم أمر بالغ الأهمية.",
+      "continue": "متابعة →"
+    },
+    "physical": {
+      "title": "قياسات الجسم",
+      "subtitle": "تُستخدم لحساب أوزانك الابتدائية وأهدافك الغذائية.",
+      "height": "الطول",
+      "heightFt": "قدم",
+      "heightIn": "بوصة",
+      "heightCm": "سم",
+      "age": "العمر",
+      "ageSuffix": "سنة",
+      "bodyweight": "وزن الجسم",
+      "continue": "متابعة →"
+    },
+    "goals": {
+      "title": "هدفك",
+      "subtitle": "يحدد هذا تركيز تدريبك وأهدافك الغذائية.",
+      "strength": "القوة",
+      "strengthTagline": "زيادة أرقام الحد الأقصى",
+      "powerbuilding": "القوة والضخامة",
+      "powerbuildingTagline": "توازن بين القوة والحجم",
+      "hypertrophy": "تضخم العضلات",
+      "hypertrophyTagline": "أقصى نمو عضلي",
+      "continue": "متابعة →"
+    },
+    "trainingSetup": {
+      "activityLevel": "مستوى النشاط",
+      "sedentary": "خامل",
+      "sedentaryDesc": "ممارسة قليلة أو معدومة للتمارين",
+      "lightlyActive": "نشيط قليلاً",
+      "lightlyActiveDesc": "تمارين خفيفة 1–3 أيام/أسبوع",
+      "moderatelyActive": "نشيط معتدل",
+      "moderatelyActiveDesc": "تمارين معتدلة 3–5 أيام/أسبوع",
+      "veryActive": "نشيط جداً",
+      "veryActiveDesc": "تمارين مكثفة 6–7 أيام/أسبوع",
+      "extraActive": "نشاط استثنائي",
+      "extraActiveDesc": "تمارين قاسية جداً، عمل بدني",
+      "progressionMethod": "طريقة التقدم",
+      "arpo": "ARPO (موصى به)",
+      "arpoDesc": "تعديل تلقائي للوزن والحجم كل أسبوع بناءً على أدائك.",
+      "doubleProgression": "التقدم المزدوج",
+      "doubleProgressionDesc": "زِد التكرارات يدويًا حتى النطاق المستهدف ثم زِد الوزن.",
+      "continue": "متابعة →"
+    },
+    "summary": {
+      "title": "أنت جاهز.",
+      "subtitle": "هذا ملفك الشخصي المخصص.",
+      "tdeeCard": "TDEE",
+      "tdeeUnit": "كيلوكالوري/يوم",
+      "continue": "هيا نبني برنامجك →"
+    },
+    "alerts": {
+      "missingInfoTitle": "معلومات ناقصة",
+      "missingInfoMessage": "يرجى ملء جميع الحقول المطلوبة قبل المتابعة.",
+      "setupFailedTitle": "فشل الإعداد",
+      "setupFailedMessage": "حدث خطأ أثناء حفظ ملفك الشخصي. يرجى المحاولة مجددًا."
+    }
+  },
+  "paywall": {
+    "headline": "أتممت {{count}} جلسة.\nحان وقت الفتح.",
+    "payOnce": "لقد رأيت ما يفعله POWRLOG.\nادفع مرة واحدة. امتلكه للأبد. بدون اشتراك.",
+    "featuresHeading": "كل شيء مشمول",
+    "unlockButton": "افتح POWRLOG — {{price}}",
+    "restorePurchase": "استعادة الشراء السابق",
+    "legalText": "يُخصم الدفع من حساب Apple ID الخاص بك عند التأكيد.\nإدارة من الإعدادات ← [اسمك] ← App Store.",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfUse": "شروط الاستخدام",
+    "alerts": {
+      "purchaseFailedTitle": "فشل الشراء",
+      "noPurchaseFoundTitle": "لم يُعثر على شراء",
+      "noPurchaseFoundDefault": "لم يُعثر على شراء سابق لهذا Apple ID.",
+      "button": "حسناً"
+    }
+  },
+  "autoBuilder": {
+    "title": "إنشاء روتين",
+    "steps": {
+      "basics": "الأساسيات",
+      "muscleFocus": "تركيز العضلات",
+      "preview": "معاينة"
+    },
+    "step1": {
+      "routineName": "اسم الروتين",
+      "trainingDaysPerWeek": "أيام التدريب أسبوعيًا",
+      "setMuscleFocus": "تحديد تركيز العضلات →"
+    },
+    "step2": {
+      "instructions": "حدد الأولوية لكل مجموعة عضلية. سيوزع POWRLOG الحجم وفقًا لذلك.",
+      "priorities": {
+        "skip": "تخطي",
+        "maintain": "الحفاظ",
+        "medium": "متوسط",
+        "high": "عالي"
+      },
+      "generate": "إنشاء الروتين →"
+    },
+    "step3": {
+      "shuffle": "خلط",
+      "allMusclesSkipped": "جميع العضلات مضبوطة على تخطي لهذا اليوم.",
+      "saveRoutine": "حفظ الروتين"
+    }
+  },
+  "customBuilder": {
+    "title": "روتين مخصص",
+    "routineName": "اسم الروتين",
+    "daysPerWeek": "الأيام أسبوعيًا",
+    "addExercise": "إضافة تمرين",
+    "exerciseModal": {
+      "title": "إضافة تمارين — اليوم {{day}}",
+      "done": "تم",
+      "searchPlaceholder": "البحث عن تمارين...",
+      "noExercisesFound": "لم يُعثر على تمارين"
+    },
+    "saveRoutine": "حفظ الروتين المخصص"
+  },
+  "templates": {
+    "title": "اختر روتينًا",
+    "buildManually": "بناء يدوي",
+    "buildManuallyDesc": "اختر التمارين يومًا بيوم",
+    "autoBuild": "POWR Auto-Build",
+    "autoBuildDesc": "حدد الأولويات ونبني لك",
+    "myCustomRoutines": "روتيناتي المخصصة",
+    "preBuiltTemplates": "قوالب جاهزة",
+    "noTemplatesAvailable": "لا توجد قوالب متاحة",
+    "gymModal": {
+      "title": "موقع التدريب",
+      "description": "وضع الجيم المنزلي يستبدل تمارين الأثقال والأجهزة بتمارين الدمبل ووزن الجسم.",
+      "fullGym": "صالة رياضية كاملة",
+      "homeGym": "جيم منزلي"
+    },
+    "deleteModal": {
+      "title": "حذف الروتين؟",
+      "warningText": "سيؤدي هذا إلى حذف هذا الروتين وجميع البيانات المرتبطة به نهائيًا. لا يمكن التراجع.",
+      "confirm": "حذف نهائي",
+      "cancel": "إلغاء"
+    },
+    "switchPlanModals": {
+      "endCurrentTitle": "إنهاء الخطة الحالية؟",
+      "startNewPlan": "بدء خطة جديدة",
+      "keepCurrentPlan": "الاحتفاظ بالخطة الحالية",
+      "alreadyActiveTitle": "نشطة بالفعل",
+      "continuePlan": "متابعة الخطة",
+      "startFresh": "بداية جديدة (الأسبوع 1)"
+    }
+  },
+  "summary": {
+    "workoutComplete": "اكتمل التمرين",
+    "weekDay": "الأسبوع {{week}} — اليوم {{day}}",
+    "sessionLogged": "تم تسجيل الجلسة. تعافَ جيدًا — أهدافك القادمة جاهزة.",
+    "stats": {
+      "volume": "الحجم",
+      "volumeSub": "{{unit}} محرّكة",
+      "exercises": "التمارين",
+      "exercisesSub": "مكتملة",
+      "week": "الأسبوع",
+      "weekSub": "من 4",
+      "rir": "RIR",
+      "rirSub": "هذا الأسبوع"
+    },
+    "personalRecords": "أرقام قياسية شخصية",
+    "prFirstLogged": "(أول قياس مسجّل)",
+    "returnToDashboard": "العودة إلى لوحة التحكم",
+    "editSets": "تعديل المجموعات",
+    "notificationsPrompt": {
+      "title": "حافظ على الانتظام",
+      "body": "جلسة أولى رائعة. الرياضيون الذين يحققون أفضل التقدم يلتزمون بانتظام — هل تريد من POWRLOG تذكيرك؟",
+      "workoutReminder": "تذكير التمرين",
+      "weighInReminder": "تذكير قياس الوزن",
+      "done": "تم",
+      "setReminders": "تعيين التذكيرات →",
+      "continueButton": "متابعة →",
+      "notNow": "ليس الآن"
+    }
+  },
+  "myPlans": {
+    "title": "برنامجي",
+    "noActivePlans": "لا توجد خطط نشطة.",
+    "tapToStart": "اضغط لبدء واحدة →",
+    "otherPlans": "خطط أخرى",
+    "startNewPlan": "بدء خطة جديدة",
+    "planCard": {
+      "active": "نشطة",
+      "weekLabel": "الأسبوع",
+      "phaseLabel": "المرحلة",
+      "targetRir": "RIR المستهدف",
+      "goToWorkout": "انتقل إلى التمرين",
+      "switchToThis": "التبديل إلى هذه"
+    },
+    "alerts": {
+      "abandonTitle": "التخلي عن الخطة",
+      "abandonMessage": "إزالة «{{name}}» من خططك النشطة؟ سيُحفظ سجل تمارينك.",
+      "abandonConfirm": "التخلي",
+      "abandonCancel": "إلغاء"
+    }
+  },
+  "mesoComplete": {
+    "title": "اكتمل الميزوسيكل",
+    "quote": "زال الإرهاق. تكيّفت الأنسجة.",
+    "stats": {
+      "totalVolume": "إجمالي الحجم",
+      "volumeSub": "{{unit}} محرّكة",
+      "sessions": "الجلسات",
+      "sessionsSub": "مكتملة"
+    },
+    "strengthGains": "مكاسب القوة",
+    "tableHeaders": {
+      "exercise": "التمرين",
+      "week1": "الأسبوع 1 ({{unit}})",
+      "peak": "الذروة ({{unit}})",
+      "gain": "+مكسب"
+    },
+    "runItBack": "تشغيله مجددًا",
+    "selectNewRoutine": "اختيار روتين جديد"
+  },
+  "bodyMeasurements": {
+    "title": "قياسات الجسم",
+    "form": {
+      "bodyFat": "نسبة الدهون %",
+      "bodyFatPlaceholder": "مثال: 14.5",
+      "circumferences": "المحيطات ({{unit}})",
+      "fields": {
+        "chest": "الصدر",
+        "waist": "الخصر",
+        "hips": "الوركان",
+        "neck": "الرقبة",
+        "leftArm": "الذراع اليسرى",
+        "rightArm": "الذراع اليمنى",
+        "leftThigh": "الفخذ الأيسر",
+        "rightThigh": "الفخذ الأيمن"
+      },
+      "notes": "ملاحظات (اختياري)",
+      "save": "حفظ القياسات"
+    },
+    "history": {
+      "title": "السجل",
+      "latest": "الأحدث"
+    },
+    "empty": "تتبع قياساتك عبر الزمن لترى التغييرات التي تتجاوز مؤشر الميزان."
+  },
+  "bodyWeightLog": {
+    "title": "سجل الوزن",
+    "logSection": "تسجيل وزن اليوم",
+    "logButton": "تسجيل",
+    "history": "السجل",
+    "empty": "سجّل أول قياس لوزنك أعلاه.\nالمتوسط السبعة أيام يُزيل التذبذبات اليومية.",
+    "alerts": {
+      "deleteTitle": "حذف السجل",
+      "deleteMessage": "إزالة هذا القياس؟",
+      "deleteConfirm": "حذف",
+      "deleteCancel": "إلغاء"
+    }
+  },
+  "oneRepMax": {
+    "title": "حاسبة 1RM",
+    "inputs": {
+      "weightLabel": "الوزن المرفوع ({{unit}})",
+      "repsLabel": "التكرارات",
+      "weightPlaceholderLbs": "مثال: 225",
+      "weightPlaceholderKg": "مثال: 100",
+      "repsPlaceholder": "مثال: 5"
+    },
+    "result": {
+      "label": "الحد الأقصى التقديري لتكرار واحد",
+      "averageNote": "{{unit}} (متوسط 3 معادلات)"
+    },
+    "formulaBreakdown": "تفاصيل المعادلات",
+    "trainingZones": "مناطق التدريب",
+    "empty": "أدخل الوزن وعدد التكرارات لحساب الحد الأقصى التقديري."
+  },
+  "schedulePicker": {
+    "almostDone": "اقتربنا من الانتهاء",
+    "titleTrainingDays": "اختر أيام التدريب",
+    "titleRestDays": "اختر أيام الراحة",
+    "train": "تدريب",
+    "rest": "راحة",
+    "setSchedule": "تعيين الجدول",
+    "saving": "جاري الحفظ...",
+    "skipForNow": "تخطي الآن"
+  },
+  "customExercise": {
+    "title": "تمارين مخصصة",
+    "form": {
+      "title": "تمرين جديد",
+      "exerciseName": "اسم التمرين",
+      "exerciseNamePlaceholder": "مثال: ماكينة الهاك سكوات",
+      "muscleGroup": "المجموعة العضلية / الفئة",
+      "equipment": "المعدات",
+      "addExercise": "إضافة تمرين"
+    },
+    "empty": "أضف تمارين غير موجودة في المكتبة.\nستظهر في قائمة الاستبدال والبناء.",
+    "alerts": {
+      "duplicateTitle": "مكرر",
+      "duplicateMessage": "يوجد تمرين بهذا الاسم بالفعل.",
+      "deleteTitle": "حذف التمرين",
+      "deleteMessage": "إزالة «{{name}}» من تمارينك المخصصة؟",
+      "deleteConfirm": "حذف",
+      "deleteCancel": "إلغاء"
+    }
+  },
+  "healthPermissions": {
+    "title": "ربط بيانات الصحة",
+    "privacyNote": "بياناتك لا تغادر هاتفك أبدًا.",
+    "connectButton": "ربط {{platform}}",
+    "skipButton": "تخطي — سأعدّ هذا لاحقًا من الإعدادات"
+  },
+  "postOnboarding": {
+    "stepLabel": "الخطوة {{current}} من {{total}}",
+    "weights": {
+      "title": "ما الذي ترفعه حاليًا؟",
+      "subtitle": "اضغط على نطاق أو أدخل قيمتك — تمرينان لكل خطوة",
+      "next": "التالي →",
+      "saveAndContinue": "حفظ ومتابعة →",
+      "skip": "تخطي — استخدم تقديرات POWRLOG"
+    }
+  },
+  "nutrition": {
+    "title": "أهداف التغذية",
+    "editButton": "تعديل",
+    "dailyMacros": "الماكرو اليومي",
+    "editGoal": "تعديل الهدف أو التفاصيل"
+  },
+  "nutritionSetup": {
+    "titleOnboarding": "إعداد التغذية",
+    "titleEdit": "إعداد التغذية",
+    "skip": "تخطي",
+    "step1": {
+      "title": "ما هو هدفك؟",
+      "continue": "متابعة →"
+    },
+    "step2": {
+      "title": "تفاصيلك",
+      "continue": "متابعة →"
+    },
+    "step3": {
+      "title": "مستوى النشاط",
+      "continue": "متابعة →"
+    },
+    "step4": {
+      "title": "هدفك",
+      "currentWeight": "الوزن الحالي ({{unit}})",
+      "targetWeight": "الوزن المستهدف ({{unit}})",
+      "continue": "متابعة →"
+    },
+    "step5": {
+      "title": "الجدول الزمني",
+      "checkButton": "تحقق مما إذا كان هذا واقعيًا",
+      "calculateTargets": "احسب أهدافي →"
+    }
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "confirm": "تأكيد",
+    "continue": "متابعة",
+    "back": "رجوع",
+    "skip": "تخطي",
+    "done": "تم",
+    "edit": "تعديل",
+    "loading": "جاري التحميل...",
+    "retry": "إعادة المحاولة",
+    "error": "خطأ",
+    "ok": "حسناً",
+    "next": "التالي",
+    "previous": "السابق",
+    "search": "بحث",
+    "add": "إضافة",
+    "remove": "إزالة",
+    "reset": "إعادة تعيين",
+    "yes": "نعم",
+    "no": "لا"
+  }
+}
