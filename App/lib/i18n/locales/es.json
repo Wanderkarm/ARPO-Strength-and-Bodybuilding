@@ -55,7 +55,7 @@
       "belowMev": "Por debajo del MEV",
       "inMav": "En MAV ✓",
       "aboveMrv": "Por encima del MRV",
-      "building": "En construcción",
+      "building": "Aumentando",
       "nearMrv": "Cerca del MRV"
     }
   },
@@ -63,7 +63,7 @@
     "title": "Cuerpo",
     "tabs": {
       "nutrition": "Nutrición",
-      "weighIn": "Pesaje",
+      "weighIn": "Registro de peso",
       "composition": "Composición",
       "measurements": "Medidas",
       "oneRmCalc": "Calculadora de 1RM"
@@ -130,7 +130,7 @@
       "notifications": "Notificaciones",
       "streak": "Racha",
       "dailySteps": "Pasos diarios",
-      "backupRestore": "Copia de seguridad y restauración",
+      "backupRestore": "Respaldo y restauración",
       "profile": "Perfil",
       "trainingSchedule": "Horario de entrenamiento",
       "legal": "Legal",
@@ -576,7 +576,7 @@
   },
   "mesoComplete": {
     "title": "Mesociclo completado",
-    "quote": "Fatiga disipada. Tejido adaptado.",
+    "quote": "Descansaste. Cuerpo recuperado.",
     "stats": {
       "totalVolume": "Volumen total",
       "volumeSub": "{{unit}} movidos",
