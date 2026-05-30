@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -26,15 +27,15 @@ import {
 
 type MeasurementKey = "chestCm" | "waistCm" | "hipsCm" | "leftArmCm" | "rightArmCm" | "leftThighCm" | "rightThighCm" | "neckCm";
 
-const FIELDS: { key: MeasurementKey; label: string; icon: string }[] = [
-  { key: "chestCm",      label: "Chest",        icon: "body-outline" },
-  { key: "waistCm",      label: "Waist",        icon: "body-outline" },
-  { key: "hipsCm",       label: "Hips",         icon: "body-outline" },
-  { key: "neckCm",       label: "Neck",         icon: "body-outline" },
-  { key: "leftArmCm",   label: "Left Arm",     icon: "barbell-outline" },
-  { key: "rightArmCm",  label: "Right Arm",    icon: "barbell-outline" },
-  { key: "leftThighCm", label: "Left Thigh",   icon: "body-outline" },
-  { key: "rightThighCm",label: "Right Thigh",  icon: "body-outline" },
+const FIELDS: { key: MeasurementKey; labelKey: string; icon: string }[] = [
+  { key: "chestCm",      labelKey: "bodyMeasurements.form.fields.chest",      icon: "body-outline" },
+  { key: "waistCm",      labelKey: "bodyMeasurements.form.fields.waist",      icon: "body-outline" },
+  { key: "hipsCm",       labelKey: "bodyMeasurements.form.fields.hips",       icon: "body-outline" },
+  { key: "neckCm",       labelKey: "bodyMeasurements.form.fields.neck",       icon: "body-outline" },
+  { key: "leftArmCm",   labelKey: "bodyMeasurements.form.fields.leftArm",    icon: "barbell-outline" },
+  { key: "rightArmCm",  labelKey: "bodyMeasurements.form.fields.rightArm",   icon: "barbell-outline" },
+  { key: "leftThighCm", labelKey: "bodyMeasurements.form.fields.leftThigh",  icon: "body-outline" },
+  { key: "rightThighCm",labelKey: "bodyMeasurements.form.fields.rightThigh", icon: "body-outline" },
 ];
 
 // ─── Unit conversion helpers ──────────────────────────────────────────────────
@@ -57,6 +58,7 @@ function displayMeasurement(cm: number | null, unit: string): string {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function BodyMeasurementsScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -176,7 +178,7 @@ export default function BodyMeasurementsScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            Body Measurements
+            {t('bodyMeasurements.title')}
           </Text>
         </View>
         <Pressable
@@ -198,20 +200,20 @@ export default function BodyMeasurementsScreen() {
           {showForm && (
             <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16, marginBottom: 20 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>
-                New Measurement ({measureUnit})
+                {t('bodyMeasurements.form.circumferences', { unit: measureUnit })}
               </Text>
 
               {/* Body fat — highlighted at top since it's the primary metric */}
               <View style={{ borderWidth: 1, borderColor: Colors.primary + "55", borderLeftWidth: 3, borderLeftColor: Colors.primary, backgroundColor: Colors.primary + "08", padding: 12, marginBottom: 14 }}>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-                  Body Fat %
+                  {t('bodyMeasurements.form.bodyFat')}
                 </Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <TextInput
                     value={bodyFatInput}
                     onChangeText={setBodyFatInput}
                     keyboardType="decimal-pad"
-                    placeholder="e.g. 14.5"
+                    placeholder={t('bodyMeasurements.form.bodyFatPlaceholder')}
                     placeholderTextColor={Colors.textMuted}
                     style={{
                       flex: 1,
@@ -235,13 +237,13 @@ export default function BodyMeasurementsScreen() {
 
               {/* Circumference measurements */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
-                Circumferences ({measureUnit})
+                {t('bodyMeasurements.form.circumferences', { unit: measureUnit })}
               </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                 {FIELDS.map(field => (
                   <View key={field.key} style={{ width: "47%" }}>
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 5 }}>
-                      {field.label}
+                      {t(field.labelKey)}
                     </Text>
                     <TextInput
                       value={inputs[field.key]}
@@ -268,7 +270,7 @@ export default function BodyMeasurementsScreen() {
               <TextInput
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Notes (optional)"
+                placeholder={t('bodyMeasurements.form.notes')}
                 placeholderTextColor={Colors.textMuted}
                 multiline
                 style={{
@@ -299,7 +301,7 @@ export default function BodyMeasurementsScreen() {
                 {saving
                   ? <ActivityIndicator color={Colors.text} />
                   : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                      Save Measurements
+                      {t('bodyMeasurements.form.save')}
                     </Text>
                 }
               </Pressable>
@@ -310,7 +312,7 @@ export default function BodyMeasurementsScreen() {
           {history.length > 0 && (
             <>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-                History
+                {t('bodyMeasurements.history.title')}
               </Text>
 
               {history.map((entry, i) => {
@@ -347,7 +349,7 @@ export default function BodyMeasurementsScreen() {
                       </View>
                       {i === 0 && (
                         <View style={{ borderWidth: 1, borderColor: Colors.primary + "55", backgroundColor: Colors.primary + "11", paddingHorizontal: 8, paddingVertical: 3, marginRight: 8 }}>
-                          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Latest</Text>
+                          <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>{t('bodyMeasurements.history.latest')}</Text>
                         </View>
                       )}
                       <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={14} color={Colors.textMuted} />
@@ -361,7 +363,7 @@ export default function BodyMeasurementsScreen() {
                           {entry.bodyFatPct != null && (
                             <View style={{ width: "47%", marginBottom: 4 }}>
                               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 }}>
-                                Body Fat
+                                {t('body.stats.bodyFat')}
                               </Text>
                               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
                                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text }}>
@@ -387,7 +389,7 @@ export default function BodyMeasurementsScreen() {
                             return (
                               <View key={field.key} style={{ width: "47%", marginBottom: 4 }}>
                                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 }}>
-                                  {field.label}
+                                  {t(field.labelKey)}
                                 </Text>
                                 <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
                                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text }}>
@@ -420,7 +422,7 @@ export default function BodyMeasurementsScreen() {
             <View style={{ alignItems: "center", paddingTop: 40 }}>
               <Ionicons name="body-outline" size={48} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, marginTop: 12, textAlign: "center" }}>
-                Track your measurements over time to see changes beyond the scale.
+                {t('bodyMeasurements.empty')}
               </Text>
             </View>
           )}

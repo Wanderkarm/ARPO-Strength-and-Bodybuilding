@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -58,6 +59,7 @@ const GOAL_META: Record<string, { label: string; icon: keyof typeof Ionicons.gly
 };
 
 export default function BodyScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
 
@@ -333,7 +335,7 @@ export default function BodyScreen() {
             textTransform: "uppercase",
             letterSpacing: 2,
           }}>
-            Body
+            {t('body.title')}
           </Text>
         </View>
 
@@ -356,7 +358,7 @@ export default function BodyScreen() {
               marginBottom: 12,
             }}>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Nutrition
+                {t('body.tabs.nutrition')}
               </Text>
               <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
             </View>
@@ -374,9 +376,9 @@ export default function BodyScreen() {
                 </View>
                 <View style={{ flexDirection: "row", gap: 8 }}>
                   {[
-                    { label: "Protein", value: `${macros.proteinG}g`, color: "#EF5350" },
-                    { label: "Carbs",   value: `${macros.carbsG}g`,   color: Colors.primary },
-                    { label: "Fat",     value: `${macros.fatG}g`,     color: "#FFA726" },
+                    { label: t('body.macros.protein'), value: `${macros.proteinG}g`, color: "#EF5350" },
+                    { label: t('body.macros.carbs'),   value: `${macros.carbsG}g`,   color: Colors.primary },
+                    { label: t('body.macros.fat'),     value: `${macros.fatG}g`,     color: "#FFA726" },
                   ].map(m => (
                     <View key={m.label} style={{
                       flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 8, alignItems: "center",
@@ -393,8 +395,8 @@ export default function BodyScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Ionicons name="nutrition-outline" size={26} color={Colors.textMuted} />
                 <View>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>Set up nutrition targets</Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>Calories, macros & meal examples</Text>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>{t('body.setupNutrition')}</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>{t('body.caloriesMacros')}</Text>
                 </View>
               </View>
             )}
@@ -404,7 +406,7 @@ export default function BodyScreen() {
           <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Weigh-in
+                {t('body.tabs.weighIn')}
               </Text>
               <Pressable onPress={() => router.push("/body-weight-log")} hitSlop={8}>
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 0.5 }}>
@@ -437,7 +439,7 @@ export default function BodyScreen() {
               </>
             ) : (
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, marginBottom: 12 }}>
-                No weigh-ins logged yet.
+                {t('body.noWeighIns')}
               </Text>
             )}
 
@@ -470,7 +472,7 @@ export default function BodyScreen() {
                   {loggingWeight
                     ? <ActivityIndicator color={Colors.text} size="small" />
                     : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                        {weightLogged ? "Logged ✓" : "Log"}
+                        {weightLogged ? t('body.logged') : t('bodyWeightLog.logButton')}
                       </Text>
                   }
                 </Pressable>
@@ -482,14 +484,14 @@ export default function BodyScreen() {
           <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Composition
+                {t('body.tabs.composition')}
               </Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 {bodyFatSource === "navy_formula" && bodyFatPct !== null && (
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                     <Ionicons name="calculator-outline" size={11} color={Colors.textMuted} />
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
-                      Navy formula
+                      {t('body.sources.navyFormula')}
                     </Text>
                   </View>
                 )}
@@ -497,9 +499,9 @@ export default function BodyScreen() {
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                     <Ionicons name="hardware-chip-outline" size={11} color={Colors.primary} />
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.primary }}>
-                      {latestMeasurement?.source === "apple_health" ? "Apple Health"
-                        : latestMeasurement?.source === "google_fit" ? "Health Connect"
-                        : latestMeasurement?.source === "smart_scale" ? "Smart Scale"
+                      {latestMeasurement?.source === "apple_health" ? t('body.sources.appleHealth')
+                        : latestMeasurement?.source === "google_fit" ? t('body.sources.healthConnect')
+                        : latestMeasurement?.source === "smart_scale" ? t('body.sources.smartScale')
                         : "Device"}
                     </Text>
                   </View>
@@ -528,7 +530,7 @@ export default function BodyScreen() {
                     }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                          BMI
+                          {t('body.stats.bmi')}
                         </Text>
                         <InfoTip term="BMI" size={11} />
                       </View>
@@ -551,7 +553,7 @@ export default function BodyScreen() {
                       paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
                     }}>
                       <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                        Body Fat
+                        {t('body.stats.bodyFat')}
                       </Text>
                       <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: bodyFatMeta.color, lineHeight: 26 }}>
                         {bodyFatPct.toFixed(1)}%
@@ -573,7 +575,7 @@ export default function BodyScreen() {
                     }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                          FFMI
+                          {t('body.stats.ffmi')}
                         </Text>
                         <InfoTip term="FFMI" size={11} />
                       </View>
@@ -593,7 +595,7 @@ export default function BodyScreen() {
                       paddingHorizontal: 12, paddingVertical: 10, minWidth: 100, flex: 1,
                     }}>
                       <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                        Lean Mass
+                        {t('body.stats.leanMass')}
                       </Text>
                       <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, lineHeight: 26 }}>
                         {unit === "lbs" ? kgToLbs(leanMassKg).toFixed(1) : leanMassKg.toFixed(1)}
@@ -639,7 +641,7 @@ export default function BodyScreen() {
                   }}>
                     <Ionicons name="information-circle-outline" size={15} color={Colors.primary} style={{ marginTop: 1 }} />
                     <Text style={{ flex: 1, fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 17 }}>
-                      <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>BMI is misleading for trained athletes.</Text>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>{t('body.bmiNote')}</Text>
                       {" "}Your FFMI accounts for muscle mass and is the better metric for lifters. A higher BMI with a strong FFMI just means you carry more muscle.
                     </Text>
                   </View>
@@ -669,7 +671,7 @@ export default function BodyScreen() {
                       ) : (
                         <>
                           <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.text }}>
-                            Add waist &amp; neck to unlock body fat % and FFMI
+                            {t('body.addWaistNeck')}
                           </Text>
                           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
                             Calculated using the U.S. Navy formula — no scale needed
@@ -696,7 +698,7 @@ export default function BodyScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>
-                    Unlock body composition metrics
+                    {t('body.unlockComposition')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>
                     BMI · Body fat % · FFMI · Lean mass
@@ -739,7 +741,7 @@ export default function BodyScreen() {
                     />
                   )}
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {Platform.OS === "ios" ? "Sync from Apple Health" : "Sync from Health Connect"}
+                    {Platform.OS === "ios" ? t('dashboard.stepsModal.syncApple') : `Sync from ${t('body.sources.healthConnect')}`}
                   </Text>
                 </Pressable>
                 {lastSyncAt && !syncing && (
@@ -760,7 +762,7 @@ export default function BodyScreen() {
           >
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: latestMeasurement ? 10 : 0 }}>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Measurements
+                {t('body.tabs.measurements')}
               </Text>
               <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
             </View>
@@ -800,8 +802,8 @@ export default function BodyScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
                 <Ionicons name="body-outline" size={26} color={Colors.textMuted} />
                 <View>
-                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>Log measurements</Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>Chest, waist, arms &amp; more</Text>
+                  <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>{t('body.logMeasurements')}</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>{t('body.measurementsDesc')}</Text>
                 </View>
               </View>
             )}
@@ -826,7 +828,7 @@ export default function BodyScreen() {
               </View>
               <View>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.text }}>
-                  1RM Calculator
+                  {t('body.tabs.oneRmCalc')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>
                   Estimate your one-rep max from any set
@@ -871,7 +873,7 @@ export default function BodyScreen() {
               {loggingWeight
                 ? <ActivityIndicator color={Colors.text} size="small" />
                 : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {weightLogged ? "Logged ✓" : "Log Weight"}
+                    {weightLogged ? t('body.logged') : t('body.logWeight')}
                   </Text>
               }
             </Pressable>

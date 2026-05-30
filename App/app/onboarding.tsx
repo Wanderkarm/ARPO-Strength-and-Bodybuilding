@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from 'react-i18next';
 import Colors from "@/constants/colors";
 import {
   estimateWeights,
@@ -41,36 +42,24 @@ type Step = "welcome" | "unit" | "identity" | "physical" | "goals" | "training" 
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
-const EXPERIENCE_OPTIONS: { value: ExperienceLevel; label: string; desc: string; detail: string }[] = [
-  {
-    value: "BEGINNER",
-    label: "Beginner",
-    desc: "Less than 1 year of consistent training",
-    detail: "Lower starting volume — your body responds well to almost anything right now.",
-  },
-  {
-    value: "INTERMEDIATE",
-    label: "Intermediate",
-    desc: "1–3 years of consistent training",
-    detail: "Moderate volume with progressive overload. The sweet spot for most people.",
-  },
-  {
-    value: "ADVANCED",
-    label: "Advanced",
-    desc: "3+ years of serious training",
-    detail: "Higher volume and intensity needed to keep driving adaptation.",
-  },
-];
+const EXPERIENCE_VALUES: ExperienceLevel[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
 
-const BODY_GOALS: { key: BodyGoal; label: string; tagline: string; icon: keyof typeof Ionicons.glyphMap; color: string }[] = [
-  { key: "cut",    label: "Lose Fat",     tagline: "Caloric deficit · Preserve muscle · Lean out",        icon: "trending-down",  color: "#E53935" },
-  { key: "recomp", label: "Recompose",    tagline: "Lose fat & gain muscle simultaneously",                icon: "swap-vertical",  color: Colors.primary },
-  { key: "bulk",   label: "Build Muscle", tagline: "Caloric surplus · Maximise muscle growth",            icon: "trending-up",    color: "#43A047" },
-];
+const BODY_GOAL_KEYS: BodyGoal[] = ["cut", "recomp", "bulk"];
+const BODY_GOAL_ICONS: Record<BodyGoal, keyof typeof Ionicons.glyphMap> = {
+  cut:    "trending-down",
+  recomp: "swap-vertical",
+  bulk:   "trending-up",
+};
+const BODY_GOAL_COLORS: Record<BodyGoal, string> = {
+  cut:    "#E53935",
+  recomp: Colors.primary,
+  bulk:   "#43A047",
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -165,7 +154,10 @@ export default function OnboardingScreen() {
 
   async function handleComplete() {
     if (!gender || !experience) {
-      Alert.alert("Missing Info", "Please go back and select your biological sex and training experience.");
+      Alert.alert(
+        t('onboarding.alerts.missingInfoTitle'),
+        t('onboarding.alerts.missingInfoMessage'),
+      );
       return;
     }
     setSaving(true);
@@ -227,9 +219,9 @@ export default function OnboardingScreen() {
     } catch (err) {
       console.error(err);
       Alert.alert(
-        "Setup Failed",
-        err instanceof Error ? err.message : "Unable to save your profile. Please try again.",
-        [{ text: "OK" }]
+        t('onboarding.alerts.setupFailedTitle'),
+        err instanceof Error ? err.message : t('onboarding.alerts.setupFailedMessage'),
+        [{ text: t('common.ok') }]
       );
     } finally {
       setSaving(false);
@@ -277,7 +269,7 @@ export default function OnboardingScreen() {
     marginBottom: 28,
   };
 
-  const continueBtn = (onPress: () => void, disabled = false, label = "Continue →") => (
+  const continueBtn = (onPress: () => void, disabled = false, label = t('common.continue')) => (
     <View style={{
       paddingHorizontal: 24,
       paddingVertical: 12,
@@ -328,7 +320,7 @@ export default function OnboardingScreen() {
           textTransform: "uppercase",
           letterSpacing: 2,
         }}>
-          Step {currentStepNumber} of {NUMBERED_STEPS.length}
+          {t('postOnboarding.stepLabel', { current: currentStepNumber, total: NUMBERED_STEPS.length })}
         </Text>
       </View>
 
@@ -376,7 +368,7 @@ export default function OnboardingScreen() {
               marginBottom: 10,
               lineHeight: 34,
             }}>
-              Training that{"\n"}learns you.
+              {t('onboarding.welcome.headline')}
             </Text>
             <Text style={{
               fontFamily: "Rubik_400Regular",
@@ -385,7 +377,7 @@ export default function OnboardingScreen() {
               lineHeight: 22,
               marginBottom: 28,
             }}>
-              Answer a few questions and POWRLOG builds a complete program around your body, experience, and goals — then adjusts it every single session.
+              {t('onboarding.welcome.subheadline')}
             </Text>
 
             {[
@@ -447,7 +439,7 @@ export default function OnboardingScreen() {
               textTransform: "uppercase",
               letterSpacing: 2,
             }}>
-              Build My Program →
+              {t('onboarding.welcome.cta')}
             </Text>
           </Pressable>
         </View>
@@ -457,9 +449,9 @@ export default function OnboardingScreen() {
       {step === "unit" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Pounds or Kilograms?</Text>
+            <Text style={titleStyle}>{t('onboarding.units.title')}</Text>
             <Text style={subtitleStyle}>
-              Every weight in POWRLOG — your lifts, targets, and bodyweight — uses this unit throughout the app.
+              {t('onboarding.units.subtitle')}
             </Text>
 
             {(["lbs", "kg"] as WeightUnit[]).map(u => (
@@ -481,10 +473,10 @@ export default function OnboardingScreen() {
               >
                 <View>
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                    {u === "lbs" ? "Pounds" : "Kilograms"}
+                    {u === "lbs" ? t('onboarding.units.lbs') : t('onboarding.units.kg')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, marginTop: 4 }}>
-                    {u === "lbs" ? "lbs — USA, Canada" : "kg — most of the world"}
+                    {u === "lbs" ? t('onboarding.units.lbsSub') : t('onboarding.units.kgSub')}
                   </Text>
                 </View>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 32, color: weightUnit === u ? Colors.primary : Colors.textMuted, letterSpacing: -1 }}>
@@ -500,14 +492,14 @@ export default function OnboardingScreen() {
       {step === "identity" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>About You</Text>
+            <Text style={titleStyle}>{t('onboarding.identity.title')}</Text>
             <Text style={subtitleStyle}>
-              These two selections are required to personalise your training targets.
+              {t('onboarding.identity.subtitle')}
             </Text>
 
             {/* ── Biological Sex ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              Biological Sex
+              {t('onboarding.identity.biologicalSex')}
             </Text>
 
             {([["MALE", "male"], ["FEMALE", "female"]] as [Gender, keyof typeof Ionicons.glyphMap][]).map(([g, icon]) => (
@@ -528,7 +520,7 @@ export default function OnboardingScreen() {
                 })}
               >
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  {g === "MALE" ? "Male" : "Female"}
+                  {g === "MALE" ? t('onboarding.identity.male') : t('onboarding.identity.female')}
                 </Text>
                 <Ionicons name={icon} size={24} color={gender === g ? Colors.primary : Colors.textMuted} />
               </Pressable>
@@ -538,38 +530,39 @@ export default function OnboardingScreen() {
 
             {/* ── Training Experience ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              Training Experience
+              {t('onboarding.identity.experience')}
             </Text>
 
-            {EXPERIENCE_OPTIONS.map(opt => (
+            {EXPERIENCE_VALUES.map(value => (
               <Pressable
-                key={opt.value}
-                onPress={() => { haptic(); setExperience(opt.value); }}
+                key={value}
+                onPress={() => { haptic(); setExperience(value); }}
                 style={({ pressed }) => ({
                   borderWidth: 1,
-                  borderColor: experience === opt.value ? Colors.primary : Colors.border,
-                  backgroundColor: experience === opt.value ? Colors.bgAccent : Colors.bg,
+                  borderColor: experience === value ? Colors.primary : Colors.border,
+                  backgroundColor: experience === value ? Colors.bgAccent : Colors.bg,
                   paddingVertical: 18,
                   paddingHorizontal: 20,
                   marginBottom: 12,
                   opacity: pressed ? 0.85 : 1,
                 })}
               >
-                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: experience === opt.value ? Colors.primary : Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                  {opt.label}
+                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: experience === value ? Colors.primary : Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                  {t(`onboarding.identity.${value.toLowerCase()}`)}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginBottom: 4 }}>
-                  {opt.desc}
+                  {t(`onboarding.identity.${value.toLowerCase()}Desc`)}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, fontStyle: "italic" }}>
-                  {opt.detail}
+                  {t(`onboarding.identity.${value.toLowerCase()}Detail`)}
                 </Text>
               </Pressable>
             ))}
           </ScrollView>
           {continueBtn(
             () => { haptic(); setStep("physical"); },
-            !(gender !== null && experience !== null)
+            !(gender !== null && experience !== null),
+            t('onboarding.identity.continue'),
           )}
         </>
       )}
@@ -578,21 +571,21 @@ export default function OnboardingScreen() {
       {step === "physical" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Body Stats</Text>
+            <Text style={titleStyle}>{t('onboarding.physical.title')}</Text>
             <Text style={subtitleStyle}>
-              Optional — used to calculate your calorie and macro targets. Defaults are applied if skipped.
+              {t('onboarding.physical.subtitle')}
             </Text>
 
             {/* ── Height ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Height
+              {t('onboarding.physical.height')}
             </Text>
 
             {weightUnit === "lbs" ? (
               <View style={{ flexDirection: "row", gap: 10, marginBottom: 32 }}>
                 {[
-                  { value: heightFt, onChange: handleHeightFtChange, label: "Feet" },
-                  { value: heightIn, onChange: handleHeightInChange, label: "Inches" },
+                  { value: heightFt, onChange: handleHeightFtChange, label: t('onboarding.physical.heightFt') },
+                  { value: heightIn, onChange: handleHeightInChange, label: t('onboarding.physical.heightIn') },
                 ].map(f => (
                   <View key={f.label} style={{ flex: 1 }}>
                     <TextInput
@@ -615,13 +608,13 @@ export default function OnboardingScreen() {
                   keyboardType="decimal-pad"
                   style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
                 />
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>cm</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, width: 30 }}>{t('onboarding.physical.heightCm')}</Text>
               </View>
             )}
 
             {/* ── Age ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Age
+              {t('onboarding.physical.age')}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <TextInput
@@ -632,7 +625,7 @@ export default function OnboardingScreen() {
                 placeholderTextColor={Colors.textMuted}
                 style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bgAccent, paddingHorizontal: 14, paddingVertical: 14, fontFamily: "Rubik_600SemiBold", fontSize: 22, color: Colors.text, textAlign: "center" }}
               />
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>yrs</Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>{t('onboarding.physical.ageSuffix')}</Text>
             </View>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 8 }}>
               Metabolism slows ~1–2% per decade after 25 — age adjusts your TDEE accordingly.
@@ -645,7 +638,7 @@ export default function OnboardingScreen() {
               style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1, marginBottom: 4 })}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Continue →
+                {t('onboarding.physical.continue')}
               </Text>
             </Pressable>
             <Pressable
@@ -659,7 +652,7 @@ export default function OnboardingScreen() {
               style={({ pressed }) => ({ alignItems: "center", paddingVertical: 12, opacity: pressed ? 0.6 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Skip — use defaults
+                {t('common.skip')}
               </Text>
             </Pressable>
           </View>
@@ -670,42 +663,48 @@ export default function OnboardingScreen() {
       {step === "goals" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Your Goal</Text>
+            <Text style={titleStyle}>{t('onboarding.goals.title')}</Text>
             <Text style={subtitleStyle}>
-              What are you training for? This shapes your nutrition targets and program structure.
+              {t('onboarding.goals.subtitle')}
             </Text>
 
-            {BODY_GOALS.map(g => (
-              <Pressable
-                key={g.key}
-                onPress={() => { haptic(); setBodyGoal(g.key); }}
-                style={({ pressed }) => ({
-                  borderWidth: 1,
-                  borderLeftWidth: 3,
-                  borderColor: bodyGoal === g.key ? g.color : Colors.border,
-                  borderLeftColor: g.color,
-                  backgroundColor: bodyGoal === g.key ? g.color + "11" : Colors.bg,
-                  paddingHorizontal: 16,
-                  paddingVertical: 18,
-                  marginBottom: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 14,
-                  opacity: pressed ? 0.8 : 1,
-                })}
-              >
-                <Ionicons name={g.icon} size={24} color={g.color} />
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: bodyGoal === g.key ? g.color : Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {g.label}
-                  </Text>
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                    {g.tagline}
-                  </Text>
-                </View>
-                {bodyGoal === g.key && <Ionicons name="checkmark-circle" size={20} color={g.color} />}
-              </Pressable>
-            ))}
+            {BODY_GOAL_KEYS.map(key => {
+              const icon = BODY_GOAL_ICONS[key];
+              const color = BODY_GOAL_COLORS[key];
+              const labelKey = key === "cut" ? "strength" : key === "recomp" ? "powerbuilding" : "hypertrophy";
+              const taglineKey = key === "cut" ? "strengthTagline" : key === "recomp" ? "powerbuildingTagline" : "hypertrophyTagline";
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => { haptic(); setBodyGoal(key); }}
+                  style={({ pressed }) => ({
+                    borderWidth: 1,
+                    borderLeftWidth: 3,
+                    borderColor: bodyGoal === key ? color : Colors.border,
+                    borderLeftColor: color,
+                    backgroundColor: bodyGoal === key ? color + "11" : Colors.bg,
+                    paddingHorizontal: 16,
+                    paddingVertical: 18,
+                    marginBottom: 10,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 14,
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                >
+                  <Ionicons name={icon} size={24} color={color} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: bodyGoal === key ? color : Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
+                      {t(`onboarding.goals.${labelKey}`)}
+                    </Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
+                      {t(`onboarding.goals.${taglineKey}`)}
+                    </Text>
+                  </View>
+                  {bodyGoal === key && <Ionicons name="checkmark-circle" size={20} color={color} />}
+                </Pressable>
+              );
+            })}
 
             {bodyGoal === "recomp" && (
               <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginTop: 4, marginBottom: 16, backgroundColor: Colors.bgAccent }}>
@@ -718,7 +717,7 @@ export default function OnboardingScreen() {
               </View>
             )}
           </ScrollView>
-          {continueBtn(() => { haptic(); setStep("training"); })}
+          {continueBtn(() => { haptic(); setStep("training"); }, false, t('onboarding.goals.continue'))}
         </>
       )}
 
@@ -726,14 +725,14 @@ export default function OnboardingScreen() {
       {step === "training" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Training Setup</Text>
+            <Text style={titleStyle}>{t('settings.sections.trainingSchedule')}</Text>
             <Text style={subtitleStyle}>
               These two settings shape how your program progresses. Both can be changed anytime in Settings.
             </Text>
 
             {/* ── Activity Level ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              Activity Level
+              {t('onboarding.trainingSetup.activityLevel')}
             </Text>
 
             {(Object.entries(ACTIVITY_LABELS) as [ActivityLevel, typeof ACTIVITY_LABELS[ActivityLevel]][]).map(([key, val]) => (
@@ -771,22 +770,22 @@ export default function OnboardingScreen() {
 
             {/* ── Progression Method ── */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              Progression Method
+              {t('onboarding.trainingSetup.progressionMethod')}
             </Text>
 
             {([
               {
                 key: "arpo" as const,
-                label: "ARPO",
+                label: t('onboarding.trainingSetup.arpo'),
                 subtitle: "Autoregulated Progressive Overload",
-                description: "Adjusts your volume each week based on pump quality and soreness — backed by research on fatigue management. Great default for most lifters.",
+                description: t('onboarding.trainingSetup.arpoDesc'),
                 accentColor: Colors.primary,
               },
               {
                 key: "double_progression" as const,
-                label: "Double Progression",
+                label: t('onboarding.trainingSetup.doubleProgression'),
                 subtitle: "Rep → Weight ladder",
-                description: "Hold the weight and chase the top rep of your range across all sets. Hit it → add weight, reset to the bottom. Simple and battle-tested for strength.",
+                description: t('onboarding.trainingSetup.doubleProgressionDesc'),
                 accentColor: "#F59E0B",
               },
             ]).map((m) => (
@@ -833,6 +832,8 @@ export default function OnboardingScreen() {
                 setStep("summary");
               }
             },
+            false,
+            t('onboarding.trainingSetup.continue'),
           )}
         </>
       )}
@@ -841,7 +842,7 @@ export default function OnboardingScreen() {
       {step === "target" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>Your Target</Text>
+            <Text style={titleStyle}>{t('nutritionSetup.step4.title')}</Text>
             <Text style={subtitleStyle}>
               {bodyGoal === "cut" ? "Where do you want to end up?" : "How much do you want to build up to?"}
               {" "}Both fields are optional — skip to set this later in{" "}
@@ -850,7 +851,7 @@ export default function OnboardingScreen() {
 
             {/* Current weight */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Current Weight ({weightUnit})
+              {t('nutritionSetup.step4.currentWeight', { unit: weightUnit })}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 24 }}>
               <TextInput
@@ -866,7 +867,7 @@ export default function OnboardingScreen() {
 
             {/* Target weight */}
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Target Weight ({weightUnit})
+              {t('nutritionSetup.step4.targetWeight', { unit: weightUnit })}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <TextInput
@@ -892,7 +893,7 @@ export default function OnboardingScreen() {
               style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1, marginBottom: 4 })}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Continue →
+                {t('nutritionSetup.step4.continue')}
               </Text>
             </Pressable>
             <Pressable
@@ -900,7 +901,7 @@ export default function OnboardingScreen() {
               style={({ pressed }) => ({ alignItems: "center", paddingVertical: 14, opacity: pressed ? 0.6 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Skip — set in Settings → Nutrition later
+                {t('common.skip')}
               </Text>
             </Pressable>
           </View>
@@ -1010,14 +1011,18 @@ export default function OnboardingScreen() {
                 );
               })()}
             </ScrollView>
-            {continueBtn(() => { haptic(); setStep("summary"); })}
+            {continueBtn(() => { haptic(); setStep("summary"); }, false, t('nutritionSetup.step5.calculateTargets'))}
           </>
         );
       })()}
 
       {/* ── SUMMARY ─────────────────────────────────────────────────────────── */}
       {step === "summary" && (() => {
-        const goalMeta = BODY_GOALS.find(g => g.key === bodyGoal)!;
+        const goalColor = BODY_GOAL_COLORS[bodyGoal];
+        const goalLabelKey = bodyGoal === "cut" ? "strength" : bodyGoal === "recomp" ? "powerbuilding" : "hypertrophy";
+        const goalTaglineKey = bodyGoal === "cut" ? "strengthTagline" : bodyGoal === "recomp" ? "powerbuildingTagline" : "hypertrophyTagline";
+        const goalLabel = t(`onboarding.goals.${goalLabelKey}`);
+        const goalTagline = t(`onboarding.goals.${goalTaglineKey}`);
         const heightDisplay = weightUnit === "lbs"
           ? `${heightFt}'${heightIn}"`
           : `${heightCm} cm`;
@@ -1030,9 +1035,9 @@ export default function OnboardingScreen() {
           : null;
 
         const rows: Array<{ label: string; value: string; sub?: string }> = [
-          { label: "Goal", value: goalMeta.label, sub: goalMeta.tagline },
-          { label: "Training", value: `${experience ?? "—"} · ${gender === "MALE" ? "Male" : "Female"}` },
-          { label: "Physique", value: [heightDisplay, age ? `${age} yrs` : null, bodyweight ? `${bodyweight} ${weightUnit}` : null].filter(Boolean).join(" · ") || "—" },
+          { label: "Goal", value: goalLabel, sub: goalTagline },
+          { label: "Training", value: `${experience ?? "—"} · ${gender === "MALE" ? t('onboarding.identity.male') : t('onboarding.identity.female')}` },
+          { label: "Physique", value: [heightDisplay, age ? `${age} ${t('onboarding.physical.ageSuffix')}` : null, bodyweight ? `${bodyweight} ${weightUnit}` : null].filter(Boolean).join(" · ") || "—" },
           { label: "Activity", value: ACTIVITY_LABELS[activityLevel]?.label ?? activityLevel },
           ...(bodyGoal !== "recomp" && (currentWeight || targetWeight)
             ? [{ label: "Target", value: [currentWeight ? `${currentWeight} ${weightUnit} now` : null, targetWeight ? `→ ${targetWeight} ${weightUnit}` : null].filter(Boolean).join("  ") }]
@@ -1045,9 +1050,9 @@ export default function OnboardingScreen() {
         return (
           <>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-              <Text style={titleStyle}>All Set.</Text>
+              <Text style={titleStyle}>{t('onboarding.summary.title')}</Text>
               <Text style={subtitleStyle}>
-                Here's your profile — choose a program next.
+                {t('onboarding.summary.subtitle')}
               </Text>
 
               {/* Profile rows */}
@@ -1071,15 +1076,15 @@ export default function OnboardingScreen() {
               {tdeeEstimate !== null && (
                 <View style={{
                   borderWidth: 1, borderColor: Colors.border,
-                  borderLeftWidth: 3, borderLeftColor: goalMeta.color,
-                  backgroundColor: goalMeta.color + "0A",
+                  borderLeftWidth: 3, borderLeftColor: goalColor,
+                  backgroundColor: goalColor + "0A",
                   padding: 16, marginTop: 20,
                 }}>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>
-                    Estimated Daily Calories
+                    {t('onboarding.summary.tdeeCard')}
                   </Text>
-                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 28, color: goalMeta.color, letterSpacing: -1 }}>
-                    ~{targetCalories?.toLocaleString()} kcal
+                  <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 28, color: goalColor, letterSpacing: -1 }}>
+                    ~{targetCalories?.toLocaleString()} {t('onboarding.summary.tdeeUnit')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 4 }}>
                     {bodyGoal === "cut" && `Maintenance ~${tdeeEstimate.toLocaleString()} kcal · ${Math.abs(paceDeficit)} kcal deficit`}
@@ -1102,7 +1107,7 @@ export default function OnboardingScreen() {
                 {saving
                   ? <ActivityIndicator color={Colors.text} />
                   : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                      Choose My Program →
+                      {t('onboarding.summary.continue')}
                     </Text>
                 }
               </Pressable>

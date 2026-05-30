@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -86,6 +87,7 @@ const ANDROID_PERMISSIONS = [
 ];
 
 export default function HealthPermissions() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [requesting, setRequesting] = useState(false);
 
@@ -159,7 +161,7 @@ export default function HealthPermissions() {
             fontFamily: "Rubik_700Bold", fontSize: 22,
             color: Colors.text, textAlign: "center",
           }}>
-            Connect Health Data
+            {t('healthPermissions.title')}
           </Text>
           <Text style={{
             fontFamily: "Rubik_400Regular", fontSize: 13,
@@ -264,7 +266,7 @@ export default function HealthPermissions() {
             color: Colors.textMuted, lineHeight: 16,
           }}>
             <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>
-              Your data never leaves your phone.{" "}
+              {t('healthPermissions.privacyNote')}{" "}
             </Text>
             POWRLOG reads from {Platform.OS === "ios" ? "Apple Health" : "Health Connect"} locally.
             Nothing is uploaded, sold, or shared — ever.
@@ -302,7 +304,7 @@ export default function HealthPermissions() {
                 fontFamily: "Rubik_700Bold", fontSize: 15,
                 color: "white", textTransform: "uppercase", letterSpacing: 1.5,
               }}>
-                Connect {Platform.OS === "ios" ? "Apple Health" : "Health Connect"}
+                {t('healthPermissions.connectButton', { platform: Platform.OS === "ios" ? "Apple Health" : "Health Connect" })}
               </Text>
             </>
           )}
@@ -313,7 +315,7 @@ export default function HealthPermissions() {
             fontFamily: "Rubik_400Regular", fontSize: 12,
             color: Colors.textMuted, textAlign: "center",
           }}>
-            Skip — I'll set this up later in Settings
+            {t('healthPermissions.skipButton')}
           </Text>
         </Pressable>
       </View>

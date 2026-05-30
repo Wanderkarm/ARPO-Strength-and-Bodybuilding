@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -63,6 +64,8 @@ import {
   type RestorePreview,
   type POWRLOGBackup,
 } from "@/lib/backup";
+import { changeAppLanguage, SUPPORTED_LANGUAGES, type LanguageCode } from "@/lib/i18n";
+import i18n from "@/lib/i18n";
 
 // ─── Small reusable section header ──────────────────────────────────────────
 
@@ -136,6 +139,7 @@ function PillToggle<T extends string>({
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit, refreshUnit } = useUnit();
@@ -143,6 +147,9 @@ export default function SettingsScreen() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [currentLang, setCurrentLang] = useState<LanguageCode>(
+    i18n.language.startsWith("es") ? "es" : "en"
+  );
   const [userId, setUserId] = useState<string | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   // User profile
@@ -273,6 +280,26 @@ export default function SettingsScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  // ── Language change ──────────────────────────────────────────────────────
+
+  function handleLanguagePress() {
+    Alert.alert(
+      t("settings.items.language"),
+      undefined,
+      [
+        ...SUPPORTED_LANGUAGES.map(({ code, label }) => ({
+          text: label,
+          onPress: async () => {
+            await changeAppLanguage(code);
+            setCurrentLang(code);
+            if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          },
+        })),
+        { text: t("common.cancel"), style: "cancel" as const },
+      ]
+    );
   }
 
   // ── Bodyweight save ──────────────────────────────────────────────────────
@@ -413,43 +440,68 @@ export default function SettingsScreen() {
             textTransform: "uppercase",
             letterSpacing: 3,
           }}>
-            Settings
+            {t('settings.title')}
           </Text>
         </View>
 
         {/* ── Preferences ── */}
-        <SectionHeader title="Preferences" />
+        <SectionHeader title={t('settings.sections.preferences')} />
 
         {/* Unit toggle */}
         <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <View>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                Weight Unit
+                {t('settings.items.units')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                Used throughout the app
+                {t('settings.items.units')}
               </Text>
             </View>
             {saving && <ActivityIndicator size="small" color={Colors.primary} />}
           </View>
           <PillToggle
             options={[
-              { label: "Pounds (lbs)", value: "lbs" },
-              { label: "Kilograms (kg)", value: "kg" },
+              { label: t('onboarding.units.lbs'), value: "lbs" },
+              { label: t('onboarding.units.kg'), value: "kg" },
             ]}
             value={unit}
             onChange={handleUnitChange}
           />
         </View>
 
+        {/* Language */}
+        <Pressable
+          onPress={handleLanguagePress}
+          style={({ pressed }) => ({
+            borderWidth: 1,
+            borderColor: Colors.border,
+            padding: 14,
+            marginBottom: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
+            {t("settings.items.language")}
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>
+              {SUPPORTED_LANGUAGES.find((l) => l.code === currentLang)?.label ?? "English"}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
+          </View>
+        </Pressable>
+
         {/* Bodyweight */}
         <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2 }}>
-            Bodyweight
+            {t('onboarding.physical.bodyweight')}
           </Text>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12 }}>
-            Used to calculate bodyweight exercise targets
+            {t('onboarding.physical.bodyweight')}
           </Text>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <TextInput
@@ -491,7 +543,7 @@ export default function SettingsScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                Save
+                {t('common.save')}
               </Text>
             </Pressable>
           </View>
@@ -500,7 +552,7 @@ export default function SettingsScreen() {
         {/* ── Active Plan ── */}
         {hasPlan && (
           <>
-            <SectionHeader title="Active Plan" />
+            <SectionHeader title={t('settings.sections.activePlan')} />
 
             {/* Plan info pill */}
             <View style={{
@@ -519,7 +571,7 @@ export default function SettingsScreen() {
                   {templateName}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                  Week {currentWeek} · Meso Week {mesoWeek}
+                  {t('myPlans.planCard.weekLabel')} {currentWeek} · {t('myPlans.planCard.weekLabel')} {mesoWeek}
                 </Text>
               </View>
               <View style={{
@@ -556,10 +608,10 @@ export default function SettingsScreen() {
             >
               <View>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                  Change Plan
+                  {t('dashboard.changeRoutine')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                  Browse templates and start a new mesocycle
+                  {t('dashboard.browseTemplates')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
@@ -570,18 +622,18 @@ export default function SettingsScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <View>
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                    Gym Type
+                    {t('settings.items.gymType')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                    Switches exercises for all remaining sessions
+                    {t('settings.alerts.gymChangeMessage')}
                   </Text>
                 </View>
                 {switchingGym && <ActivityIndicator size="small" color={Colors.primary} />}
               </View>
               <PillToggle
                 options={[
-                  { label: "🏠  Home", value: "HOME" },
-                  { label: "🏋️  Full Gym", value: "GYM" },
+                  { label: "🏠  " + t('settings.items.homeGym'), value: "HOME" },
+                  { label: "🏋️  " + t('settings.items.gym'), value: "GYM" },
                 ]}
                 value={gymType}
                 onChange={handleGymTypeChange}
@@ -594,18 +646,18 @@ export default function SettingsScreen() {
                 lineHeight: 15,
               }}>
                 {gymType === "HOME"
-                  ? "Using dumbbell & bodyweight alternatives. Switch back any time — your full-gym weights are saved."
-                  : "Using barbell & machine exercises. Switch to Home any time — your home weights are saved."}
+                  ? t('settings.descriptions.homeGymMode')
+                  : t('settings.descriptions.homeGymMode')}
               </Text>
             </View>
 
             {/* Training goal */}
             <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2 }}>
-                Training Goal
+                {t('settings.items.goal')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12 }}>
-                Changes rep targets and volume ranges from the next session
+                {t('settings.alerts.goalChangeMessage')}
               </Text>
               <View style={{ gap: 6 }}>
                 {GOAL_META.map((g) => (
@@ -651,10 +703,10 @@ export default function SettingsScreen() {
             {/* Progression Method */}
             <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2 }}>
-                Progression Method
+                {t('settings.items.progressionMethod')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12 }}>
-                How your weights and reps advance each week
+                {t('settings.alerts.progressionChangeMessage')}
               </Text>
               <View style={{ gap: 6 }}>
                 {([
@@ -718,7 +770,7 @@ export default function SettingsScreen() {
         )}
 
         {/* ── Exercise Library ── */}
-        <SectionHeader title="Exercise Library" />
+        <SectionHeader title={t('settings.sections.exerciseLibrary')} />
         <Pressable
           onPress={() => router.push("/custom-exercise")}
           style={({ pressed }) => ({
@@ -746,10 +798,10 @@ export default function SettingsScreen() {
             </View>
             <View>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                Custom Exercises
+                {t('settings.items.customExercises')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                Add exercises not in the library
+                {t('customExercise.form.addExercise')}
               </Text>
             </View>
           </View>
@@ -757,7 +809,7 @@ export default function SettingsScreen() {
         </Pressable>
 
         {/* ── Devices ── */}
-        <SectionHeader title="Devices" />
+        <SectionHeader title={t('settings.sections.devices')} />
 
         <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 }}>
@@ -767,7 +819,7 @@ export default function SettingsScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                  Workout Tracker Reminder
+                  {t('settings.items.workoutReminder')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2, lineHeight: 15 }}>
                   {watchReminderEnabled
@@ -808,7 +860,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* ── Notifications ── */}
-        <SectionHeader title="Notifications" />
+        <SectionHeader title={t('settings.sections.notifications')} />
 
         {/* Training reminder (unified — replaces old workout + streak) */}
         {(() => {
@@ -847,7 +899,7 @@ export default function SettingsScreen() {
                     <Ionicons name="barbell-outline" size={17} color={Colors.primary} />
                   </View>
                   <View>
-                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Training Reminder</Text>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('settings.items.workoutReminder')}</Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
                       {enabled ? `Daily at ${timeStr} · rotates messages` : "Off"}
                     </Text>
@@ -858,7 +910,7 @@ export default function SettingsScreen() {
               {enabled && (
                 <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                    Reminder Time
+                    {t('settings.items.workoutReminder')}
                   </Text>
                   <Pressable
                     onPress={() => setShowReminderPicker(true)}
@@ -872,7 +924,7 @@ export default function SettingsScreen() {
                   >
                     <Ionicons name="time-outline" size={16} color={Colors.primary} />
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{timeStr}</Text>
-                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                    <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>{t('common.edit')}</Text>
                   </Pressable>
                   {showReminderPicker && Platform.OS === "android" && (
                     <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
@@ -883,7 +935,7 @@ export default function SettingsScreen() {
                         <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
                           <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
                             <Pressable onPress={() => setShowReminderPicker(false)} hitSlop={12}>
-                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>{t('common.done')}</Text>
                             </Pressable>
                           </View>
                           <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
@@ -934,7 +986,7 @@ export default function SettingsScreen() {
                       <Ionicons name="scale-outline" size={17} color={Colors.primary} />
                     </View>
                     <View>
-                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Weigh-in Reminder</Text>
+                      <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('settings.items.weighInReminder')}</Text>
                       <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
                         {enabled ? `Daily at ${timeStr}` : "Off"}
                       </Text>
@@ -945,7 +997,7 @@ export default function SettingsScreen() {
                 {enabled && (
                   <View style={{ paddingHorizontal: 14, paddingBottom: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 10 }}>
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-                      Reminder Time
+                      {t('settings.items.weighInReminder')}
                     </Text>
                     <Pressable
                       onPress={() => setShowWeighinPicker(true)}
@@ -959,7 +1011,7 @@ export default function SettingsScreen() {
                     >
                       <Ionicons name="time-outline" size={16} color={Colors.primary} />
                       <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.primary, flex: 1 }}>{timeStr}</Text>
-                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>Tap to change</Text>
+                      <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>{t('common.edit')}</Text>
                     </Pressable>
                     {showWeighinPicker && Platform.OS === "android" && (
                       <DateTimePicker value={pickerDate} mode="time" display="default" onChange={onTimeChange} />
@@ -970,7 +1022,7 @@ export default function SettingsScreen() {
                           <View style={{ backgroundColor: "#1C1C1E", paddingBottom: 20 }}>
                             <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.border }}>
                               <Pressable onPress={() => setShowWeighinPicker(false)} hitSlop={12}>
-                                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Done</Text>
+                                <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>{t('common.done')}</Text>
                               </Pressable>
                             </View>
                             <DateTimePicker value={pickerDate} mode="time" display="spinner" textColor="#FFFFFF" onChange={onTimeChange} style={{ height: 180 }} />
@@ -986,15 +1038,15 @@ export default function SettingsScreen() {
         ]}
 
         {/* ── Streak ── */}
-        <SectionHeader title="Streak" />
+        <SectionHeader title={t('settings.sections.streak')} />
         <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <View>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>
-                Current Streak
+                {t('settings.items.currentStreak')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                Log a workout or weigh-in every day
+                {t('settings.sections.streak')}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -1006,20 +1058,20 @@ export default function SettingsScreen() {
           </View>
           {streak.longest > 0 && (
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
-              Personal best: {streak.longest} day{streak.longest !== 1 ? "s" : ""}
+              {t('settings.items.longestStreak')}: {streak.longest}
             </Text>
           )}
         </View>
 
 
         {/* ── Steps ── */}
-        <SectionHeader title="Daily Steps" />
+        <SectionHeader title={t('settings.sections.dailySteps')} />
         <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 2 }}>
-            Daily Step Goal
+            {t('settings.items.dailyStepGoal')}
           </Text>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12 }}>
-            Log your daily steps from the Home tab. Your progress toward this goal is shown there each day.
+            {t('settings.descriptions.dailyStepGoalDesc')}
           </Text>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <TextInput
@@ -1066,7 +1118,7 @@ export default function SettingsScreen() {
               {savingStepGoal
                 ? <ActivityIndicator color={Colors.text} size="small" />
                 : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {stepGoalSaved ? "Saved ✓" : "Save"}
+                    {stepGoalSaved ? t('body.logged') : t('common.save')}
                   </Text>
               }
             </Pressable>
@@ -1074,7 +1126,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* ── Backup & Restore ── */}
-        <SectionHeader title="Backup & Restore" />
+        <SectionHeader title={t('settings.sections.backupRestore')} />
         <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8, padding: 16 }}>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
             Save a copy of all your workout history, body data, and custom routines. Send it to yourself by email, save it to Google Drive, iCloud, or any cloud storage — and restore it any time if you reinstall or switch phones.
@@ -1105,7 +1157,7 @@ export default function SettingsScreen() {
               : <Ionicons name="cloud-upload-outline" size={18} color="#FFF" />
             }
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: "#FFF", textTransform: "uppercase", letterSpacing: 1.5 }}>
-              {exportingBackup ? "Preparing..." : "Export Backup"}
+              {exportingBackup ? t('settings.backup.backingUp') : t('settings.items.exportData')}
             </Text>
           </Pressable>
 
@@ -1132,7 +1184,7 @@ export default function SettingsScreen() {
           >
             <Ionicons name="cloud-download-outline" size={18} color={Colors.textSecondary} />
             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-              Restore from Backup
+              {t('settings.backup.restoreButton')}
             </Text>
           </Pressable>
         </View>
@@ -1147,7 +1199,7 @@ export default function SettingsScreen() {
           <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#00000088" }}>
             <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 24, paddingBottom: 36 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                Restore This Backup?
+                {t('settings.backup.modalTitle')}
               </Text>
               {restorePreview && (
                 <>
@@ -1197,14 +1249,14 @@ export default function SettingsScreen() {
                   >
                     {restoring
                       ? <ActivityIndicator color="#FFF" />
-                      : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFF", textTransform: "uppercase", letterSpacing: 1.5 }}>Restore</Text>
+                      : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFF", textTransform: "uppercase", letterSpacing: 1.5 }}>{t('settings.items.restore')}</Text>
                     }
                   </Pressable>
                   <Pressable
                     onPress={() => setRestorePreview(null)}
                     style={({ pressed }) => ({ paddingVertical: 14, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
                   >
-                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Cancel</Text>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{t('common.cancel')}</Text>
                   </Pressable>
                 </>
               )}
@@ -1213,12 +1265,12 @@ export default function SettingsScreen() {
         </Modal>
 
         {/* ── Profile ── */}
-        <SectionHeader title="Profile" />
+        <SectionHeader title={t('settings.sections.profile')} />
         <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 8 }}>
           <View style={{ flexDirection: "row", gap: 24 }}>
             <View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                Gender
+                {t('onboarding.identity.biologicalSex')}
               </Text>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, textTransform: "capitalize" }}>
                 {gender.charAt(0) + gender.slice(1).toLowerCase()}
@@ -1226,7 +1278,7 @@ export default function SettingsScreen() {
             </View>
             <View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                Experience
+                {t('onboarding.identity.experience')}
               </Text>
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, textTransform: "capitalize" }}>
                 {experience.charAt(0) + experience.slice(1).toLowerCase()}
@@ -1238,7 +1290,7 @@ export default function SettingsScreen() {
         {/* ── Training Schedule ── */}
         {hasPlan && planId && (
           <>
-            <SectionHeader title="Training Schedule" />
+            <SectionHeader title={t('settings.sections.trainingSchedule')} />
             <Pressable
               onPress={() => router.push({
                 pathname: "/schedule-picker",
@@ -1253,10 +1305,10 @@ export default function SettingsScreen() {
             >
               <View>
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.text }}>
-                  Edit Training Days
+                  {t('settings.sections.trainingSchedule')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>
-                  Set which days of the week you train
+                  {t('schedulePicker.titleTrainingDays')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
@@ -1268,10 +1320,10 @@ export default function SettingsScreen() {
         {isPurchased ? (
           <View style={{ borderWidth: 1, borderColor: Colors.primary + "44", borderLeftWidth: 3, borderLeftColor: Colors.primary, backgroundColor: Colors.primary + "0A", padding: 14, marginBottom: 24 }}>
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 2 }}>
-              ✓ Full Access
+              ✓ {t('settings.purchase.unlocked')}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
-              POWRLOG unlocked — thanks for your support.
+              {t('settings.purchase.thankYou')}
             </Text>
           </View>
         ) : trialWorkoutsRemaining > 0 ? (
@@ -1286,10 +1338,10 @@ export default function SettingsScreen() {
           >
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 2 }}>
-                Free Trial — {trialWorkoutsRemaining} session{trialWorkoutsRemaining !== 1 ? "s" : ""} remaining
+                {t('settings.trial.activeTrial')} — {t('settings.trial.trialRemaining', { count: trialWorkoutsRemaining })}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
-                Unlock for {UNLOCK_PRICE_LABEL} — one-time, no subscription.
+                {t('settings.trial.unlockNow')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#F59E0B" />
@@ -1297,11 +1349,11 @@ export default function SettingsScreen() {
         ) : null}
 
         {/* ── Legal ── */}
-        <SectionHeader title="Legal" />
+        <SectionHeader title={t('settings.sections.legal')} />
         <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 8 }}>
           {[
-            { label: "Privacy Policy", url: "https://powrlog.com/privacy" },
-            { label: "Terms of Use",   url: "https://powrlog.com/terms" },
+            { label: t('settings.items.privacyPolicy'), url: "https://powrlog.com/privacy" },
+            { label: t('settings.items.termsOfUse'),   url: "https://powrlog.com/terms" },
           ].map((item, i) => (
             <Pressable
               key={item.label}
@@ -1319,11 +1371,11 @@ export default function SettingsScreen() {
           ))}
         </View>
         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16, marginBottom: 24, paddingHorizontal: 4 }}>
-          POWRLOG is not a medical app. Always consult a physician before beginning any exercise program.
+          {t('settings.legalDisclaimer')}
         </Text>
 
         {/* ── Danger Zone ── */}
-        <SectionHeader title="Danger Zone" />
+        <SectionHeader title={t('settings.sections.dangerZone')} />
         <View style={{ borderWidth: 1, borderColor: "#E5393522", borderLeftWidth: 3, borderLeftColor: "#E53935", padding: 16, marginBottom: 8 }}>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 16 }}>
             Permanently delete all your data — workout history, body logs, plans, and profile. This cannot be undone. Export a backup first if you want to keep your data.
@@ -1377,7 +1429,7 @@ export default function SettingsScreen() {
           >
             <Ionicons name="trash-outline" size={16} color="#E53935" />
             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: "#E53935", textTransform: "uppercase", letterSpacing: 1 }}>
-              Delete All Data
+              {t('settings.items.deleteAllData')}
             </Text>
           </Pressable>
         </View>
@@ -1385,7 +1437,7 @@ export default function SettingsScreen() {
         {/* ── Dev Tools (only visible in dev builds, never in production) ── */}
         {__DEV__ && (
           <>
-            <SectionHeader title="Dev Tools" />
+            <SectionHeader title={t('settings.sections.devTools')} />
             <View style={{ borderWidth: 1, borderColor: "#F59E0B44", borderLeftWidth: 3, borderLeftColor: "#F59E0B", padding: 16, marginBottom: 8, gap: 10 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, lineHeight: 16 }}>
                 These controls are only visible in development builds and are hidden in production.

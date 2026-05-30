@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View, Text, Pressable, Platform, ScrollView, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +17,7 @@ import { getWeekStartDay, getOrderedDays, DAY_FULL } from "@/utils/weekStart";
  *   destination: "post-onboarding" | "tabs" | "back"
  */
 export default function SchedulePickerScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { planId, daysPerWeek: daysParam, destination } = useLocalSearchParams<{
     planId: string;
@@ -110,10 +112,10 @@ export default function SchedulePickerScreen() {
         {/* Header */}
         <View style={{ paddingTop: 24, paddingBottom: 28 }}>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-            Almost done
+            {t('schedulePicker.almostDone')}
           </Text>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
-            {pickingRestDays ? "Choose Rest Days" : "Choose Training Days"}
+            {pickingRestDays ? t('schedulePicker.titleRestDays') : t('schedulePicker.titleTrainingDays')}
           </Text>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 20 }}>
             {pickingRestDays
@@ -126,7 +128,7 @@ export default function SchedulePickerScreen() {
         {/* Selection counter */}
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
-            {pickingRestDays ? "Rest days" : "Training days"}
+            {pickingRestDays ? t('schedulePicker.rest') : t('schedulePicker.train')}
           </Text>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: selectionComplete ? Colors.success : Colors.primary }}>
             {selected.size} / {requiredCount}
@@ -181,13 +183,13 @@ export default function SchedulePickerScreen() {
             </Text>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <View>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Train</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{t('schedulePicker.train')}</Text>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text }}>
                   {trainingPreview.length > 0 ? trainingPreview.map((d) => DAY_FULL[d].slice(0, 3)).join(", ") : "—"}
                 </Text>
               </View>
               <View style={{ alignItems: "flex-end" }}>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Rest</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{t('schedulePicker.rest')}</Text>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textSecondary }}>
                   {restPreview.length > 0 ? restPreview.map((d) => DAY_FULL[d].slice(0, 3)).join(", ") : "—"}
                 </Text>
@@ -215,7 +217,7 @@ export default function SchedulePickerScreen() {
             textTransform: "uppercase",
             letterSpacing: 2,
           }}>
-            {saving ? "Saving..." : "Set Schedule"}
+            {saving ? t('schedulePicker.saving') : t('schedulePicker.setSchedule')}
           </Text>
         </Pressable>
 
@@ -225,7 +227,7 @@ export default function SchedulePickerScreen() {
           style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, alignItems: "center", paddingVertical: 10 })}
         >
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
-            Skip for now
+            {t('schedulePicker.skipForNow')}
           </Text>
         </Pressable>
 

@@ -1,0 +1,755 @@
+{
+  "dashboard": {
+    "noRoutineActive": "No Routine Active",
+    "browseTemplates": "Browse Workout Templates →",
+    "powrHub": "POWR Hub",
+    "startWorkout": "Start Workout",
+    "startDeload": "Start Deload",
+    "skipSession": "Skip Session",
+    "sessionComplete": "Session Complete",
+    "myProgram": "My Program",
+    "changeRoutine": "Change Routine",
+    "trialCountdown_one": "{{count}} free session left",
+    "trialCountdown_other": "{{count}} free sessions left",
+    "trialCountdownSub": "Unlock POWRLOG to keep going →",
+    "unlockBanner": "Upgrade to keep training",
+    "recoveryTile": {
+      "title": "Recovery",
+      "noData": "No data yet",
+      "learnMore": "Learn More"
+    },
+    "stepsModal": {
+      "title": "Log Today's Steps",
+      "save": "Save Steps",
+      "syncApple": "Sync from Apple Health",
+      "placeholder": "e.g. 8500"
+    },
+    "alerts": {
+      "skipSessionTitle": "Skip Session?",
+      "skipSessionMessage": "This session will be marked as skipped and your targets will carry over to next week.",
+      "skipSessionConfirm": "Skip",
+      "skipSessionCancel": "Cancel",
+      "restartSetupTitle": "Restart Setup",
+      "restartSetupMessage": "This will reset your profile and training setup. Your workout history will be kept. Continue?",
+      "restartSetupConfirm": "Restart",
+      "restartSetupCancel": "Cancel"
+    },
+    "nudgeBanners": {
+      "logWeightTitle": "Log Your Weight",
+      "logWeightDesc": "Track body composition progress",
+      "setupNutritionTitle": "Set Up Nutrition",
+      "setupNutritionDesc": "Personalised calories & macros"
+    }
+  },
+  "progress": {
+    "title": "Progress",
+    "strengthProgress": "Strength Progress",
+    "volumeTracker": "Volume Tracker",
+    "theScience": "The Science",
+    "couldntLoad": "Couldn't Load Progress",
+    "noActivePlan": "No Active Plan",
+    "retry": "Retry",
+    "moreDataNextWeek": "More data next week",
+    "volumeStatus": {
+      "rest": "Rest",
+      "belowMev": "Below MEV",
+      "inMav": "In MAV ✓",
+      "aboveMrv": "Above MRV",
+      "building": "Building",
+      "nearMrv": "Near MRV"
+    }
+  },
+  "body": {
+    "title": "Body",
+    "tabs": {
+      "nutrition": "Nutrition",
+      "weighIn": "Weigh-in",
+      "composition": "Composition",
+      "measurements": "Measurements",
+      "oneRmCalc": "1RM Calculator"
+    },
+    "setupNutrition": "Set up nutrition targets",
+    "caloriesMacros": "Calories, macros & meal examples",
+    "noWeighIns": "No weigh-ins logged yet.",
+    "logged": "Logged ✓",
+    "logWeight": "Log Weight",
+    "macros": {
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat"
+    },
+    "stats": {
+      "bmi": "BMI",
+      "ffmi": "FFMI",
+      "bodyFat": "Body Fat",
+      "leanMass": "Lean Mass"
+    },
+    "bmiNote": "BMI is misleading for trained athletes.",
+    "syncButton": "Sync",
+    "sources": {
+      "navyFormula": "Navy formula",
+      "appleHealth": "Apple Health",
+      "healthConnect": "Health Connect",
+      "smartScale": "Smart Scale"
+    },
+    "logMeasurements": "Log measurements",
+    "measurementsDesc": "Chest, waist, arms & more",
+    "unlockComposition": "Unlock body composition metrics",
+    "addWaistNeck": "Add waist & neck to unlock body fat % and FFMI"
+  },
+  "history": {
+    "title": "History",
+    "trainingCalendar": "Training Calendar",
+    "pastSessions": "Past Sessions",
+    "noActivityThisMonth": "No activity this month",
+    "noSessionsLogged": "No sessions logged yet",
+    "skipped": "Skipped",
+    "undo": "Undo",
+    "editSets": "Edit Sets",
+    "setTableHeaders": {
+      "set": "Set",
+      "weight": "Weight",
+      "reps": "Reps"
+    },
+    "noSetsRecorded": "No sets recorded",
+    "sessionSkippedNote": "Session was skipped. Targets carried to next week.",
+    "alerts": {
+      "undoSkipTitle": "Undo Skip",
+      "undoSkipMessage": "This will restore this session and remove it from skipped sessions. Your targets will revert to what they were before.",
+      "undoSkipConfirm": "Undo",
+      "undoSkipCancel": "Cancel"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "preferences": "Preferences",
+      "activePlan": "Active Plan",
+      "exerciseLibrary": "Exercise Library",
+      "devices": "Devices",
+      "notifications": "Notifications",
+      "streak": "Streak",
+      "dailySteps": "Daily Steps",
+      "backupRestore": "Backup & Restore",
+      "profile": "Profile",
+      "trainingSchedule": "Training Schedule",
+      "legal": "Legal",
+      "dangerZone": "Danger Zone",
+      "devTools": "Dev Tools"
+    },
+    "items": {
+      "language": "Language",
+      "units": "Units",
+      "lbs": "lbs",
+      "kg": "kg",
+      "gymType": "Training Location",
+      "gym": "Gym",
+      "homeGym": "Home Gym",
+      "progressionMethod": "Progression Method",
+      "arpo": "ARPO (Auto)",
+      "doubleProgression": "Double Progression",
+      "goal": "Goal",
+      "strength": "Strength",
+      "powerbuilding": "Powerbuilding",
+      "hypertrophy": "Hypertrophy",
+      "customExercises": "Custom Exercises",
+      "connectHealth": "Connect Health Data",
+      "workoutReminder": "Workout Reminder",
+      "weighInReminder": "Weigh-in Reminder",
+      "currentStreak": "Current Streak",
+      "longestStreak": "Longest Streak",
+      "dailyStepGoal": "Daily Step Goal",
+      "backup": "Backup",
+      "restore": "Restore",
+      "exportData": "Export Data",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfUse": "Terms of Use",
+      "acknowledgements": "Acknowledgements",
+      "legalDisclaimer": "Legal Disclaimer",
+      "deleteAllData": "Delete All Data",
+      "resetApp": "Reset App"
+    },
+    "descriptions": {
+      "homeGymMode": "Home gym mode swaps barbell and machine exercises for dumbbell and bodyweight alternatives.",
+      "arpoDesc": "POWRLOG auto-adjusts weight and volume each week based on your performance.",
+      "doubleProgressionDesc": "Increase reps within a range before adding weight. Manual control.",
+      "dailyStepGoalDesc": "Set a daily step target to monitor activity alongside training."
+    },
+    "backup": {
+      "modalTitle": "Backup & Restore",
+      "backupDesc": "Save your workout history and settings to a file you can restore later.",
+      "backupButton": "Create Backup",
+      "restoreDesc": "Restore from a previously saved backup file.",
+      "restoreButton": "Restore from Backup",
+      "backingUp": "Backing up...",
+      "restoring": "Restoring...",
+      "backupSuccess": "Backup created successfully.",
+      "restoreSuccess": "Restore complete.",
+      "backupFailed": "Backup failed. Please try again.",
+      "restoreFailed": "Restore failed. The file may be invalid or corrupted."
+    },
+    "dangerZone": {
+      "deleteTitle": "Delete All Data",
+      "deleteMessage": "This will permanently delete all your workout history, plans, and profile data. This cannot be undone.",
+      "deleteConfirm": "Delete Everything",
+      "deleteCancel": "Cancel",
+      "confirmPhrase": "Type DELETE to confirm",
+      "confirmPlaceholder": "DELETE",
+      "step2Title": "Are you absolutely sure?",
+      "step2Message": "All data will be erased permanently. You will be returned to onboarding."
+    },
+    "alerts": {
+      "goalChangeTitle": "Change Goal",
+      "goalChangeMessage": "Changing your goal will recalculate your progression targets. Continue?",
+      "gymChangeTitle": "Change Training Location",
+      "gymChangeMessage": "This will swap relevant exercises in your active plan. Continue?",
+      "progressionChangeTitle": "Change Progression Method",
+      "progressionChangeMessage": "This will change how your weights are calculated going forward. Continue?",
+      "goalChangeSub": "Continue",
+      "cancel": "Cancel"
+    },
+    "trial": {
+      "activeTrial": "Free Trial Active",
+      "trialRemaining_one": "{{count}} session remaining",
+      "trialRemaining_other": "{{count}} sessions remaining",
+      "unlockNow": "Unlock Now →"
+    },
+    "purchase": {
+      "unlocked": "POWRLOG Unlocked",
+      "thankYou": "Thank you for your support.",
+      "managePurchase": "Manage Purchase"
+    },
+    "legalDisclaimer": "POWRLOG is a training tool and not a substitute for professional medical advice. Consult a qualified health professional before starting any exercise programme, particularly if you have pre-existing conditions. Training data shown is for informational purposes only."
+  },
+  "workout": {
+    "recovery": {
+      "veryFatigued": "Very Fatigued",
+      "fatigued": "Fatigued",
+      "neutral": "Neutral",
+      "fresh": "Fresh",
+      "veryFresh": "Very Fresh"
+    },
+    "header": {
+      "day": "Day {{number}}",
+      "week": "Week {{number}}",
+      "deload": "DELOAD"
+    },
+    "deloadBanner": "Deload week — reduced volume and intensity. Focus on form and recovery.",
+    "actions": {
+      "edit": "Edit",
+      "swap": "Swap",
+      "reset": "Reset",
+      "watch": "Watch"
+    },
+    "setFeedback": {
+      "targetExceeded": "Target exceeded — weight goes up next session",
+      "targetMet": "Target met",
+      "weightBelowTarget": "Weight below target",
+      "repsBelowTarget": "Reps below target"
+    },
+    "myo": {
+      "act": "ACT",
+      "rest": "Rest — breathe deep",
+      "miniSetIncoming": "Mini-set incoming",
+      "stopMyo": "STOP MYO"
+    },
+    "watchBanner": "Apple Watch detected — log sets from your wrist",
+    "incompleteModal": {
+      "title": "Missing Data",
+      "message": "Some sets are missing weight or reps. Finish the session anyway?",
+      "finish": "Finish Anyway",
+      "goBack": "Go Back"
+    },
+    "resetModal": {
+      "title": "Reset Session",
+      "message": "This will clear all logged sets for this session. Continue?",
+      "confirm": "Reset",
+      "cancel": "Cancel"
+    },
+    "swapScopeModal": {
+      "title": "Apply Swap To",
+      "justToday": "Just this session",
+      "everySession": "Every session from now on",
+      "cancel": "Cancel"
+    },
+    "exercisePanel": {
+      "addSet": "Add Set",
+      "removeSet": "Remove Last Set",
+      "myoReps": "Myo-Rep Sets",
+      "plateCalc": "Plate Calculator",
+      "editExercise": "Edit Exercise",
+      "swapExercise": "Swap Exercise"
+    },
+    "setManageModal": {
+      "addTitle": "Add a Set",
+      "removeTitle": "Remove Last Set",
+      "applyTo": "Apply change to...",
+      "justThisSession": "Just this session",
+      "justThisSessionSub": "Next session reverts to the original set count",
+      "everySession": "Every session from now on",
+      "everySessionSub": "Updates all future sessions in this plan",
+      "cancel": "Cancel"
+    },
+    "swapModal": {
+      "title": "Swap Exercise",
+      "homeGymFilter": "Dumbbells / Bodyweight Only",
+      "homeGymFilterSub": "Filter for home gym equipment",
+      "categoryLabel": "Category:",
+      "noAlternatives": "No alternatives available"
+    },
+    "editExerciseModal": {
+      "title": "Edit Exercise",
+      "exerciseName": "Exercise Name",
+      "exerciseNamePlaceholder": "Exercise name",
+      "videoUrl": "Video URL",
+      "videoUrlPlaceholder": "https://youtu.be/...",
+      "weightType": "Weight Type",
+      "bodweightOnly": "Bodyweight Only",
+      "weightedBW": "+ Belt / Dumbbell",
+      "saveChanges": "Save Changes"
+    },
+    "myoExplainer": {
+      "title": "Myo-Rep Sets",
+      "subtitle": "More effective reps in less time",
+      "step1Title": "Activation Set",
+      "step1Text": "Do your set to near failure — aim for 10–15 reps. This primes your motor units.",
+      "step2Title": "15-Second Rest",
+      "step2Text": "A countdown timer appears automatically. Take 3–5 deep breaths — just enough to clear lactic acid.",
+      "step3Title": "Mini-Sets (M1, M2 …)",
+      "step3Text": "A new row appears — do 3–5 reps with the same weight and log it. Rest timer fires again automatically.",
+      "stopTitle": "Stop When …",
+      "stopText": "You can't hit 3 reps, or after 5 mini-sets. Tap STOP MYO anytime to end early.",
+      "bestFor": "Best for: ",
+      "bestForDetail": "isolation exercises like curls, lateral raises, and tricep extensions — not heavy compounds.",
+      "maybeLater": "Maybe later",
+      "letsGo": "Let's go →"
+    },
+    "plateCalc": {
+      "title": "Plate Calculator",
+      "barLabel": "Bar",
+      "targetWeight": "Target Weight ({{unit}})",
+      "placeholder": "e.g. 185",
+      "eachSide": "Each Side",
+      "total": "Total:",
+      "nearestPossible": "(nearest possible)",
+      "barOnly": "Bar only ({{weight}} {{unit}})",
+      "enterWeight": "Enter a weight to see plate breakdown"
+    },
+    "videoModal": {
+      "noVideo": "No video available for this exercise.",
+      "cantPlay": "Can't play?",
+      "openInYouTube": "Open in YouTube"
+    },
+    "tourOverlay": {
+      "stepOf": "Step {{current}} of {{total}}",
+      "back": "Back",
+      "skip": "Skip",
+      "next": "Next →",
+      "gotIt": "Got It"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "Train Smarter.\nProgress Every Session.",
+      "subheadline": "Science-backed programming that adjusts automatically.",
+      "cta": "Get Started →",
+      "alreadyHaveAccount": "Already have an account?"
+    },
+    "units": {
+      "title": "Pounds or Kilograms?",
+      "subtitle": "Choose your preferred weight unit. You can change this later in Settings.",
+      "lbs": "Pounds (lbs)",
+      "lbsSub": "Used in the US, UK",
+      "kg": "Kilograms (kg)",
+      "kgSub": "Used internationally",
+      "continue": "Continue →"
+    },
+    "identity": {
+      "title": "About You",
+      "subtitle": "This helps us tailor your programme and starting weights.",
+      "biologicalSex": "Biological Sex",
+      "male": "Male",
+      "female": "Female",
+      "experience": "Training Experience",
+      "beginner": "Beginner",
+      "beginnerDesc": "Under 1 year consistent training",
+      "beginnerDetail": "Starting weights will be conservative. ARPO will ramp up quickly as you progress.",
+      "intermediate": "Intermediate",
+      "intermediateDesc": "1–3 years consistent training",
+      "intermediateDetail": "Solid foundation. Ready for structured progression and volume blocks.",
+      "advanced": "Advanced",
+      "advancedDesc": "3+ years of structured training",
+      "advancedDetail": "Near your genetic ceiling. Periodisation and volume management are critical.",
+      "continue": "Continue →"
+    },
+    "physical": {
+      "title": "Body Stats",
+      "subtitle": "Used to calculate your starting weights and nutrition targets.",
+      "height": "Height",
+      "heightFt": "ft",
+      "heightIn": "in",
+      "heightCm": "cm",
+      "age": "Age",
+      "ageSuffix": "yrs",
+      "bodyweight": "Bodyweight",
+      "continue": "Continue →"
+    },
+    "goals": {
+      "title": "Your Goal",
+      "subtitle": "This sets your training focus and nutrition targets.",
+      "strength": "Strength",
+      "strengthTagline": "Maximise your 1RMs",
+      "powerbuilding": "Powerbuilding",
+      "powerbuildingTagline": "Strength + size balance",
+      "hypertrophy": "Hypertrophy",
+      "hypertrophyTagline": "Maximum muscle growth",
+      "continue": "Continue →"
+    },
+    "trainingSetup": {
+      "activityLevel": "Activity Level",
+      "sedentary": "Sedentary",
+      "sedentaryDesc": "Little to no exercise",
+      "lightlyActive": "Lightly Active",
+      "lightlyActiveDesc": "Light exercise 1–3 days/week",
+      "moderatelyActive": "Moderately Active",
+      "moderatelyActiveDesc": "Moderate exercise 3–5 days/week",
+      "veryActive": "Very Active",
+      "veryActiveDesc": "Hard exercise 6–7 days/week",
+      "extraActive": "Extra Active",
+      "extraActiveDesc": "Very hard exercise, physical job",
+      "progressionMethod": "Progression Method",
+      "arpo": "ARPO (Recommended)",
+      "arpoDesc": "Auto-adjusts weight and volume each week based on your performance.",
+      "doubleProgression": "Double Progression",
+      "doubleProgressionDesc": "Manually increase reps to target range, then increase weight.",
+      "continue": "Continue →"
+    },
+    "summary": {
+      "title": "All Set.",
+      "subtitle": "Here's your personalised profile.",
+      "tdeeCard": "TDEE",
+      "tdeeUnit": "kcal/day",
+      "continue": "Let's Build Your Programme →"
+    },
+    "alerts": {
+      "missingInfoTitle": "Missing Info",
+      "missingInfoMessage": "Please fill in all required fields before continuing.",
+      "setupFailedTitle": "Setup Failed",
+      "setupFailedMessage": "Something went wrong saving your profile. Please try again."
+    }
+  },
+  "paywall": {
+    "headline": "{{count}} sessions done.\nTime to unlock.",
+    "payOnce": "You've seen what POWRLOG does.\nPay once. Own it. No subscription, ever.",
+    "featuresHeading": "Everything included",
+    "unlockButton": "Unlock POWRLOG — {{price}}",
+    "restorePurchase": "Restore previous purchase",
+    "legalText": "Payment charged to your Apple ID at confirmation.\nManage in Settings → [Your Name] → App Store.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "alerts": {
+      "purchaseFailedTitle": "Purchase Failed",
+      "noPurchaseFoundTitle": "No Purchase Found",
+      "noPurchaseFoundDefault": "No previous purchase found for this Apple ID.",
+      "button": "OK"
+    }
+  },
+  "autoBuilder": {
+    "title": "Generate Routine",
+    "steps": {
+      "basics": "Basics",
+      "muscleFocus": "Muscle Focus",
+      "preview": "Preview"
+    },
+    "step1": {
+      "routineName": "Routine Name",
+      "trainingDaysPerWeek": "Training Days Per Week",
+      "setMuscleFocus": "Set Muscle Focus →"
+    },
+    "step2": {
+      "instructions": "Set the priority for each muscle group. POWRLOG will distribute volume accordingly.",
+      "priorities": {
+        "skip": "Skip",
+        "maintain": "Maintain",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "generate": "Generate Routine →"
+    },
+    "step3": {
+      "shuffle": "Shuffle",
+      "allMusclesSkipped": "All muscles set to Skip for this day.",
+      "saveRoutine": "Save Routine"
+    }
+  },
+  "customBuilder": {
+    "title": "Custom Routine",
+    "routineName": "Routine Name",
+    "daysPerWeek": "Days Per Week",
+    "addExercise": "Add Exercise",
+    "exerciseModal": {
+      "title": "Add Exercises — Day {{day}}",
+      "done": "Done",
+      "searchPlaceholder": "Search exercises...",
+      "noExercisesFound": "No exercises found"
+    },
+    "saveRoutine": "Save Custom Routine"
+  },
+  "templates": {
+    "title": "Choose Routine",
+    "buildManually": "Build Manually",
+    "buildManuallyDesc": "Pick exercises day by day",
+    "autoBuild": "POWR Auto-Build",
+    "autoBuildDesc": "Set priorities, we build it",
+    "myCustomRoutines": "My Custom Routines",
+    "preBuiltTemplates": "Pre-Built Templates",
+    "noTemplatesAvailable": "No templates available",
+    "gymModal": {
+      "title": "Training Location",
+      "description": "Home gym mode swaps barbell and machine exercises for dumbbell and bodyweight alternatives.",
+      "fullGym": "Full Gym",
+      "homeGym": "Home Gym"
+    },
+    "deleteModal": {
+      "title": "Delete Routine?",
+      "warningText": "This will permanently delete this routine and all associated data. This cannot be undone.",
+      "confirm": "Delete Permanently",
+      "cancel": "Cancel"
+    },
+    "switchPlanModals": {
+      "endCurrentTitle": "End Current Plan?",
+      "startNewPlan": "Start New Plan",
+      "keepCurrentPlan": "Keep Current Plan",
+      "alreadyActiveTitle": "Already Active",
+      "continuePlan": "Continue Plan",
+      "startFresh": "Start Fresh (Week 1)"
+    }
+  },
+  "summary": {
+    "workoutComplete": "Workout Complete",
+    "weekDay": "Week {{week}} — Day {{day}}",
+    "sessionLogged": "Session logged. Recover well — your next targets are ready.",
+    "stats": {
+      "volume": "Volume",
+      "volumeSub": "{{unit}} moved",
+      "exercises": "Exercises",
+      "exercisesSub": "done",
+      "week": "Week",
+      "weekSub": "of 4",
+      "rir": "RIR",
+      "rirSub": "this wk"
+    },
+    "personalRecords": "Personal Records",
+    "prFirstLogged": "(first logged max)",
+    "returnToDashboard": "Return to Dashboard",
+    "editSets": "Edit Sets",
+    "notificationsPrompt": {
+      "title": "Stay Consistent",
+      "body": "Great first session. The athletes who make the best progress show up consistently — want POWRLOG to remind you?",
+      "workoutReminder": "Workout Reminder",
+      "weighInReminder": "Weigh-in Reminder",
+      "done": "Done",
+      "setReminders": "Set Reminders →",
+      "continueButton": "Continue →",
+      "notNow": "Not now"
+    }
+  },
+  "myPlans": {
+    "title": "My Program",
+    "noActivePlans": "No active plans.",
+    "tapToStart": "Tap to start one →",
+    "otherPlans": "Other Plans",
+    "startNewPlan": "Start a New Plan",
+    "planCard": {
+      "active": "Active",
+      "weekLabel": "Week",
+      "phaseLabel": "Phase",
+      "targetRir": "Target RIR",
+      "goToWorkout": "Go to Workout",
+      "switchToThis": "Switch to This"
+    },
+    "alerts": {
+      "abandonTitle": "Abandon Plan",
+      "abandonMessage": "Remove \"{{name}}\" from your active plans? Your workout history is kept.",
+      "abandonConfirm": "Abandon",
+      "abandonCancel": "Cancel"
+    }
+  },
+  "mesoComplete": {
+    "title": "Mesocycle Complete",
+    "quote": "Fatigue dissipated. Tissue adapted.",
+    "stats": {
+      "totalVolume": "Total Volume",
+      "volumeSub": "{{unit}} moved",
+      "sessions": "Sessions",
+      "sessionsSub": "completed"
+    },
+    "strengthGains": "Strength Gains",
+    "tableHeaders": {
+      "exercise": "Exercise",
+      "week1": "Wk 1 ({{unit}})",
+      "peak": "Peak ({{unit}})",
+      "gain": "+Gain"
+    },
+    "runItBack": "Run It Back",
+    "selectNewRoutine": "Select New Routine"
+  },
+  "bodyMeasurements": {
+    "title": "Body Measurements",
+    "form": {
+      "bodyFat": "Body Fat %",
+      "bodyFatPlaceholder": "e.g. 14.5",
+      "circumferences": "Circumferences ({{unit}})",
+      "fields": {
+        "chest": "Chest",
+        "waist": "Waist",
+        "hips": "Hips",
+        "neck": "Neck",
+        "leftArm": "Left Arm",
+        "rightArm": "Right Arm",
+        "leftThigh": "Left Thigh",
+        "rightThigh": "Right Thigh"
+      },
+      "notes": "Notes (optional)",
+      "save": "Save Measurements"
+    },
+    "history": {
+      "title": "History",
+      "latest": "Latest"
+    },
+    "empty": "Track your measurements over time to see changes beyond the scale."
+  },
+  "bodyWeightLog": {
+    "title": "Bodyweight Log",
+    "logSection": "Log Today's Weight",
+    "logButton": "Log",
+    "history": "History",
+    "empty": "Log your first weigh-in above.\nThe 7-day average filters out daily fluctuations.",
+    "alerts": {
+      "deleteTitle": "Delete Entry",
+      "deleteMessage": "Remove this weigh-in?",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel"
+    }
+  },
+  "oneRepMax": {
+    "title": "1RM Calculator",
+    "inputs": {
+      "weightLabel": "Weight Lifted ({{unit}})",
+      "repsLabel": "Reps",
+      "weightPlaceholderLbs": "e.g. 225",
+      "weightPlaceholderKg": "e.g. 100",
+      "repsPlaceholder": "e.g. 5"
+    },
+    "result": {
+      "label": "Estimated 1 Rep Max",
+      "averageNote": "{{unit}} (average of 3 formulas)"
+    },
+    "formulaBreakdown": "Formula Breakdown",
+    "trainingZones": "Training Zones",
+    "empty": "Enter a weight and rep count to calculate your estimated 1 rep max."
+  },
+  "schedulePicker": {
+    "almostDone": "Almost done",
+    "titleTrainingDays": "Choose Training Days",
+    "titleRestDays": "Choose Rest Days",
+    "train": "Train",
+    "rest": "Rest",
+    "setSchedule": "Set Schedule",
+    "saving": "Saving...",
+    "skipForNow": "Skip for now"
+  },
+  "customExercise": {
+    "title": "Custom Exercises",
+    "form": {
+      "title": "New Exercise",
+      "exerciseName": "Exercise Name",
+      "exerciseNamePlaceholder": "e.g. Hack Squat Machine",
+      "muscleGroup": "Muscle Group / Category",
+      "equipment": "Equipment",
+      "addExercise": "Add Exercise"
+    },
+    "empty": "Add exercises not in the library.\nThey'll appear in the swap picker and builder.",
+    "alerts": {
+      "duplicateTitle": "Duplicate",
+      "duplicateMessage": "An exercise with that name already exists.",
+      "deleteTitle": "Delete Exercise",
+      "deleteMessage": "Remove \"{{name}}\" from your custom exercises?",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel"
+    }
+  },
+  "healthPermissions": {
+    "title": "Connect Health Data",
+    "privacyNote": "Your data never leaves your phone.",
+    "connectButton": "Connect {{platform}}",
+    "skipButton": "Skip — I'll set this up later in Settings"
+  },
+  "postOnboarding": {
+    "stepLabel": "Step {{current}} of {{total}}",
+    "weights": {
+      "title": "What do you currently lift?",
+      "subtitle": "Tap a range or enter your own — 2 lifts per step",
+      "next": "Next →",
+      "saveAndContinue": "Save & Continue →",
+      "skip": "Skip — Use POWRLOG's Estimates"
+    }
+  },
+  "nutrition": {
+    "title": "Nutrition Targets",
+    "editButton": "Edit",
+    "dailyMacros": "Daily Macros",
+    "editGoal": "Edit Goal or Details"
+  },
+  "nutritionSetup": {
+    "titleOnboarding": "Set Up Nutrition",
+    "titleEdit": "Nutrition Setup",
+    "skip": "Skip",
+    "step1": {
+      "title": "What's Your Goal?",
+      "continue": "Continue →"
+    },
+    "step2": {
+      "title": "Your Details",
+      "continue": "Continue →"
+    },
+    "step3": {
+      "title": "Activity Level",
+      "continue": "Continue →"
+    },
+    "step4": {
+      "title": "Your Target",
+      "currentWeight": "Current Weight ({{unit}})",
+      "targetWeight": "Target Weight ({{unit}})",
+      "continue": "Continue →"
+    },
+    "step5": {
+      "title": "Timeline",
+      "checkButton": "Check If This Is Realistic",
+      "calculateTargets": "Calculate My Targets →"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "done": "Done",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "error": "Error",
+    "ok": "OK",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "add": "Add",
+    "remove": "Remove",
+    "reset": "Reset",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

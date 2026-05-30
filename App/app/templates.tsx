@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/local-db";
 
 export default function TemplatesScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -150,7 +152,7 @@ export default function TemplatesScreen() {
           Alert.alert(
             "Some Exercises Kept",
             `No unique home-gym alternative was found for: ${unswappedNames.join(", ")}. These have been kept as-is — you can swap them manually in the workout screen.`,
-            [{ text: "OK" }]
+            [{ text: t('common.ok') }]
           );
         }
       }
@@ -170,7 +172,7 @@ export default function TemplatesScreen() {
       });
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Couldn't create plan. Please try again.", [{ text: "OK" }]);
+      Alert.alert("Error", "Couldn't create plan. Please try again.", [{ text: t('common.ok') }]);
     } finally {
       setCreating(false);
     }
@@ -208,7 +210,7 @@ export default function TemplatesScreen() {
       Alert.alert(
         "Routine Slots Full",
         `You can save up to ${MAX_CUSTOM_SLOTS} custom routines. Delete one to create a new one.`,
-        [{ text: "OK" }]
+        [{ text: t('common.ok') }]
       );
       return;
     }
@@ -370,7 +372,7 @@ export default function TemplatesScreen() {
 
         {isOnboarding && (
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-            Step {onboardingCurrentStep} of {onboardingTotalSteps}
+            {t('postOnboarding.stepLabel', { current: onboardingCurrentStep, total: onboardingTotalSteps })}
           </Text>
         )}
 
@@ -383,7 +385,7 @@ export default function TemplatesScreen() {
             letterSpacing: 1,
           }}
         >
-          Choose Routine
+          {t('templates.title')}
         </Text>
         <Text
           style={{
@@ -422,10 +424,10 @@ export default function TemplatesScreen() {
               >
                 <Ionicons name="list" size={22} color={Colors.textSecondary} />
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  Build{"\n"}Manually
+                  {t('templates.buildManually')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
-                  Pick exercises{"\n"}day by day
+                  {t('templates.buildManuallyDesc')}
                 </Text>
               </Pressable>
 
@@ -445,10 +447,10 @@ export default function TemplatesScreen() {
               >
                 <Ionicons name="sparkles" size={22} color={Colors.primary} />
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  POWR{"\n"}Auto-Build
+                  {t('templates.autoBuild')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textAlign: "center", lineHeight: 14, paddingHorizontal: 4 }}>
-                  Set priorities,{"\n"}we build it
+                  {t('templates.autoBuildDesc')}
                 </Text>
               </Pressable>
             </View>
@@ -484,7 +486,7 @@ export default function TemplatesScreen() {
               {/* Section header with slot counter */}
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                  My Custom Routines
+                  {t('templates.myCustomRoutines')}
                 </Text>
                 <View style={{ flexDirection: "row", gap: 3 }}>
                   {Array.from({ length: MAX_CUSTOM_SLOTS }).map((_, i) => (
@@ -567,7 +569,7 @@ export default function TemplatesScreen() {
           )}
 
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-            Pre-Built Templates
+            {t('templates.preBuiltTemplates')}
           </Text>
           {templates.map((item) => (
             <View key={item.id}>{renderTemplate({ item })}</View>
@@ -576,7 +578,7 @@ export default function TemplatesScreen() {
             <View style={{ alignItems: "center", paddingTop: 60 }}>
               <Ionicons name="document-text-outline" size={40} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 14, color: Colors.textMuted, marginTop: 12 }}>
-                No templates available
+                {t('templates.noTemplatesAvailable')}
               </Text>
             </View>
           )}
@@ -747,7 +749,7 @@ export default function TemplatesScreen() {
                     letterSpacing: 1,
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
           </View>
@@ -786,7 +788,7 @@ export default function TemplatesScreen() {
                   marginBottom: 8,
                 }}
               >
-                Training Location
+                {t('templates.gymModal.title')}
               </Text>
               <Text
                 style={{
@@ -796,8 +798,7 @@ export default function TemplatesScreen() {
                   marginBottom: 24,
                 }}
               >
-                Home gym mode swaps barbell and machine exercises for dumbbell
-                and bodyweight alternatives
+                {t('templates.gymModal.description')}
               </Text>
 
               <Pressable
@@ -834,7 +835,7 @@ export default function TemplatesScreen() {
                       letterSpacing: 2,
                     }}
                   >
-                    Full Gym
+                    {t('templates.gymModal.fullGym')}
                   </Text>
                 </View>
               </Pressable>
@@ -867,7 +868,7 @@ export default function TemplatesScreen() {
                       letterSpacing: 2,
                     }}
                   >
-                    Home Gym
+                    {t('templates.gymModal.homeGym')}
                   </Text>
                 </View>
               </Pressable>
@@ -885,7 +886,7 @@ export default function TemplatesScreen() {
                     letterSpacing: 1,
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
             </View>
@@ -922,7 +923,7 @@ export default function TemplatesScreen() {
             <Ionicons name="trash-outline" size={26} color={Colors.danger} style={{ alignSelf: "center", marginBottom: 12 }} />
 
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
-              Delete Routine?
+              {t('templates.deleteModal.title')}
             </Text>
 
             {templateToDelete && (
@@ -937,7 +938,7 @@ export default function TemplatesScreen() {
             )}
 
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
-              This will permanently delete the routine and all associated workout history. This cannot be undone. Your slot will be freed up for a new routine.
+              {t('templates.deleteModal.warningText')}
             </Text>
 
             <Pressable
@@ -955,7 +956,7 @@ export default function TemplatesScreen() {
                 <ActivityIndicator color={Colors.text} />
               ) : (
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Delete Permanently
+                  {t('templates.deleteModal.confirm')}
                 </Text>
               )}
             </Pressable>
@@ -965,7 +966,7 @@ export default function TemplatesScreen() {
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignItems: "center", paddingVertical: 8 })}
             >
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                Cancel
+                {t('templates.deleteModal.cancel')}
               </Text>
             </Pressable>
           </View>
@@ -986,7 +987,7 @@ export default function TemplatesScreen() {
               <>
                 <Ionicons name="checkmark-circle-outline" size={28} color={Colors.primary} style={{ alignSelf: "center", marginBottom: 12 }} />
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
-                  Already Active
+                  {t('templates.switchPlanModals.alreadyActiveTitle')}
                 </Text>
                 <View style={{ borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 3, borderLeftColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 16 }}>
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{activePlanInfo.name}</Text>
@@ -1000,7 +1001,7 @@ export default function TemplatesScreen() {
                   style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 14, alignItems: "center", marginBottom: 10, opacity: pressed ? 0.8 : 1 })}
                 >
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                    Continue Plan
+                    {t('templates.switchPlanModals.continuePlan')}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -1010,7 +1011,7 @@ export default function TemplatesScreen() {
                 >
                   {creating ? <ActivityIndicator color={Colors.text} size="small" /> : (
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                      Start Fresh (Week 1)
+                      {t('templates.switchPlanModals.startFresh')}
                     </Text>
                   )}
                 </Pressable>
@@ -1023,7 +1024,7 @@ export default function TemplatesScreen() {
             <Ionicons name="warning-outline" size={28} color={Colors.warning} style={{ alignSelf: "center", marginBottom: 12 }} />
 
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
-              End Current Plan?
+              {t('templates.switchPlanModals.endCurrentTitle')}
             </Text>
 
             {activePlanInfo && (
@@ -1056,7 +1057,7 @@ export default function TemplatesScreen() {
                 <ActivityIndicator color={Colors.text} />
               ) : (
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Start New Plan
+                  {t('templates.switchPlanModals.startNewPlan')}
                 </Text>
               )}
             </Pressable>
@@ -1066,7 +1067,7 @@ export default function TemplatesScreen() {
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignItems: "center", paddingVertical: 8 })}
             >
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                Keep Current Plan
+                {t('templates.switchPlanModals.keepCurrentPlan')}
               </Text>
             </Pressable>
               </>

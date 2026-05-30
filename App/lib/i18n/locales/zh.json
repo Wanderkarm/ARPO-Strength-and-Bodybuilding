@@ -1,0 +1,755 @@
+{
+  "dashboard": {
+    "noRoutineActive": "未设置训练计划",
+    "browseTemplates": "浏览训练模板 →",
+    "powrHub": "POWR Hub",
+    "startWorkout": "开始训练",
+    "startDeload": "开始减量周",
+    "skipSession": "跳过本次训练",
+    "sessionComplete": "本次训练已完成",
+    "myProgram": "我的计划",
+    "changeRoutine": "更改训练计划",
+    "trialCountdown_one": "剩余 {{count}} 次免费训练",
+    "trialCountdown_other": "剩余 {{count}} 次免费训练",
+    "trialCountdownSub": "解锁 POWRLOG 继续训练 →",
+    "unlockBanner": "升级以继续训练",
+    "recoveryTile": {
+      "title": "恢复状态",
+      "noData": "暂无数据",
+      "learnMore": "了解更多"
+    },
+    "stepsModal": {
+      "title": "记录今日步数",
+      "save": "保存步数",
+      "syncApple": "从 Apple Health 同步",
+      "placeholder": "如：8500"
+    },
+    "alerts": {
+      "skipSessionTitle": "跳过本次训练？",
+      "skipSessionMessage": "本次训练将被标记为已跳过，目标将顺延至下周。",
+      "skipSessionConfirm": "跳过",
+      "skipSessionCancel": "取消",
+      "restartSetupTitle": "重新设置",
+      "restartSetupMessage": "这将重置您的个人资料和训练设置，但训练记录将被保留。是否继续？",
+      "restartSetupConfirm": "重新开始",
+      "restartSetupCancel": "取消"
+    },
+    "nudgeBanners": {
+      "logWeightTitle": "记录体重",
+      "logWeightDesc": "追踪体型变化进展",
+      "setupNutritionTitle": "设置营养目标",
+      "setupNutritionDesc": "个性化卡路里与宏量营养素"
+    }
+  },
+  "progress": {
+    "title": "进步",
+    "strengthProgress": "力量进步",
+    "volumeTracker": "训练量追踪",
+    "theScience": "科学依据",
+    "couldntLoad": "无法加载进度",
+    "noActivePlan": "没有进行中的计划",
+    "retry": "重试",
+    "moreDataNextWeek": "下周将有更多数据",
+    "volumeStatus": {
+      "rest": "休息",
+      "belowMev": "低于 MEV",
+      "inMav": "在 MAV 范围内 ✓",
+      "aboveMrv": "超过 MRV",
+      "building": "增长中",
+      "nearMrv": "接近 MRV"
+    }
+  },
+  "body": {
+    "title": "身体",
+    "tabs": {
+      "nutrition": "营养",
+      "weighIn": "体重记录",
+      "composition": "体型",
+      "measurements": "围度",
+      "oneRmCalc": "1RM 计算器"
+    },
+    "setupNutrition": "设置营养目标",
+    "caloriesMacros": "卡路里、宏量营养素与饮食示例",
+    "noWeighIns": "暂无体重记录。",
+    "logged": "已记录 ✓",
+    "logWeight": "记录体重",
+    "macros": {
+      "protein": "蛋白质",
+      "carbs": "碳水化合物",
+      "fat": "脂肪"
+    },
+    "stats": {
+      "bmi": "BMI",
+      "ffmi": "FFMI",
+      "bodyFat": "体脂率",
+      "leanMass": "去脂体重"
+    },
+    "bmiNote": "BMI 对于训练有素的运动员具有误导性。",
+    "syncButton": "同步",
+    "sources": {
+      "navyFormula": "海军公式",
+      "appleHealth": "Apple Health",
+      "healthConnect": "Health Connect",
+      "smartScale": "智能体重秤"
+    },
+    "logMeasurements": "记录围度",
+    "measurementsDesc": "胸围、腰围、臂围等",
+    "unlockComposition": "解锁体型指标",
+    "addWaistNeck": "添加腰围和颈围以解锁体脂率和 FFMI"
+  },
+  "history": {
+    "title": "历史",
+    "trainingCalendar": "训练日历",
+    "pastSessions": "往期训练",
+    "noActivityThisMonth": "本月暂无训练记录",
+    "noSessionsLogged": "暂无训练记录",
+    "skipped": "已跳过",
+    "undo": "撤销",
+    "editSets": "编辑组数",
+    "setTableHeaders": {
+      "set": "组",
+      "weight": "重量",
+      "reps": "次数"
+    },
+    "noSetsRecorded": "无组数记录",
+    "sessionSkippedNote": "本次训练已跳过，目标已顺延至下周。",
+    "alerts": {
+      "undoSkipTitle": "撤销跳过",
+      "undoSkipMessage": "这将恢复此次训练并将其从跳过记录中移除，目标将恢复至跳过前的状态。",
+      "undoSkipConfirm": "撤销",
+      "undoSkipCancel": "取消"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "sections": {
+      "preferences": "偏好设置",
+      "activePlan": "当前计划",
+      "exerciseLibrary": "动作库",
+      "devices": "设备",
+      "notifications": "通知",
+      "streak": "连续训练",
+      "dailySteps": "每日步数",
+      "backupRestore": "备份与恢复",
+      "profile": "个人资料",
+      "trainingSchedule": "训练安排",
+      "legal": "法律",
+      "dangerZone": "危险操作",
+      "devTools": "开发者工具"
+    },
+    "items": {
+      "language": "语言",
+      "units": "单位",
+      "lbs": "磅",
+      "kg": "千克",
+      "gymType": "训练地点",
+      "gym": "健身房",
+      "homeGym": "家庭健身",
+      "progressionMethod": "进阶方法",
+      "arpo": "ARPO（自动）",
+      "doubleProgression": "双重进阶",
+      "goal": "目标",
+      "strength": "力量",
+      "powerbuilding": "力量与体型",
+      "hypertrophy": "肌肥大",
+      "customExercises": "自定义动作",
+      "connectHealth": "连接健康数据",
+      "workoutReminder": "训练提醒",
+      "weighInReminder": "体重提醒",
+      "currentStreak": "当前连续",
+      "longestStreak": "最长连续",
+      "dailyStepGoal": "每日步数目标",
+      "backup": "备份",
+      "restore": "恢复",
+      "exportData": "导出数据",
+      "privacyPolicy": "隐私政策",
+      "termsOfUse": "使用条款",
+      "acknowledgements": "致谢",
+      "legalDisclaimer": "免责声明",
+      "deleteAllData": "删除所有数据",
+      "resetApp": "重置应用"
+    },
+    "descriptions": {
+      "homeGymMode": "家庭健身模式将杠铃和器械动作替换为哑铃和自重动作。",
+      "arpoDesc": "POWRLOG 根据您的表现每周自动调整重量和训练量。",
+      "doubleProgressionDesc": "在加重前先在目标次数范围内增加重复次数，手动控制进度。",
+      "dailyStepGoalDesc": "设置每日步数目标，与训练一起监控活动量。"
+    },
+    "backup": {
+      "modalTitle": "备份与恢复",
+      "backupDesc": "将训练记录和设置保存为文件，以便稍后恢复。",
+      "backupButton": "创建备份",
+      "restoreDesc": "从之前保存的备份文件中恢复。",
+      "restoreButton": "从备份恢复",
+      "backingUp": "备份中...",
+      "restoring": "恢复中...",
+      "backupSuccess": "备份创建成功。",
+      "restoreSuccess": "恢复完成。",
+      "backupFailed": "备份失败，请重试。",
+      "restoreFailed": "恢复失败，文件可能无效或已损坏。"
+    },
+    "dangerZone": {
+      "deleteTitle": "删除所有数据",
+      "deleteMessage": "这将永久删除您所有的训练记录、计划和个人资料数据，且无法撤销。",
+      "deleteConfirm": "删除一切",
+      "deleteCancel": "取消",
+      "confirmPhrase": "输入 DELETE 以确认",
+      "confirmPlaceholder": "DELETE",
+      "step2Title": "您确定吗？",
+      "step2Message": "所有数据将被永久清除，您将返回初始引导界面。"
+    },
+    "alerts": {
+      "goalChangeTitle": "更改目标",
+      "goalChangeMessage": "更改目标将重新计算您的进阶目标，是否继续？",
+      "gymChangeTitle": "更改训练地点",
+      "gymChangeMessage": "这将替换您当前计划中的相关动作，是否继续？",
+      "progressionChangeTitle": "更改进阶方法",
+      "progressionChangeMessage": "这将改变之后重量的计算方式，是否继续？",
+      "goalChangeSub": "继续",
+      "cancel": "取消"
+    },
+    "trial": {
+      "activeTrial": "免费试用中",
+      "trialRemaining_one": "剩余 {{count}} 次训练",
+      "trialRemaining_other": "剩余 {{count}} 次训练",
+      "unlockNow": "立即解锁 →"
+    },
+    "purchase": {
+      "unlocked": "POWRLOG 已解锁",
+      "thankYou": "感谢您的支持。",
+      "managePurchase": "管理购买"
+    },
+    "legalDisclaimer": "POWRLOG 是一款训练工具，不能替代专业医疗建议。在开始任何锻炼计划前，特别是有既往病史的情况下，请咨询合格的健康专业人士。所显示的训练数据仅供参考。"
+  },
+  "workout": {
+    "recovery": {
+      "veryFatigued": "非常疲劳",
+      "fatigued": "疲劳",
+      "neutral": "一般",
+      "fresh": "状态良好",
+      "veryFresh": "状态极佳"
+    },
+    "header": {
+      "day": "第 {{number}} 天",
+      "week": "第 {{number}} 周",
+      "deload": "减量"
+    },
+    "deloadBanner": "减量周 — 降低训练量和强度，专注于技术和恢复。",
+    "actions": {
+      "edit": "编辑",
+      "swap": "替换",
+      "reset": "重置",
+      "watch": "视频"
+    },
+    "setFeedback": {
+      "targetExceeded": "超出目标 — 下次训练重量上升",
+      "targetMet": "达到目标",
+      "weightBelowTarget": "重量低于目标",
+      "repsBelowTarget": "次数低于目标"
+    },
+    "myo": {
+      "act": "激活",
+      "rest": "休息 — 深呼吸",
+      "miniSetIncoming": "小组即将开始",
+      "stopMyo": "停止 MYO"
+    },
+    "watchBanner": "检测到 Apple Watch — 可从手腕记录组数",
+    "incompleteModal": {
+      "title": "数据未完整",
+      "message": "部分组数缺少重量或次数，是否仍要结束本次训练？",
+      "finish": "仍然完成",
+      "goBack": "返回填写"
+    },
+    "resetModal": {
+      "title": "重置训练数据",
+      "message": "这将清除本次训练所有已记录的组数，是否继续？",
+      "confirm": "重置训练数据",
+      "cancel": "取消"
+    },
+    "swapScopeModal": {
+      "title": "应用范围",
+      "justToday": "仅本次训练",
+      "everySession": "从此以后的每次训练",
+      "cancel": "取消"
+    },
+    "exercisePanel": {
+      "addSet": "添加组数",
+      "removeSet": "删除最后一组",
+      "myoReps": "Myo-Rep 组",
+      "plateCalc": "杠铃片计算器",
+      "editExercise": "编辑动作",
+      "swapExercise": "替换动作"
+    },
+    "setManageModal": {
+      "addTitle": "添加一组",
+      "removeTitle": "删除最后一组",
+      "applyTo": "应用更改至...",
+      "justThisSession": "仅本次训练",
+      "justThisSessionSub": "下次训练恢复原来的组数",
+      "everySession": "从此以后的每次训练",
+      "everySessionSub": "更新此计划中所有未来的训练",
+      "cancel": "取消"
+    },
+    "swapModal": {
+      "title": "替换动作",
+      "homeGymFilter": "仅哑铃 / 自重动作",
+      "homeGymFilterSub": "筛选适合家庭健身的器材",
+      "categoryLabel": "类别：",
+      "noAlternatives": "暂无可替换动作"
+    },
+    "editExerciseModal": {
+      "title": "编辑动作",
+      "exerciseName": "动作名称",
+      "exerciseNamePlaceholder": "动作名称",
+      "videoUrl": "视频链接",
+      "videoUrlPlaceholder": "https://youtu.be/...",
+      "weightType": "重量类型",
+      "bodweightOnly": "纯自重",
+      "weightedBW": "+ 负重带 / 哑铃",
+      "saveChanges": "保存更改"
+    },
+    "myoExplainer": {
+      "title": "Myo-Rep 组",
+      "subtitle": "用更少的时间完成更多有效次数",
+      "step1Title": "激活组",
+      "step1Text": "做到接近力竭 — 目标 10–15 次。这将激活您的运动单元。",
+      "step2Title": "15 秒休息",
+      "step2Text": "倒计时自动出现。深呼吸 3–5 次 — 足以清除乳酸。",
+      "step3Title": "小组（M1、M2…）",
+      "step3Text": "出现新的一行 — 用相同重量做 3–5 次并记录。休息计时器自动再次启动。",
+      "stopTitle": "停止时机…",
+      "stopText": "当您无法完成 3 次，或在 5 个小组后停止。随时点击停止 MYO 提前结束。",
+      "bestFor": "最适合：",
+      "bestForDetail": "孤立动作，如弯举、侧平举和三头肌伸展 — 不适用于大重量复合动作。",
+      "maybeLater": "稍后再说",
+      "letsGo": "开始吧 →"
+    },
+    "plateCalc": {
+      "title": "杠铃片计算器",
+      "barLabel": "杠铃",
+      "targetWeight": "目标重量（{{unit}}）",
+      "placeholder": "如：185",
+      "eachSide": "每侧",
+      "total": "总计：",
+      "nearestPossible": "（最接近的可能值）",
+      "barOnly": "仅杠铃（{{weight}} {{unit}}）",
+      "enterWeight": "输入重量以查看杠铃片分配"
+    },
+    "videoModal": {
+      "noVideo": "该动作暂无视频。",
+      "cantPlay": "无法播放？",
+      "openInYouTube": "在 YouTube 中打开"
+    },
+    "tourOverlay": {
+      "stepOf": "第 {{current}} 步，共 {{total}} 步",
+      "back": "上一步",
+      "skip": "跳过",
+      "next": "下一步 →",
+      "gotIt": "明白了"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "智能训练。\n每次都有进步。",
+      "subheadline": "基于科学的训练编排，自动调整适配您。",
+      "cta": "开始 →",
+      "alreadyHaveAccount": "已有账号？"
+    },
+    "units": {
+      "title": "磅还是千克？",
+      "subtitle": "选择您偏好的重量单位，之后可在设置中更改。",
+      "lbs": "磅（lbs）",
+      "lbsSub": "美国、英国常用",
+      "kg": "千克（kg）",
+      "kgSub": "国际通用",
+      "continue": "继续 →"
+    },
+    "identity": {
+      "title": "关于您",
+      "subtitle": "这将帮助我们定制您的计划和起始重量。",
+      "biologicalSex": "生理性别",
+      "male": "男",
+      "female": "女",
+      "experience": "训练经验",
+      "beginner": "新手",
+      "beginnerDesc": "规律训练不足 1 年",
+      "beginnerDetail": "起始重量较保守，ARPO 将随进步快速提升。",
+      "intermediate": "中级",
+      "intermediateDesc": "规律训练 1–3 年",
+      "intermediateDetail": "基础扎实，适合系统性进阶和训练量周期化。",
+      "advanced": "高级",
+      "advancedDesc": "系统训练 3 年以上",
+      "advancedDetail": "接近遗传极限，周期化和训练量管理至关重要。",
+      "continue": "继续 →"
+    },
+    "physical": {
+      "title": "身体数据",
+      "subtitle": "用于计算您的起始重量和营养目标。",
+      "height": "身高",
+      "heightFt": "英尺",
+      "heightIn": "英寸",
+      "heightCm": "厘米",
+      "age": "年龄",
+      "ageSuffix": "岁",
+      "bodyweight": "体重",
+      "continue": "继续 →"
+    },
+    "goals": {
+      "title": "您的目标",
+      "subtitle": "这将设定您的训练重点和营养目标。",
+      "strength": "力量",
+      "strengthTagline": "最大化最大力量",
+      "powerbuilding": "力量与体型",
+      "powerbuildingTagline": "力量与围度均衡发展",
+      "hypertrophy": "肌肥大",
+      "hypertrophyTagline": "最大化肌肉增长",
+      "continue": "继续 →"
+    },
+    "trainingSetup": {
+      "activityLevel": "活动水平",
+      "sedentary": "久坐",
+      "sedentaryDesc": "很少或几乎不运动",
+      "lightlyActive": "轻度活跃",
+      "lightlyActiveDesc": "每周轻度运动 1–3 天",
+      "moderatelyActive": "中度活跃",
+      "moderatelyActiveDesc": "每周中等强度运动 3–5 天",
+      "veryActive": "高度活跃",
+      "veryActiveDesc": "每周高强度运动 6–7 天",
+      "extraActive": "极度活跃",
+      "extraActiveDesc": "极高强度运动，体力劳动",
+      "progressionMethod": "进阶方法",
+      "arpo": "ARPO（推荐）",
+      "arpoDesc": "根据您的表现每周自动调整重量和训练量。",
+      "doubleProgression": "双重进阶",
+      "doubleProgressionDesc": "手动在目标次数范围内增加次数，之后再加重。",
+      "continue": "继续 →"
+    },
+    "summary": {
+      "title": "准备好了。",
+      "subtitle": "这是您的个性化档案。",
+      "tdeeCard": "TDEE",
+      "tdeeUnit": "千卡/天",
+      "continue": "开始制定您的计划 →"
+    },
+    "alerts": {
+      "missingInfoTitle": "信息不完整",
+      "missingInfoMessage": "请在继续前填写所有必填项。",
+      "setupFailedTitle": "设置失败",
+      "setupFailedMessage": "保存个人资料时出错，请重试。"
+    }
+  },
+  "paywall": {
+    "headline": "已完成 {{count}} 次训练。\n是时候解锁了。",
+    "payOnce": "您已亲身体验 POWRLOG 的效果。\n一次付费，永久拥有。无需订阅。",
+    "featuresHeading": "全部功能包含在内",
+    "unlockButton": "解锁 POWRLOG — {{price}}",
+    "restorePurchase": "恢复之前的购买",
+    "legalText": "确认后从您的 Apple ID 账户扣款。\n在设置 → [您的姓名] → App Store 中管理。",
+    "privacyPolicy": "隐私政策",
+    "termsOfUse": "使用条款",
+    "alerts": {
+      "purchaseFailedTitle": "购买失败",
+      "noPurchaseFoundTitle": "未找到购买记录",
+      "noPurchaseFoundDefault": "未找到此 Apple ID 的购买记录。",
+      "button": "确定"
+    }
+  },
+  "autoBuilder": {
+    "title": "生成训练计划",
+    "steps": {
+      "basics": "基本信息",
+      "muscleFocus": "肌肉重点",
+      "preview": "预览"
+    },
+    "step1": {
+      "routineName": "计划名称",
+      "trainingDaysPerWeek": "每周训练天数",
+      "setMuscleFocus": "设置肌肉重点 →"
+    },
+    "step2": {
+      "instructions": "为每个肌肉群设置优先级，POWRLOG 将据此分配训练量。",
+      "priorities": {
+        "skip": "跳过",
+        "maintain": "维持",
+        "medium": "中等",
+        "high": "高"
+      },
+      "generate": "生成训练计划 →"
+    },
+    "step3": {
+      "shuffle": "随机排列",
+      "allMusclesSkipped": "本日所有肌肉群均设置为跳过。",
+      "saveRoutine": "保存计划"
+    }
+  },
+  "customBuilder": {
+    "title": "自定义训练计划",
+    "routineName": "计划名称",
+    "daysPerWeek": "每周天数",
+    "addExercise": "添加动作",
+    "exerciseModal": {
+      "title": "添加动作 — 第 {{day}} 天",
+      "done": "完成",
+      "searchPlaceholder": "搜索动作...",
+      "noExercisesFound": "未找到动作"
+    },
+    "saveRoutine": "保存自定义计划"
+  },
+  "templates": {
+    "title": "选择训练计划",
+    "buildManually": "手动创建",
+    "buildManuallyDesc": "逐天选择动作",
+    "autoBuild": "POWR 自动生成",
+    "autoBuildDesc": "设置优先级，由我们为您创建",
+    "myCustomRoutines": "我的自定义计划",
+    "preBuiltTemplates": "预设模板",
+    "noTemplatesAvailable": "暂无可用模板",
+    "gymModal": {
+      "title": "训练地点",
+      "description": "家庭健身模式将杠铃和器械动作替换为哑铃和自重动作。",
+      "fullGym": "全套健身房",
+      "homeGym": "家庭健身"
+    },
+    "deleteModal": {
+      "title": "删除训练计划？",
+      "warningText": "这将永久删除此训练计划及所有相关数据，且无法撤销。",
+      "confirm": "永久删除",
+      "cancel": "取消"
+    },
+    "switchPlanModals": {
+      "endCurrentTitle": "结束当前计划？",
+      "startNewPlan": "开始新计划",
+      "keepCurrentPlan": "保留当前计划",
+      "alreadyActiveTitle": "已激活",
+      "continuePlan": "继续计划",
+      "startFresh": "重新开始（第 1 周）"
+    }
+  },
+  "summary": {
+    "workoutComplete": "训练完成",
+    "weekDay": "第 {{week}} 周 — 第 {{day}} 天",
+    "sessionLogged": "训练已记录。好好恢复 — 您的下一个目标已准备好。",
+    "stats": {
+      "volume": "训练量",
+      "volumeSub": "{{unit}} 移动重量",
+      "exercises": "动作",
+      "exercisesSub": "已完成",
+      "week": "周",
+      "weekSub": "共 4 周",
+      "rir": "RIR",
+      "rirSub": "本周"
+    },
+    "personalRecords": "个人最佳",
+    "prFirstLogged": "（首次记录的最大值）",
+    "returnToDashboard": "返回主页",
+    "editSets": "编辑组数",
+    "notificationsPrompt": {
+      "title": "保持规律",
+      "body": "第一次训练棒极了！进步最大的运动员都坚持规律训练 — 想让 POWRLOG 提醒您吗？",
+      "workoutReminder": "训练提醒",
+      "weighInReminder": "体重提醒",
+      "done": "完成",
+      "setReminders": "设置提醒 →",
+      "continueButton": "继续 →",
+      "notNow": "暂时不要"
+    }
+  },
+  "myPlans": {
+    "title": "我的计划",
+    "noActivePlans": "没有进行中的计划。",
+    "tapToStart": "点击开始一个 →",
+    "otherPlans": "其他计划",
+    "startNewPlan": "开始新计划",
+    "planCard": {
+      "active": "进行中",
+      "weekLabel": "周",
+      "phaseLabel": "阶段",
+      "targetRir": "目标 RIR",
+      "goToWorkout": "开始训练",
+      "switchToThis": "切换至此计划"
+    },
+    "alerts": {
+      "abandonTitle": "放弃计划",
+      "abandonMessage": "将「{{name}}」从您的进行中计划中移除？训练记录将被保留。",
+      "abandonConfirm": "放弃",
+      "abandonCancel": "取消"
+    }
+  },
+  "mesoComplete": {
+    "title": "中周期已完成",
+    "quote": "疲劳已消散，肌肉已适应。",
+    "stats": {
+      "totalVolume": "总训练量",
+      "volumeSub": "{{unit}} 移动重量",
+      "sessions": "训练次数",
+      "sessionsSub": "已完成"
+    },
+    "strengthGains": "力量增长",
+    "tableHeaders": {
+      "exercise": "动作",
+      "week1": "第 1 周（{{unit}}）",
+      "peak": "峰值（{{unit}}）",
+      "gain": "+增长"
+    },
+    "runItBack": "再来一次",
+    "selectNewRoutine": "选择新计划"
+  },
+  "bodyMeasurements": {
+    "title": "身体围度",
+    "form": {
+      "bodyFat": "体脂率 %",
+      "bodyFatPlaceholder": "如：14.5",
+      "circumferences": "围度（{{unit}}）",
+      "fields": {
+        "chest": "胸围",
+        "waist": "腰围",
+        "hips": "臀围",
+        "neck": "颈围",
+        "leftArm": "左臂围",
+        "rightArm": "右臂围",
+        "leftThigh": "左大腿围",
+        "rightThigh": "右大腿围"
+      },
+      "notes": "备注（可选）",
+      "save": "保存围度数据"
+    },
+    "history": {
+      "title": "历史记录",
+      "latest": "最新"
+    },
+    "empty": "长期追踪围度数据，发现体重秤以外的身体变化。"
+  },
+  "bodyWeightLog": {
+    "title": "体重记录",
+    "logSection": "记录今日体重",
+    "logButton": "记录",
+    "history": "历史",
+    "empty": "在上方记录您的第一次体重。\n7 天平均值可过滤每日波动。",
+    "alerts": {
+      "deleteTitle": "删除记录",
+      "deleteMessage": "删除此条体重记录？",
+      "deleteConfirm": "删除",
+      "deleteCancel": "取消"
+    }
+  },
+  "oneRepMax": {
+    "title": "1RM 计算器",
+    "inputs": {
+      "weightLabel": "举起的重量（{{unit}}）",
+      "repsLabel": "次数",
+      "weightPlaceholderLbs": "如：225",
+      "weightPlaceholderKg": "如：100",
+      "repsPlaceholder": "如：5"
+    },
+    "result": {
+      "label": "预计最大单次重量",
+      "averageNote": "{{unit}}（3 个公式的平均值）"
+    },
+    "formulaBreakdown": "公式明细",
+    "trainingZones": "训练强度区间",
+    "empty": "输入重量和次数以计算预计最大单次重量。"
+  },
+  "schedulePicker": {
+    "almostDone": "即将完成",
+    "titleTrainingDays": "选择训练日",
+    "titleRestDays": "选择休息日",
+    "train": "训练",
+    "rest": "休息",
+    "setSchedule": "设置安排",
+    "saving": "保存中...",
+    "skipForNow": "暂时跳过"
+  },
+  "customExercise": {
+    "title": "自定义动作",
+    "form": {
+      "title": "新动作",
+      "exerciseName": "动作名称",
+      "exerciseNamePlaceholder": "如：哈克深蹲机",
+      "muscleGroup": "肌肉群 / 类别",
+      "equipment": "器材",
+      "addExercise": "添加动作"
+    },
+    "empty": "添加动作库中没有的动作。\n它们将出现在替换选择和计划创建中。",
+    "alerts": {
+      "duplicateTitle": "重复",
+      "duplicateMessage": "已存在同名动作。",
+      "deleteTitle": "删除动作",
+      "deleteMessage": "从自定义动作中移除「{{name}}」？",
+      "deleteConfirm": "删除",
+      "deleteCancel": "取消"
+    }
+  },
+  "healthPermissions": {
+    "title": "连接健康数据",
+    "privacyNote": "您的数据永远不会离开您的手机。",
+    "connectButton": "连接 {{platform}}",
+    "skipButton": "跳过 — 稍后在设置中配置"
+  },
+  "postOnboarding": {
+    "stepLabel": "第 {{current}} 步，共 {{total}} 步",
+    "weights": {
+      "title": "您目前能举多重？",
+      "subtitle": "点击范围或输入您自己的数值 — 每步 2 个动作",
+      "next": "下一步 →",
+      "saveAndContinue": "保存并继续 →",
+      "skip": "跳过 — 使用 POWRLOG 的估算值"
+    }
+  },
+  "nutrition": {
+    "title": "营养目标",
+    "editButton": "编辑",
+    "dailyMacros": "每日宏量营养素",
+    "editGoal": "编辑目标或详情"
+  },
+  "nutritionSetup": {
+    "titleOnboarding": "设置营养",
+    "titleEdit": "营养设置",
+    "skip": "跳过",
+    "step1": {
+      "title": "您的目标是什么？",
+      "continue": "继续 →"
+    },
+    "step2": {
+      "title": "您的详情",
+      "continue": "继续 →"
+    },
+    "step3": {
+      "title": "活动水平",
+      "continue": "继续 →"
+    },
+    "step4": {
+      "title": "您的目标",
+      "currentWeight": "当前体重（{{unit}}）",
+      "targetWeight": "目标体重（{{unit}}）",
+      "continue": "继续 →"
+    },
+    "step5": {
+      "title": "时间规划",
+      "checkButton": "检查此目标是否切实可行",
+      "calculateTargets": "计算我的目标 →"
+    }
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "continue": "继续",
+    "back": "返回",
+    "skip": "跳过",
+    "done": "完成",
+    "edit": "编辑",
+    "loading": "加载中...",
+    "retry": "重试",
+    "error": "错误",
+    "ok": "确定",
+    "next": "下一步",
+    "previous": "上一步",
+    "search": "搜索",
+    "add": "添加",
+    "remove": "移除",
+    "reset": "重置",
+    "yes": "是",
+    "no": "否"
+  }
+}

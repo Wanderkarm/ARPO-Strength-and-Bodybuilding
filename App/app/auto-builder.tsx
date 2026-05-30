@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -43,6 +44,7 @@ const PRIORITY_OPTIONS: { value: Priority; label: string; color: string }[] = [
 ];
 
 export default function AutoBuilderScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -97,7 +99,7 @@ export default function AutoBuilderScreen() {
         Alert.alert(
           "Routine Slots Full",
           "You can save up to 3 custom routines. Delete one from the routines screen to create a new one.",
-          [{ text: "OK" }]
+          [{ text: t('common.ok') }]
         );
         return;
       }
@@ -128,7 +130,7 @@ export default function AutoBuilderScreen() {
     }
   }
 
-  const stepLabels = ["Basics", "Muscle Focus", "Preview"];
+  const stepLabels = [t('autoBuilder.steps.basics'), t('autoBuilder.steps.muscleFocus'), t('autoBuilder.steps.preview')];
 
   // ── Exercise lookup helper ─────────────────────────────────────────────────
   function getExerciseById(id: string): Exercise | undefined {
@@ -159,7 +161,7 @@ export default function AutoBuilderScreen() {
             textTransform: "uppercase",
             letterSpacing: 2,
           }}>
-            Generate Routine
+            {t('autoBuilder.title')}
           </Text>
         </View>
         <View style={{ width: 24 }} />
@@ -208,7 +210,7 @@ export default function AutoBuilderScreen() {
             </View>
 
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Routine Name
+              {t('autoBuilder.step1.routineName')}
             </Text>
             <TextInput
               value={routineName}
@@ -230,7 +232,7 @@ export default function AutoBuilderScreen() {
             />
 
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              Training Days Per Week
+              {t('autoBuilder.step1.trainingDaysPerWeek')}
             </Text>
             <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
               {DAYS_OPTIONS.map((d) => (
@@ -301,7 +303,7 @@ export default function AutoBuilderScreen() {
                 textTransform: "uppercase",
                 letterSpacing: 2,
               }}>
-                Set Muscle Focus →
+                {t('autoBuilder.step1.setMuscleFocus')}
               </Text>
             </Pressable>
           </View>
@@ -341,7 +343,7 @@ export default function AutoBuilderScreen() {
                   }}
                 >
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: opt.color, textTransform: "uppercase", letterSpacing: 1 }}>
-                    {opt.label}
+                    {t(`autoBuilder.step2.priorities.${opt.value}`)}
                   </Text>
                 </View>
               ))}
@@ -393,7 +395,7 @@ export default function AutoBuilderScreen() {
                             textTransform: "uppercase",
                             letterSpacing: 0.5,
                           }}>
-                            {opt.label}
+                            {t(`autoBuilder.step2.priorities.${opt.value}`)}
                           </Text>
                         </Pressable>
                       );
@@ -421,7 +423,7 @@ export default function AutoBuilderScreen() {
                 textTransform: "uppercase",
                 letterSpacing: 2,
               }}>
-                Generate Routine →
+                {t('autoBuilder.step2.generate')}
               </Text>
             </Pressable>
           </View>
@@ -456,7 +458,7 @@ export default function AutoBuilderScreen() {
               >
                 <Ionicons name="refresh" size={14} color={Colors.textSecondary} />
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Shuffle
+                  {t('autoBuilder.step3.shuffle')}
                 </Text>
               </Pressable>
             </View>
@@ -533,7 +535,7 @@ export default function AutoBuilderScreen() {
                       })}
                       {day.exerciseIds.length === 0 && (
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, paddingHorizontal: 14, paddingVertical: 12 }}>
-                          All muscles set to Skip for this day.
+                          {t('autoBuilder.step3.allMusclesSkipped')}
                         </Text>
                       )}
                     </View>
@@ -558,7 +560,7 @@ export default function AutoBuilderScreen() {
                 <ActivityIndicator color={Colors.text} />
               ) : (
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Save Routine
+                  {t('autoBuilder.step3.saveRoutine')}
                 </Text>
               )}
             </Pressable>

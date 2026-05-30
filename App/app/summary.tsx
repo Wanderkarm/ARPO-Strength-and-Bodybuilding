@@ -8,6 +8,7 @@ import {
   Modal,
   Switch,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -51,6 +52,7 @@ interface PRResult {
 }
 
 export default function SummaryScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -239,7 +241,7 @@ export default function SummaryScreen() {
             letterSpacing: 1,
             textAlign: "center",
           }}>
-            Workout Complete
+            {t('summary.workoutComplete')}
           </Text>
 
           <Text style={{
@@ -250,7 +252,7 @@ export default function SummaryScreen() {
             textTransform: "uppercase",
             letterSpacing: 1.5,
           }}>
-            Week {weekNumber} — Day {dayNumber}
+            {t('summary.weekDay', { week: weekNumber, day: dayNumber })}
           </Text>
 
           <View style={{
@@ -264,7 +266,7 @@ export default function SummaryScreen() {
               color: "#CCCCCC",
               lineHeight: 20,
             }}>
-              Session logged. Recover well — your next targets are ready.
+              {t('summary.sessionLogged')}
             </Text>
           </View>
         </View>
@@ -272,25 +274,25 @@ export default function SummaryScreen() {
         {/* ── Stat cards ── */}
         <View style={{ flexDirection: "row", paddingHorizontal: 24, marginTop: 28, gap: 6 }}>
           <StatCard
-            label="Volume"
+            label={t('summary.stats.volume')}
             value={formatVolume(totalVolume)}
-            sub={`${unit} moved`}
+            sub={t('summary.stats.volumeSub', { unit })}
             valueColor={Colors.primary}
           />
           <StatCard
-            label="Exercises"
+            label={t('summary.stats.exercises')}
             value={String(exerciseCount)}
-            sub="done"
+            sub={t('summary.stats.exercisesSub')}
           />
           <StatCard
-            label="Week"
+            label={t('summary.stats.week')}
             value={String(weekNumber)}
-            sub="of 4"
+            sub={t('summary.stats.weekSub')}
           />
           <StatCard
-            label="RIR"
+            label={t('summary.stats.rir')}
             value={currentRIR ? currentRIR.replace(" RIR", "") : "—"}
-            sub="this wk"
+            sub={t('summary.stats.rirSub')}
           />
         </View>
 
@@ -306,13 +308,13 @@ export default function SummaryScreen() {
                 textTransform: "uppercase",
                 letterSpacing: 2,
               }}>
-                Personal Records
+                {t('summary.personalRecords')}
               </Text>
             </View>
             {prs.map((pr) => {
               const gain = pr.previousBest > 0
                 ? ` (+${Math.round((pr.newBest - pr.previousBest) * 10) / 10} ${unit})`
-                : " (first logged max)";
+                : ` ${t('summary.prFirstLogged')}`;
               return (
                 <View key={pr.exerciseId} style={{
                   borderWidth: 1,
@@ -573,7 +575,7 @@ export default function SummaryScreen() {
               textTransform: "uppercase",
               letterSpacing: 2,
             }}>
-              Return to Dashboard
+              {t('summary.returnToDashboard')}
             </Text>
           </Pressable>
 
@@ -589,7 +591,7 @@ export default function SummaryScreen() {
             >
               <Ionicons name="create-outline" size={16} color={Colors.textSecondary} />
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                Edit Sets
+                {t('summary.editSets')}
               </Text>
             </Pressable>
           ) : null}
@@ -624,14 +626,14 @@ export default function SummaryScreen() {
             {/* Header */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Stay Consistent
+                {t('summary.notificationsPrompt.title')}
               </Text>
               <Pressable onPress={async () => { await AsyncStorage.setItem("notifPromptDismissed", "1"); setShowNotifPrompt(false); }} hitSlop={12}>
                 <Ionicons name="close" size={20} color={Colors.textMuted} />
               </Pressable>
             </View>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 20 }}>
-              Great first session. The athletes who make the best progress show up consistently — want POWRLOG to remind you?
+              {t('summary.notificationsPrompt.body')}
             </Text>
 
             {/* Workout reminder toggle */}
@@ -640,7 +642,7 @@ export default function SummaryScreen() {
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <Ionicons name="barbell-outline" size={18} color={Colors.primary} />
                   <View>
-                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Workout Reminder</Text>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('summary.notificationsPrompt.workoutReminder')}</Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 1 }}>
                       {workoutEnabled ? `Daily at ${formatTime(workoutHour, workoutMinute)}` : "Off"}
                     </Text>
@@ -683,7 +685,7 @@ export default function SummaryScreen() {
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <Ionicons name="scale-outline" size={18} color={Colors.primary} />
                   <View>
-                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>Weigh-in Reminder</Text>
+                    <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text }}>{t('summary.notificationsPrompt.weighInReminder')}</Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 1 }}>
                       {weighinEnabled ? `Daily at ${formatTime(weighinHour, weighinMinute)}` : "Off"}
                     </Text>
@@ -722,11 +724,11 @@ export default function SummaryScreen() {
 
             <Pressable onPress={handleSaveNotifs} style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 15, alignItems: "center", marginBottom: 10, opacity: pressed ? 0.85 : 1 })}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                {workoutEnabled || weighinEnabled ? "Set Reminders →" : "Continue →"}
+                {workoutEnabled || weighinEnabled ? t('summary.notificationsPrompt.setReminders') : t('summary.notificationsPrompt.continueButton')}
               </Text>
             </Pressable>
             <Pressable onPress={async () => { await AsyncStorage.setItem("notifPromptDismissed", "1"); setShowNotifPrompt(false); }} style={({ pressed }) => ({ alignItems: "center", opacity: pressed ? 0.6 : 1, paddingVertical: 4 })}>
-              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Not now</Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{t('summary.notificationsPrompt.notNow')}</Text>
             </Pressable>
           </View>
         </View>

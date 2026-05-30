@@ -10,6 +10,7 @@ import {
   Image,
   Linking,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -32,6 +33,7 @@ const DEV_TAP_TARGET = 7;
 const DEV_UNLOCK_EMAIL = "andrewmarklatham@gmail.com"; // owner's Apple ID
 
 export default function PaywallScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { purchaseUnlock, restorePurchases, isPurchased, devUnlock } = usePurchase();
   const [purchasing, setPurchasing] = useState(false);
@@ -50,7 +52,7 @@ export default function PaywallScreen() {
     if (result.success) {
       router.replace("/(tabs)");
     } else if (result.error) {
-      Alert.alert("Purchase Failed", result.error, [{ text: "OK" }]);
+      Alert.alert(t('paywall.alerts.purchaseFailedTitle'), result.error, [{ text: t('paywall.alerts.button') }]);
     }
   }
 
@@ -71,7 +73,7 @@ export default function PaywallScreen() {
     if (result.success) {
       router.replace("/(tabs)");
     } else {
-      Alert.alert("No Purchase Found", result.error ?? "No previous purchase found for this Apple ID.", [{ text: "OK" }]);
+      Alert.alert(t('paywall.alerts.noPurchaseFoundTitle'), result.error ?? t('paywall.alerts.noPurchaseFoundDefault'), [{ text: t('paywall.alerts.button') }]);
     }
   }
 
@@ -100,13 +102,13 @@ export default function PaywallScreen() {
           fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text,
           textTransform: "uppercase", letterSpacing: 1.5, textAlign: "center", marginTop: 16, marginBottom: 6,
         }}>
-          {TRIAL_WORKOUTS} sessions done.{"\n"}Time to unlock.
+          {t('paywall.headline', { count: TRIAL_WORKOUTS })}
         </Text>
         <Text style={{
           fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary,
           textAlign: "center", lineHeight: 20, marginBottom: 28,
         }}>
-          You've seen what POWRLOG does.{"\n"}Pay once. Own it. No subscription, ever.
+          {t('paywall.payOnce')}
         </Text>
 
         {/* Value callout */}
@@ -137,7 +139,7 @@ export default function PaywallScreen() {
           fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted,
           textTransform: "uppercase", letterSpacing: 2, marginBottom: 12,
         }}>
-          Everything included
+          {t('paywall.featuresHeading')}
         </Text>
 
         {FEATURES.map(f => (
@@ -206,7 +208,7 @@ export default function PaywallScreen() {
                 fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text,
                 textTransform: "uppercase", letterSpacing: 2,
               }}>
-                Unlock POWRLOG — {UNLOCK_PRICE_LABEL}
+                {t('paywall.unlockButton', { price: UNLOCK_PRICE_LABEL })}
               </Text>
           }
         </Pressable>
@@ -223,7 +225,7 @@ export default function PaywallScreen() {
                 fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted,
                 textDecorationLine: "underline",
               }}>
-                Restore previous purchase
+                {t('paywall.restorePurchase')}
               </Text>
           }
         </Pressable>
@@ -234,8 +236,7 @@ export default function PaywallScreen() {
             fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted,
             textAlign: "center", marginTop: 12, lineHeight: 15,
           }}>
-            Payment charged to your Apple ID at confirmation.{"\n"}
-            Manage in Settings → [Your Name] → App Store.
+            {t('paywall.legalText')}
           </Text>
         )}
 
@@ -243,13 +244,13 @@ export default function PaywallScreen() {
         <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 10 }}>
           <Pressable onPress={() => Linking.openURL("https://powrlog.com/privacy")}>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textDecorationLine: "underline" }}>
-              Privacy Policy
+              {t('paywall.privacyPolicy')}
             </Text>
           </Pressable>
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>·</Text>
           <Pressable onPress={() => Linking.openURL("https://powrlog.com/terms")}>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textDecorationLine: "underline" }}>
-              Terms of Use
+              {t('paywall.termsOfUse')}
             </Text>
           </Pressable>
         </View>

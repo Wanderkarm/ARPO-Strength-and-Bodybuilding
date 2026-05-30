@@ -3,6 +3,7 @@ import {
   View, Text, Pressable, ScrollView, Platform,
   ActivityIndicator, Alert,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -50,6 +51,7 @@ function formatRelativeDate(iso: string | null): string {
 }
 
 export default function MyPlansScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
 
@@ -105,12 +107,12 @@ export default function MyPlansScreen() {
 
   function handleAbandon(plan: PlanSummary) {
     Alert.alert(
-      "Abandon Plan",
-      `Remove "${plan.templateName}" from your active plans? Your workout history is kept.`,
+      t('myPlans.alerts.abandonTitle'),
+      t('myPlans.alerts.abandonMessage', { name: plan.templateName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('myPlans.alerts.abandonCancel'), style: "cancel" },
         {
-          text: "Abandon",
+          text: t('myPlans.alerts.abandonConfirm'),
           style: "destructive",
           onPress: async () => {
             try {
@@ -165,7 +167,7 @@ export default function MyPlansScreen() {
             </View>
             <View style={{ backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 4 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 9, color: Colors.text, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                Active
+                {t('myPlans.planCard.active')}
               </Text>
             </View>
           </View>
@@ -174,7 +176,7 @@ export default function MyPlansScreen() {
           <View style={{ flexDirection: "row", gap: 20, marginTop: 14 }}>
             <View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Week
+                {t('myPlans.planCard.weekLabel')}
               </Text>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, marginTop: 1 }}>
                 {plan.currentWeek}
@@ -182,7 +184,7 @@ export default function MyPlansScreen() {
             </View>
             <View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Phase
+                {t('myPlans.planCard.phaseLabel')}
               </Text>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: PHASE_COLOR[mw], marginTop: 1, textTransform: "uppercase" }}>
                 {PHASE_LABEL[mw]}
@@ -190,7 +192,7 @@ export default function MyPlansScreen() {
             </View>
             <View>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                Target RIR
+                {t('myPlans.planCard.targetRir')}
               </Text>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, marginTop: 1 }}>
                 {PHASE_RIR[mw] ?? "—"}
@@ -330,7 +332,7 @@ export default function MyPlansScreen() {
           >
             <Ionicons name="flash" size={14} color={Colors.primary} />
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-              Go to Workout
+              {t('myPlans.planCard.goToWorkout')}
             </Text>
           </Pressable>
           <View style={{ width: 1, height: "100%", backgroundColor: Colors.border }} />
@@ -405,7 +407,7 @@ export default function MyPlansScreen() {
               : <>
                   <Ionicons name="swap-horizontal" size={13} color={Colors.primary} />
                   <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                    Switch to This
+                    {t('myPlans.planCard.switchToThis')}
                   </Text>
                 </>
             }
@@ -441,7 +443,7 @@ export default function MyPlansScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            My Program
+            {t('myPlans.title')}
           </Text>
         </View>
         <Pressable onPress={() => router.push("/templates")} hitSlop={12}>
@@ -460,10 +462,10 @@ export default function MyPlansScreen() {
         >
           <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
           <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, textAlign: "center", marginTop: 16 }}>
-            No active plans.
+            {t('myPlans.noActivePlans')}
           </Text>
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textAlign: "center", marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-            Tap to start one →
+            {t('myPlans.tapToStart')}
           </Text>
         </Pressable>
       ) : (
@@ -476,7 +478,7 @@ export default function MyPlansScreen() {
           {otherPlans.length > 0 && (
             <>
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, marginTop: activePlan ? 4 : 0 }}>
-                Other Plans
+                {t('myPlans.otherPlans')}
               </Text>
               {otherPlans.map(p => <InactivePlanCard key={p.id} plan={p} />)}
             </>
@@ -494,7 +496,7 @@ export default function MyPlansScreen() {
           >
             <Ionicons name="add" size={18} color={Colors.textMuted} />
             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
-              Start a New Plan
+              {t('myPlans.startNewPlan')}
             </Text>
           </Pressable>
         </ScrollView>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -54,6 +55,7 @@ const EQUIPMENT_OPTIONS = [
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function CustomExerciseScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
 
@@ -93,7 +95,7 @@ export default function CustomExerciseScreen() {
       await load();
     } catch (err: any) {
       if (err?.message?.includes("UNIQUE")) {
-        Alert.alert("Duplicate", "An exercise with that name already exists.");
+        Alert.alert(t('customExercise.alerts.duplicateTitle'), t('customExercise.alerts.duplicateMessage'));
       } else {
         console.error(err);
       }
@@ -104,12 +106,12 @@ export default function CustomExerciseScreen() {
 
   async function handleDelete(id: string, exerciseName: string) {
     Alert.alert(
-      "Delete Exercise",
-      `Remove "${exerciseName}" from your custom exercises? This won't affect existing workout logs.`,
+      t('customExercise.alerts.deleteTitle'),
+      t('customExercise.alerts.deleteMessage', { name: exerciseName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Delete",
+          text: t('customExercise.alerts.deleteConfirm'),
           style: "destructive",
           onPress: async () => {
             await deleteCustomExercise(id);
@@ -144,7 +146,7 @@ export default function CustomExerciseScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            Custom Exercises
+            {t('customExercise.title')}
           </Text>
         </View>
         <Pressable
@@ -163,17 +165,17 @@ export default function CustomExerciseScreen() {
           {showForm && (
             <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16, marginBottom: 20 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>
-                New Exercise
+                {t('customExercise.form.title')}
               </Text>
 
               {/* Name */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 7 }}>
-                Exercise Name
+                {t('customExercise.form.exerciseName')}
               </Text>
               <TextInput
                 value={name}
                 onChangeText={setName}
-                placeholder="e.g. Hack Squat Machine"
+                placeholder={t('customExercise.form.exerciseNamePlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 autoCapitalize="words"
                 style={{
@@ -191,7 +193,7 @@ export default function CustomExerciseScreen() {
 
               {/* Category */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
-                Muscle Group / Category
+                {t('customExercise.form.muscleGroup')}
               </Text>
               <ScrollView
                 keyboardShouldPersistTaps="handled"
@@ -228,7 +230,7 @@ export default function CustomExerciseScreen() {
 
               {/* Equipment */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
-                Equipment
+                {t('customExercise.form.equipment')}
               </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
                 {EQUIPMENT_OPTIONS.map(opt => (
@@ -268,7 +270,7 @@ export default function CustomExerciseScreen() {
                 {saving
                   ? <ActivityIndicator color={Colors.text} />
                   : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: name.trim() ? Colors.text : Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                      Add Exercise
+                      {t('customExercise.form.addExercise')}
                     </Text>
                 }
               </Pressable>
@@ -331,7 +333,7 @@ export default function CustomExerciseScreen() {
             <View style={{ alignItems: "center", paddingTop: 40 }}>
               <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, marginTop: 12, textAlign: "center" }}>
-                Add exercises not in the library.{"\n"}They'll appear in the swap picker and builder.
+                {t('customExercise.empty')}
               </Text>
             </View>
           )}

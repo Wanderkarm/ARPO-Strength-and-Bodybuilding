@@ -1,0 +1,755 @@
+{
+  "dashboard": {
+    "noRoutineActive": "Hakuna ratiba inayoendelea",
+    "browseTemplates": "Tazama mifano ya mazoezi →",
+    "powrHub": "POWR Hub",
+    "startWorkout": "Anza mazoezi",
+    "startDeload": "Anza wiki ya kupunguza",
+    "skipSession": "Ruka kipindi",
+    "sessionComplete": "Kipindi kimekamilika",
+    "myProgram": "Mpango wangu",
+    "changeRoutine": "Badilisha ratiba",
+    "trialCountdown_one": "Kipindi {{count}} cha bure kimebaki",
+    "trialCountdown_other": "Vipindi {{count}} vya bure vimebaki",
+    "trialCountdownSub": "Fungua POWRLOG ili uendelee →",
+    "unlockBanner": "Boresha ili uendelee kufunza",
+    "recoveryTile": {
+      "title": "Kupona",
+      "noData": "Bado hakuna data",
+      "learnMore": "Jifunze zaidi"
+    },
+    "stepsModal": {
+      "title": "Rekodi hatua za leo",
+      "save": "Hifadhi hatua",
+      "syncApple": "Sawazisha kutoka Apple Health",
+      "placeholder": "mfano: 8500"
+    },
+    "alerts": {
+      "skipSessionTitle": "Ruka kipindi?",
+      "skipSessionMessage": "Kipindi hiki kitaonekana kama kilichorukwa na malengo yako yatahamishiwa wiki ijayo.",
+      "skipSessionConfirm": "Ruka",
+      "skipSessionCancel": "Ghairi",
+      "restartSetupTitle": "Anza upya usanidi",
+      "restartSetupMessage": "Hii itaanzisha upya wasifu wako na mipangilio ya mafunzo. Historia yako ya mazoezi itabaki. Endelea?",
+      "restartSetupConfirm": "Anza upya",
+      "restartSetupCancel": "Ghairi"
+    },
+    "nudgeBanners": {
+      "logWeightTitle": "Rekodi uzito wako",
+      "logWeightDesc": "Fuatilia maendeleo ya muundo wa mwili",
+      "setupNutritionTitle": "Weka malengo ya lishe",
+      "setupNutritionDesc": "Kalori na makronutrienti yaliyobinafsishwa"
+    }
+  },
+  "progress": {
+    "title": "Maendeleo",
+    "strengthProgress": "Maendeleo ya nguvu",
+    "volumeTracker": "Kifuatilia cha kiasi",
+    "theScience": "Sayansi",
+    "couldntLoad": "Imeshindwa kupakia maendeleo",
+    "noActivePlan": "Hakuna mpango unaoendelea",
+    "retry": "Jaribu tena",
+    "moreDataNextWeek": "Data zaidi wiki ijayo",
+    "volumeStatus": {
+      "rest": "Mapumziko",
+      "belowMev": "Chini ya MEV",
+      "inMav": "Ndani ya MAV ✓",
+      "aboveMrv": "Juu ya MRV",
+      "building": "Inaongezeka",
+      "nearMrv": "Karibu na MRV"
+    }
+  },
+  "body": {
+    "title": "Mwili",
+    "tabs": {
+      "nutrition": "Lishe",
+      "weighIn": "Pima uzito",
+      "composition": "Muundo wa mwili",
+      "measurements": "Vipimo",
+      "oneRmCalc": "Kikokotoo cha 1RM"
+    },
+    "setupNutrition": "Weka malengo ya lishe",
+    "caloriesMacros": "Kalori, makronutrienti na mifano ya chakula",
+    "noWeighIns": "Bado hakuna rekodi ya uzito.",
+    "logged": "Imerekodiwa ✓",
+    "logWeight": "Rekodi uzito",
+    "macros": {
+      "protein": "Protini",
+      "carbs": "Kabohidreiti",
+      "fat": "Mafuta"
+    },
+    "stats": {
+      "bmi": "BMI",
+      "ffmi": "FFMI",
+      "bodyFat": "Mafuta ya mwili",
+      "leanMass": "Misa isiyo na mafuta"
+    },
+    "bmiNote": "BMI inadanganya kwa wanariadha wanaofunzwa.",
+    "syncButton": "Sawazisha",
+    "sources": {
+      "navyFormula": "Fomula ya Jeshi la Majini",
+      "appleHealth": "Apple Health",
+      "healthConnect": "Health Connect",
+      "smartScale": "Mizani ya akili"
+    },
+    "logMeasurements": "Rekodi vipimo",
+    "measurementsDesc": "Kifua, kiuno, mikono na zaidi",
+    "unlockComposition": "Fungua vipimo vya muundo wa mwili",
+    "addWaistNeck": "Ongeza kiuno na shingo kufungua % ya mafuta ya mwili na FFMI"
+  },
+  "history": {
+    "title": "Historia",
+    "trainingCalendar": "Kalenda ya mafunzo",
+    "pastSessions": "Vipindi vilivyopita",
+    "noActivityThisMonth": "Hakuna shughuli mwezi huu",
+    "noSessionsLogged": "Bado hakuna vipindi vilivyorekodiwa",
+    "skipped": "Ilirukwa",
+    "undo": "Tendua",
+    "editSets": "Hariri seti",
+    "setTableHeaders": {
+      "set": "Seti",
+      "weight": "Uzito",
+      "reps": "Marudio"
+    },
+    "noSetsRecorded": "Hakuna seti zilizorekodiwa",
+    "sessionSkippedNote": "Kipindi kilirukwa. Malengo yalihamishiwa wiki ijayo.",
+    "alerts": {
+      "undoSkipTitle": "Tendua kuruka",
+      "undoSkipMessage": "Hii itarudisha kipindi hiki na kukiondoa kwenye vipindi vilivyorukwa. Malengo yako yatarudi kama yalivyokuwa kabla.",
+      "undoSkipConfirm": "Tendua",
+      "undoSkipCancel": "Ghairi"
+    }
+  },
+  "settings": {
+    "title": "Mipangilio",
+    "sections": {
+      "preferences": "Mapendeleo",
+      "activePlan": "Mpango unaoendelea",
+      "exerciseLibrary": "Maktaba ya mazoezi",
+      "devices": "Vifaa",
+      "notifications": "Arifa",
+      "streak": "Mfululizo",
+      "dailySteps": "Hatua za kila siku",
+      "backupRestore": "Hifadhi nakala na urejesho",
+      "profile": "Wasifu",
+      "trainingSchedule": "Ratiba ya mafunzo",
+      "legal": "Kisheria",
+      "dangerZone": "Eneo hatari",
+      "devTools": "Zana za msanidi"
+    },
+    "items": {
+      "language": "Lugha",
+      "units": "Vitengo",
+      "lbs": "ratili",
+      "kg": "kg",
+      "gymType": "Mahali pa mafunzo",
+      "gym": "Ukumbi wa mazoezi",
+      "homeGym": "Ukumbi wa nyumbani",
+      "progressionMethod": "Njia ya maendeleo",
+      "arpo": "ARPO (Otomatiki)",
+      "doubleProgression": "Maendeleo mara mbili",
+      "goal": "Lengo",
+      "strength": "Nguvu",
+      "powerbuilding": "Nguvu na misuli",
+      "hypertrophy": "Ukuaji wa misuli",
+      "customExercises": "Mazoezi maalum",
+      "connectHealth": "Unganisha data ya afya",
+      "workoutReminder": "Ukumbusho wa mazoezi",
+      "weighInReminder": "Ukumbusho wa kupima uzito",
+      "currentStreak": "Mfululizo wa sasa",
+      "longestStreak": "Mfululizo mrefu zaidi",
+      "dailyStepGoal": "Lengo la hatua za kila siku",
+      "backup": "Hifadhi nakala",
+      "restore": "Rejesha",
+      "exportData": "Hamisha data",
+      "privacyPolicy": "Sera ya faragha",
+      "termsOfUse": "Masharti ya matumizi",
+      "acknowledgements": "Shukrani",
+      "legalDisclaimer": "Kanusho la kisheria",
+      "deleteAllData": "Futa data yote",
+      "resetApp": "Weka programu upya"
+    },
+    "descriptions": {
+      "homeGymMode": "Hali ya ukumbi wa nyumbani hubadilisha mazoezi ya baa na mashine na mbadala wa dumbbells na uzito wa mwili.",
+      "arpoDesc": "POWRLOG hubadilisha uzito na kiasi moja kwa moja kila wiki kulingana na utendaji wako.",
+      "doubleProgressionDesc": "Ongeza marudio ndani ya muda kabla ya kuongeza uzito. Udhibiti wa mkono.",
+      "dailyStepGoalDesc": "Weka lengo la hatua za kila siku kufuatilia shughuli pamoja na mafunzo."
+    },
+    "backup": {
+      "modalTitle": "Hifadhi nakala na urejesho",
+      "backupDesc": "Hifadhi historia yako ya mazoezi na mipangilio kwenye faili ambalo unaweza kurejesha baadaye.",
+      "backupButton": "Tengeneza nakala ya hifadhi",
+      "restoreDesc": "Rejesha kutoka kwa faili la nakala iliyohifadhiwa awali.",
+      "restoreButton": "Rejesha kutoka kwa nakala",
+      "backingUp": "Inaweka nakala...",
+      "restoring": "Inarejesha...",
+      "backupSuccess": "Nakala ya hifadhi imetengenezwa kwa mafanikio.",
+      "restoreSuccess": "Urejesho umekamilika.",
+      "backupFailed": "Kuhifadhi nakala kumeshindwa. Tafadhali jaribu tena.",
+      "restoreFailed": "Urejesho umeshindwa. Faili linaweza kuwa batili au limeharibika."
+    },
+    "dangerZone": {
+      "deleteTitle": "Futa data yote",
+      "deleteMessage": "Hii itafuta kabisa historia yako yote ya mazoezi, mipango, na data ya wasifu. Haiwezi kutendulizwa.",
+      "deleteConfirm": "Futa kila kitu",
+      "deleteCancel": "Ghairi",
+      "confirmPhrase": "Andika DELETE kuthibitisha",
+      "confirmPlaceholder": "DELETE",
+      "step2Title": "Je, una uhakika kabisa?",
+      "step2Message": "Data yote itafutwa kabisa. Utarudishwa kwenye mwanzo."
+    },
+    "alerts": {
+      "goalChangeTitle": "Badilisha lengo",
+      "goalChangeMessage": "Kubadilisha lengo lako kutahesabu upya malengo yako ya maendeleo. Endelea?",
+      "gymChangeTitle": "Badilisha mahali pa mafunzo",
+      "gymChangeMessage": "Hii itabadilisha mazoezi yanayohusika katika mpango wako unaoendelea. Endelea?",
+      "progressionChangeTitle": "Badilisha njia ya maendeleo",
+      "progressionChangeMessage": "Hii itabadilisha jinsi uzito unavyohesabiwa kuanzia sasa. Endelea?",
+      "goalChangeSub": "Endelea",
+      "cancel": "Ghairi"
+    },
+    "trial": {
+      "activeTrial": "Jaribio la bure linaendelea",
+      "trialRemaining_one": "Kipindi {{count}} kimebaki",
+      "trialRemaining_other": "Vipindi {{count}} vimebaki",
+      "unlockNow": "Fungua sasa →"
+    },
+    "purchase": {
+      "unlocked": "POWRLOG imefunguliwa",
+      "thankYou": "Asante kwa msaada wako.",
+      "managePurchase": "Simamia ununuzi"
+    },
+    "legalDisclaimer": "POWRLOG ni zana ya mafunzo na si mbadala wa ushauri wa kitaalamu wa kimatibabu. Wasiliana na mtaalamu wa afya aliyeidhinishwa kabla ya kuanza mpango wowote wa mazoezi, hasa ukiwa na hali zilizopo awali. Data ya mafunzo inayoonyeshwa ni kwa madhumuni ya habari tu."
+  },
+  "workout": {
+    "recovery": {
+      "veryFatigued": "Amechoka sana",
+      "fatigued": "Amechoka",
+      "neutral": "Wastani",
+      "fresh": "Amepumzika",
+      "veryFresh": "Amepumzika sana"
+    },
+    "header": {
+      "day": "Siku ya {{number}}",
+      "week": "Wiki ya {{number}}",
+      "deload": "KUPUNGUZA"
+    },
+    "deloadBanner": "Wiki ya kupunguza — kiasi na nguvu imepunguzwa. Zingatia mbinu na kupona.",
+    "actions": {
+      "edit": "Hariri",
+      "swap": "Badilisha",
+      "reset": "Weka upya",
+      "watch": "Tazama"
+    },
+    "setFeedback": {
+      "targetExceeded": "Lengo limepitwa — uzito unaongezeka kipindi kijacho",
+      "targetMet": "Lengo limefikiwa",
+      "weightBelowTarget": "Uzito uko chini ya lengo",
+      "repsBelowTarget": "Marudio yako chini ya lengo"
+    },
+    "myo": {
+      "act": "AMSH",
+      "rest": "Pumzika — pumua kwa kina",
+      "miniSetIncoming": "Seti ndogo inakuja",
+      "stopMyo": "SIMAMA MYO"
+    },
+    "watchBanner": "Apple Watch imegunduliwa — rekodi seti kutoka kwa mkono wako",
+    "incompleteModal": {
+      "title": "Data haijakamilika",
+      "message": "Baadhi ya seti hazina uzito au marudio. Maliza kipindi hata hivyo?",
+      "finish": "Maliza hata hivyo",
+      "goBack": "Rudi ujaze"
+    },
+    "resetModal": {
+      "title": "Weka upya data ya kipindi",
+      "message": "Hii itafuta seti zote zilizorekodiwa katika kipindi hiki. Endelea?",
+      "confirm": "Weka upya data ya kipindi",
+      "cancel": "Ghairi"
+    },
+    "swapScopeModal": {
+      "title": "Tumia mabadiliko kwa",
+      "justToday": "Kipindi hiki peke yake",
+      "everySession": "Vipindi vyote kuanzia sasa",
+      "cancel": "Ghairi"
+    },
+    "exercisePanel": {
+      "addSet": "Ongeza seti",
+      "removeSet": "Ondoa seti ya mwisho",
+      "myoReps": "Seti za Myo-Rep",
+      "plateCalc": "Kikokotoo cha sahani",
+      "editExercise": "Hariri zoezi",
+      "swapExercise": "Badilisha zoezi"
+    },
+    "setManageModal": {
+      "addTitle": "Ongeza seti",
+      "removeTitle": "Ondoa seti ya mwisho",
+      "applyTo": "Tumia mabadiliko kwa...",
+      "justThisSession": "Kipindi hiki peke yake",
+      "justThisSessionSub": "Kipindi kijacho kitarudi idadi ya awali ya seti",
+      "everySession": "Vipindi vyote kuanzia sasa",
+      "everySessionSub": "Sasisha vipindi vyote vya baadaye katika mpango huu",
+      "cancel": "Ghairi"
+    },
+    "swapModal": {
+      "title": "Badilisha zoezi",
+      "homeGymFilter": "Dumbbells / Uzito wa mwili tu",
+      "homeGymFilterSub": "Chuja kwa vifaa vya ukumbi wa nyumbani",
+      "categoryLabel": "Aina:",
+      "noAlternatives": "Hakuna mbadala zinazopatikana"
+    },
+    "editExerciseModal": {
+      "title": "Hariri zoezi",
+      "exerciseName": "Jina la zoezi",
+      "exerciseNamePlaceholder": "Jina la zoezi",
+      "videoUrl": "URL ya video",
+      "videoUrlPlaceholder": "https://youtu.be/...",
+      "weightType": "Aina ya uzito",
+      "bodweightOnly": "Uzito wa mwili tu",
+      "weightedBW": "+ Mkanda / Dumbbell",
+      "saveChanges": "Hifadhi mabadiliko"
+    },
+    "myoExplainer": {
+      "title": "Seti za Myo-Rep",
+      "subtitle": "Marudio mengi zaidi yenye ufanisi katika muda mfupi",
+      "step1Title": "Seti ya kuamsha",
+      "step1Text": "Fanya seti yako hadi karibu na kushindwa — lenga marudio 10–15. Hii inaamsha vitengo vyako vya motor.",
+      "step2Title": "Pumzika sekunde 15",
+      "step2Text": "Kipima muda cha kuhesabu kurudi kinaonekana moja kwa moja. Pumua kwa kina mara 3–5 — inatosha kuondoa asidi ya lactic.",
+      "step3Title": "Seti ndogo (M1, M2…)",
+      "step3Text": "Mstari mpya unaonekana — fanya marudio 3–5 na uzito ule ule na urekodie. Kipima muda cha kupumzika kinaanza tena moja kwa moja.",
+      "stopTitle": "Simama Unapofika…",
+      "stopText": "Huwezi kufanya marudio 3, au baada ya seti ndogo 5. Gusa SIMAMA MYO wakati wowote kumalizia mapema.",
+      "bestFor": "Inafaa zaidi kwa: ",
+      "bestForDetail": "mazoezi ya kutengwa kama curls, lateral raises, na tricep extensions — si kwa mazoezi mazito ya mchanganyiko.",
+      "maybeLater": "Labda baadaye",
+      "letsGo": "Twende →"
+    },
+    "plateCalc": {
+      "title": "Kikokotoo cha sahani",
+      "barLabel": "Baa",
+      "targetWeight": "Uzito unaolengwa ({{unit}})",
+      "placeholder": "mfano: 185",
+      "eachSide": "Kila upande",
+      "total": "Jumla:",
+      "nearestPossible": "(iliyo karibu zaidi inayowezekana)",
+      "barOnly": "Baa tu ({{weight}} {{unit}})",
+      "enterWeight": "Ingiza uzito kuona mgawanyo wa sahani"
+    },
+    "videoModal": {
+      "noVideo": "Hakuna video inayopatikana kwa zoezi hili.",
+      "cantPlay": "Haiwezi kucheza?",
+      "openInYouTube": "Fungua katika YouTube"
+    },
+    "tourOverlay": {
+      "stepOf": "Hatua {{current}} kati ya {{total}}",
+      "back": "Rudi",
+      "skip": "Ruka",
+      "next": "Inayofuata →",
+      "gotIt": "Nimeelewa"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "Funza kwa akili.\nMaendeleo kila kipindi.",
+      "subheadline": "Mpango unaotegemea sayansi unaobadilika moja kwa moja.",
+      "cta": "Anza →",
+      "alreadyHaveAccount": "Una akaunti tayari?"
+    },
+    "units": {
+      "title": "Ratili au kilogramu?",
+      "subtitle": "Chagua kitengo chako cha uzito. Unaweza kubadilisha hii baadaye katika Mipangilio.",
+      "lbs": "Ratili (lbs)",
+      "lbsSub": "Inatumika nchini Marekani, Uingereza",
+      "kg": "Kilogramu (kg)",
+      "kgSub": "Inatumika kimataifa",
+      "continue": "Endelea →"
+    },
+    "identity": {
+      "title": "Kuhusu wewe",
+      "subtitle": "Hii inatusaidia kubinafsisha mpango wako na uzito wa kuanzia.",
+      "biologicalSex": "Jinsia ya kibiolojia",
+      "male": "Mume",
+      "female": "Mke",
+      "experience": "Uzoefu wa mafunzo",
+      "beginner": "Mwanzo",
+      "beginnerDesc": "Chini ya mwaka 1 wa mafunzo ya kawaida",
+      "beginnerDetail": "Uzito wa kuanzia utakuwa wa tahadhari. ARPO itaongeza haraka unavyoendelea.",
+      "intermediate": "Kati",
+      "intermediateDesc": "Miaka 1–3 ya mafunzo ya kawaida",
+      "intermediateDetail": "Msingi imara. Tayari kwa maendeleo ya kupangwa na vizuizi vya kiasi.",
+      "advanced": "Juu",
+      "advancedDesc": "Miaka 3+ ya mafunzo yaliyopangwa",
+      "advancedDetail": "Karibu na kikomo cha maumbile. Mzunguko wa mafunzo na usimamizi wa kiasi ni muhimu sana.",
+      "continue": "Endelea →"
+    },
+    "physical": {
+      "title": "Takwimu za mwili",
+      "subtitle": "Inatumika kuhesabu uzito wako wa kuanzia na malengo ya lishe.",
+      "height": "Urefu",
+      "heightFt": "futi",
+      "heightIn": "inchi",
+      "heightCm": "sm",
+      "age": "Umri",
+      "ageSuffix": "mwaka",
+      "bodyweight": "Uzito wa mwili",
+      "continue": "Endelea →"
+    },
+    "goals": {
+      "title": "Lengo lako",
+      "subtitle": "Hii inaweka mwelekeo wako wa mafunzo na malengo ya lishe.",
+      "strength": "Nguvu",
+      "strengthTagline": "Ongeza rekodi zako za juu zaidi",
+      "powerbuilding": "Nguvu na misuli",
+      "powerbuildingTagline": "Usawa kati ya nguvu na ukubwa",
+      "hypertrophy": "Ukuaji wa misuli",
+      "hypertrophyTagline": "Ukuaji wa misuli wa juu zaidi",
+      "continue": "Endelea →"
+    },
+    "trainingSetup": {
+      "activityLevel": "Kiwango cha shughuli",
+      "sedentary": "Kukaa kimya",
+      "sedentaryDesc": "Mazoezi kidogo sana au hakuna",
+      "lightlyActive": "Hai kidogo",
+      "lightlyActiveDesc": "Mazoezi mepesi siku 1–3/wiki",
+      "moderatelyActive": "Hai kwa kiasi",
+      "moderatelyActiveDesc": "Mazoezi ya wastani siku 3–5/wiki",
+      "veryActive": "Hai sana",
+      "veryActiveDesc": "Mazoezi mazito siku 6–7/wiki",
+      "extraActive": "Hai zaidi ya kawaida",
+      "extraActiveDesc": "Mazoezi mazito sana, kazi ya kimwili",
+      "progressionMethod": "Njia ya maendeleo",
+      "arpo": "ARPO (Inapendekezwa)",
+      "arpoDesc": "Hubadilisha uzito na kiasi moja kwa moja kila wiki kulingana na utendaji wako.",
+      "doubleProgression": "Maendeleo mara mbili",
+      "doubleProgressionDesc": "Ongeza marudio kwa mkono hadi muda unaolengwa, kisha ongeza uzito.",
+      "continue": "Endelea →"
+    },
+    "summary": {
+      "title": "Uko tayari.",
+      "subtitle": "Huu ndio wasifu wako uliobinafsishwa.",
+      "tdeeCard": "TDEE",
+      "tdeeUnit": "kcal/siku",
+      "continue": "Hebu tujengu mpango wako →"
+    },
+    "alerts": {
+      "missingInfoTitle": "Taarifa zinakosekana",
+      "missingInfoMessage": "Tafadhali jaza sehemu zote zinazohitajika kabla ya kuendelea.",
+      "setupFailedTitle": "Usanidi umeshindwa",
+      "setupFailedMessage": "Kuna hitilafu wakati wa kuhifadhi wasifu wako. Tafadhali jaribu tena."
+    }
+  },
+  "paywall": {
+    "headline": "Vipindi {{count}} vimekamilika.\nWakati wa kufungua.",
+    "payOnce": "Umeshuhudia POWRLOG inafanya nini.\nLipa mara moja. Miliki milele. Bila usajili.",
+    "featuresHeading": "Kila kitu kimejumuishwa",
+    "unlockButton": "Fungua POWRLOG — {{price}}",
+    "restorePurchase": "Rejesha ununuzi wa awali",
+    "legalText": "Malipo yatakatwa kwenye akaunti yako ya Apple ID baada ya uthibitisho.\nSimamia katika Mipangilio → [Jina lako] → App Store.",
+    "privacyPolicy": "Sera ya faragha",
+    "termsOfUse": "Masharti ya matumizi",
+    "alerts": {
+      "purchaseFailedTitle": "Ununuzi umeshindwa",
+      "noPurchaseFoundTitle": "Hakuna ununuzi uliopatikana",
+      "noPurchaseFoundDefault": "Hakuna ununuzi wa awali uliopatikana kwa Apple ID hii.",
+      "button": "Sawa"
+    }
+  },
+  "autoBuilder": {
+    "title": "Tengeneza ratiba",
+    "steps": {
+      "basics": "Misingi",
+      "muscleFocus": "Lengo la misuli",
+      "preview": "Muhtasari"
+    },
+    "step1": {
+      "routineName": "Jina la ratiba",
+      "trainingDaysPerWeek": "Siku za mafunzo kwa wiki",
+      "setMuscleFocus": "Weka lengo la misuli →"
+    },
+    "step2": {
+      "instructions": "Weka kipaumbele cha kila kundi la misuli. POWRLOG itagawanya kiasi ipasavyo.",
+      "priorities": {
+        "skip": "Ruka",
+        "maintain": "Dumisha",
+        "medium": "Kati",
+        "high": "Juu"
+      },
+      "generate": "Tengeneza ratiba →"
+    },
+    "step3": {
+      "shuffle": "Changanya",
+      "allMusclesSkipped": "Misuli yote imewekwa kuwa Ruka kwa siku hii.",
+      "saveRoutine": "Hifadhi ratiba"
+    }
+  },
+  "customBuilder": {
+    "title": "Ratiba maalum",
+    "routineName": "Jina la ratiba",
+    "daysPerWeek": "Siku kwa wiki",
+    "addExercise": "Ongeza zoezi",
+    "exerciseModal": {
+      "title": "Ongeza mazoezi — Siku ya {{day}}",
+      "done": "Imekamilika",
+      "searchPlaceholder": "Tafuta mazoezi...",
+      "noExercisesFound": "Hakuna mazoezi yaliyopatikana"
+    },
+    "saveRoutine": "Hifadhi ratiba maalum"
+  },
+  "templates": {
+    "title": "Chagua ratiba",
+    "buildManually": "Jenga kwa mkono",
+    "buildManuallyDesc": "Chagua mazoezi siku kwa siku",
+    "autoBuild": "POWR Auto-Build",
+    "autoBuildDesc": "Weka vipaumbele, sisi tunajenga",
+    "myCustomRoutines": "Ratiba zangu maalum",
+    "preBuiltTemplates": "Mifano iliyotengenezwa",
+    "noTemplatesAvailable": "Hakuna mifano inayopatikana",
+    "gymModal": {
+      "title": "Mahali pa mafunzo",
+      "description": "Hali ya ukumbi wa nyumbani hubadilisha mazoezi ya baa na mashine na mbadala wa dumbbells na uzito wa mwili.",
+      "fullGym": "Ukumbi kamili wa mazoezi",
+      "homeGym": "Ukumbi wa nyumbani"
+    },
+    "deleteModal": {
+      "title": "Futa ratiba?",
+      "warningText": "Hii itafuta kabisa ratiba hii na data yake yote inayohusiana. Haiwezi kutendulizwa.",
+      "confirm": "Futa kabisa",
+      "cancel": "Ghairi"
+    },
+    "switchPlanModals": {
+      "endCurrentTitle": "Maliza mpango wa sasa?",
+      "startNewPlan": "Anza mpango mpya",
+      "keepCurrentPlan": "Weka mpango wa sasa",
+      "alreadyActiveTitle": "Tayari inaendelea",
+      "continuePlan": "Endelea na mpango",
+      "startFresh": "Anza upya (Wiki ya 1)"
+    }
+  },
+  "summary": {
+    "workoutComplete": "Mazoezi yamekamilika",
+    "weekDay": "Wiki {{week}} — Siku {{day}}",
+    "sessionLogged": "Kipindi kimerekodiwa. Pumzika vizuri — malengo yako ya mwisho yako tayari.",
+    "stats": {
+      "volume": "Kiasi",
+      "volumeSub": "{{unit}} zilizosogezwa",
+      "exercises": "Mazoezi",
+      "exercisesSub": "yaliyokamilika",
+      "week": "Wiki",
+      "weekSub": "kati ya 4",
+      "rir": "RIR",
+      "rirSub": "wiki hii"
+    },
+    "personalRecords": "Rekodi za kibinafsi",
+    "prFirstLogged": "(rekodi ya kwanza iliyohifadhiwa)",
+    "returnToDashboard": "Rudi kwenye dashibodi",
+    "editSets": "Hariri seti",
+    "notificationsPrompt": {
+      "title": "Kuwa wa kudumu",
+      "body": "Kipindi kizuri cha kwanza. Wanariadha wanaofanya maendeleo bora huonekana mara kwa mara — unataka POWRLOG ikukumbushe?",
+      "workoutReminder": "Ukumbusho wa mazoezi",
+      "weighInReminder": "Ukumbusho wa kupima uzito",
+      "done": "Imekamilika",
+      "setReminders": "Weka vikumbusho →",
+      "continueButton": "Endelea →",
+      "notNow": "Si sasa"
+    }
+  },
+  "myPlans": {
+    "title": "Mpango wangu",
+    "noActivePlans": "Hakuna mipango inayoendelea.",
+    "tapToStart": "Gusa kuanza moja →",
+    "otherPlans": "Mipango mingine",
+    "startNewPlan": "Anza mpango mpya",
+    "planCard": {
+      "active": "Unaendelea",
+      "weekLabel": "Wiki",
+      "phaseLabel": "Hatua",
+      "targetRir": "Lengo la RIR",
+      "goToWorkout": "Nenda kwenye mazoezi",
+      "switchToThis": "Badilisha hadi huu"
+    },
+    "alerts": {
+      "abandonTitle": "Acha mpango",
+      "abandonMessage": "Ondoa \"{{name}}\" kutoka kwa mipango yako inayoendelea? Historia yako ya mazoezi itabaki.",
+      "abandonConfirm": "Acha",
+      "abandonCancel": "Ghairi"
+    }
+  },
+  "mesoComplete": {
+    "title": "Mzunguko wa kati umekamilika",
+    "quote": "Uchovu umeisha. Tishu imebadilika.",
+    "stats": {
+      "totalVolume": "Kiasi cha jumla",
+      "volumeSub": "{{unit}} zilizosogezwa",
+      "sessions": "Vipindi",
+      "sessionsSub": "vilivyokamilika"
+    },
+    "strengthGains": "Mafanikio ya nguvu",
+    "tableHeaders": {
+      "exercise": "Zoezi",
+      "week1": "Wiki 1 ({{unit}})",
+      "peak": "Kilele ({{unit}})",
+      "gain": "+Ongezeko"
+    },
+    "runItBack": "Fanya tena",
+    "selectNewRoutine": "Chagua ratiba mpya"
+  },
+  "bodyMeasurements": {
+    "title": "Vipimo vya mwili",
+    "form": {
+      "bodyFat": "Asilimia ya mafuta %",
+      "bodyFatPlaceholder": "mfano: 14.5",
+      "circumferences": "Mzingo ({{unit}})",
+      "fields": {
+        "chest": "Kifua",
+        "waist": "Kiuno",
+        "hips": "Nyonga",
+        "neck": "Shingo",
+        "leftArm": "Mkono wa kushoto",
+        "rightArm": "Mkono wa kulia",
+        "leftThigh": "Paja la kushoto",
+        "rightThigh": "Paja la kulia"
+      },
+      "notes": "Maelezo (si lazima)",
+      "save": "Hifadhi vipimo"
+    },
+    "history": {
+      "title": "Historia",
+      "latest": "Hivi karibuni"
+    },
+    "empty": "Fuatilia vipimo vyako kwa muda ili kuona mabadiliko zaidi ya mizani."
+  },
+  "bodyWeightLog": {
+    "title": "Rekodi ya uzito",
+    "logSection": "Rekodi uzito wa leo",
+    "logButton": "Rekodi",
+    "history": "Historia",
+    "empty": "Rekodi kupima uzito kwako kwa mara ya kwanza hapa juu.\nWastani wa siku 7 huondoa mabadiliko ya kila siku.",
+    "alerts": {
+      "deleteTitle": "Futa rekodi",
+      "deleteMessage": "Ondoa rekodi hii ya uzito?",
+      "deleteConfirm": "Futa",
+      "deleteCancel": "Ghairi"
+    }
+  },
+  "oneRepMax": {
+    "title": "Kikokotoo cha 1RM",
+    "inputs": {
+      "weightLabel": "Uzito ulioinuliwa ({{unit}})",
+      "repsLabel": "Marudio",
+      "weightPlaceholderLbs": "mfano: 225",
+      "weightPlaceholderKg": "mfano: 100",
+      "repsPlaceholder": "mfano: 5"
+    },
+    "result": {
+      "label": "Kiwango cha juu zaidi kinachokadiriwa cha marudio 1",
+      "averageNote": "{{unit}} (wastani wa fomula 3)"
+    },
+    "formulaBreakdown": "Maelezo ya fomula",
+    "trainingZones": "Maeneo ya mafunzo",
+    "empty": "Ingiza uzito na idadi ya marudio kuhesabu 1RM yako inayokadiriwa."
+  },
+  "schedulePicker": {
+    "almostDone": "Karibu kumaliza",
+    "titleTrainingDays": "Chagua siku za mafunzo",
+    "titleRestDays": "Chagua siku za kupumzika",
+    "train": "Funza",
+    "rest": "Pumzika",
+    "setSchedule": "Weka ratiba",
+    "saving": "Inahifadhi...",
+    "skipForNow": "Ruka kwa sasa"
+  },
+  "customExercise": {
+    "title": "Mazoezi maalum",
+    "form": {
+      "title": "Zoezi jipya",
+      "exerciseName": "Jina la zoezi",
+      "exerciseNamePlaceholder": "mfano: Mashine ya Hack Squat",
+      "muscleGroup": "Kundi la misuli / Aina",
+      "equipment": "Vifaa",
+      "addExercise": "Ongeza zoezi"
+    },
+    "empty": "Ongeza mazoezi ambayo hayapo kwenye maktaba.\nYataonekana kwenye kisanduku cha kubadilisha na kujenga.",
+    "alerts": {
+      "duplicateTitle": "Imerudiwa",
+      "duplicateMessage": "Zoezi lenye jina hilo tayari lipo.",
+      "deleteTitle": "Futa zoezi",
+      "deleteMessage": "Ondoa \"{{name}}\" kutoka kwa mazoezi yako maalum?",
+      "deleteConfirm": "Futa",
+      "deleteCancel": "Ghairi"
+    }
+  },
+  "healthPermissions": {
+    "title": "Unganisha data ya afya",
+    "privacyNote": "Data yako haitaacha simu yako kamwe.",
+    "connectButton": "Unganisha {{platform}}",
+    "skipButton": "Ruka — nitaweka hii baadaye katika Mipangilio"
+  },
+  "postOnboarding": {
+    "stepLabel": "Hatua {{current}} kati ya {{total}}",
+    "weights": {
+      "title": "Unainua nini sasa hivi?",
+      "subtitle": "Gusa safu au ingiza yako mwenyewe — mazoezi 2 kwa kila hatua",
+      "next": "Inayofuata →",
+      "saveAndContinue": "Hifadhi na endelea →",
+      "skip": "Ruka — Tumia makadirio ya POWRLOG"
+    }
+  },
+  "nutrition": {
+    "title": "Malengo ya lishe",
+    "editButton": "Hariri",
+    "dailyMacros": "Makronutrienti ya kila siku",
+    "editGoal": "Hariri lengo au maelezo"
+  },
+  "nutritionSetup": {
+    "titleOnboarding": "Weka lishe",
+    "titleEdit": "Usanidi wa lishe",
+    "skip": "Ruka",
+    "step1": {
+      "title": "Lengo lako ni nini?",
+      "continue": "Endelea →"
+    },
+    "step2": {
+      "title": "Maelezo yako",
+      "continue": "Endelea →"
+    },
+    "step3": {
+      "title": "Kiwango cha shughuli",
+      "continue": "Endelea →"
+    },
+    "step4": {
+      "title": "Lengo lako",
+      "currentWeight": "Uzito wa sasa ({{unit}})",
+      "targetWeight": "Uzito unaolengwa ({{unit}})",
+      "continue": "Endelea →"
+    },
+    "step5": {
+      "title": "Muda",
+      "checkButton": "Angalia kama hii ni ya kweli",
+      "calculateTargets": "Hesabu malengo yangu →"
+    }
+  },
+  "common": {
+    "save": "Hifadhi",
+    "cancel": "Ghairi",
+    "delete": "Futa",
+    "confirm": "Thibitisha",
+    "continue": "Endelea",
+    "back": "Rudi",
+    "skip": "Ruka",
+    "done": "Imekamilika",
+    "edit": "Hariri",
+    "loading": "Inapakia...",
+    "retry": "Jaribu tena",
+    "error": "Hitilafu",
+    "ok": "Sawa",
+    "next": "Inayofuata",
+    "previous": "Iliyotangulia",
+    "search": "Tafuta",
+    "add": "Ongeza",
+    "remove": "Ondoa",
+    "reset": "Weka upya",
+    "yes": "Ndio",
+    "no": "Hapana"
+  }
+}

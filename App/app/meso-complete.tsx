@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,7 @@ import {
 } from "@/lib/local-db";
 
 export default function MesoCompleteScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -64,7 +66,7 @@ export default function MesoCompleteScreen() {
     } catch (err) {
       console.error(err);
       setRunningBack(false);
-      Alert.alert("Error", "Couldn't start the new cycle. Please try again.", [{ text: "OK" }]);
+      Alert.alert(t('common.error'), "Couldn't start the new cycle. Please try again.", [{ text: t('common.ok') }]);
     }
   }
 
@@ -120,7 +122,7 @@ export default function MesoCompleteScreen() {
               marginBottom: 8,
             }}
           >
-            Mesocycle Complete
+            {t('mesoComplete.title')}
           </Text>
 
           <View
@@ -141,7 +143,7 @@ export default function MesoCompleteScreen() {
                 lineHeight: 22,
               }}
             >
-              Fatigue dissipated. Tissue adapted.
+              {t('mesoComplete.quote')}
             </Text>
           </View>
         </View>
@@ -173,7 +175,7 @@ export default function MesoCompleteScreen() {
                 marginBottom: 6,
               }}
             >
-              Total Volume
+              {t('mesoComplete.stats.totalVolume')}
             </Text>
             <Text
               style={{
@@ -194,7 +196,7 @@ export default function MesoCompleteScreen() {
                 marginTop: 2,
               }}
             >
-              {unit} moved
+              {t('mesoComplete.stats.volumeSub', { unit })}
             </Text>
           </View>
 
@@ -217,7 +219,7 @@ export default function MesoCompleteScreen() {
                 marginBottom: 6,
               }}
             >
-              Sessions
+              {t('mesoComplete.stats.sessions')}
             </Text>
             <Text
               style={{
@@ -238,7 +240,7 @@ export default function MesoCompleteScreen() {
                 marginTop: 2,
               }}
             >
-              completed
+              {t('mesoComplete.stats.sessionsSub')}
             </Text>
           </View>
         </View>
@@ -264,7 +266,7 @@ export default function MesoCompleteScreen() {
                       letterSpacing: 2,
                     }}
                   >
-                    Strength Gains
+                    {t('mesoComplete.strengthGains')}
                   </Text>
                 </View>
               </View>
@@ -279,16 +281,16 @@ export default function MesoCompleteScreen() {
                 }}
               >
                 <Text style={{ flex: 2, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Exercise
+                  {t('mesoComplete.tableHeaders.exercise')}
                 </Text>
                 <Text style={{ flex: 1, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  Wk 1 ({unit})
+                  {t('mesoComplete.tableHeaders.week1', { unit })}
                 </Text>
                 <Text style={{ flex: 1, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  Peak ({unit})
+                  {t('mesoComplete.tableHeaders.peak', { unit })}
                 </Text>
                 <Text style={{ flex: 1, fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>
-                  +Gain
+                  {t('mesoComplete.tableHeaders.gain')}
                 </Text>
               </View>
 
@@ -356,7 +358,7 @@ export default function MesoCompleteScreen() {
                     letterSpacing: 2,
                   }}
                 >
-                  Run It Back
+                  {t('mesoComplete.runItBack')}
                 </Text>
               </View>
             )}
@@ -384,7 +386,7 @@ export default function MesoCompleteScreen() {
                   letterSpacing: 2,
                 }}
               >
-                Select New Routine
+                {t('mesoComplete.selectNewRoutine')}
               </Text>
             </View>
           </Pressable>
