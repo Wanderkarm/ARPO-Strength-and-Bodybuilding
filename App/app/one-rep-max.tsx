@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -60,6 +61,7 @@ const PERCENT_TABLE = [
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function OneRepMaxScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -109,7 +111,7 @@ export default function OneRepMaxScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            1RM Calculator
+            {t('oneRepMax.title')}
           </Text>
         </View>
         <View style={{ width: 24 }} />
@@ -122,13 +124,13 @@ export default function OneRepMaxScreen() {
           <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
             <View style={{ flex: 2 }}>
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-                Weight Lifted ({unit})
+                {t('oneRepMax.inputs.weightLabel', { unit })}
               </Text>
               <TextInput
                 value={weight}
                 onChangeText={setWeight}
                 keyboardType="decimal-pad"
-                placeholder={unit === "lbs" ? "e.g. 225" : "e.g. 100"}
+                placeholder={unit === "lbs" ? t('oneRepMax.inputs.weightPlaceholderLbs') : t('oneRepMax.inputs.weightPlaceholderKg')}
                 placeholderTextColor={Colors.textMuted}
                 style={{
                   borderWidth: 1,
@@ -145,13 +147,13 @@ export default function OneRepMaxScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-                Reps
+                {t('oneRepMax.inputs.repsLabel')}
               </Text>
               <TextInput
                 value={reps}
                 onChangeText={setReps}
                 keyboardType="number-pad"
-                placeholder="e.g. 5"
+                placeholder={t('oneRepMax.inputs.repsPlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 style={{
                   borderWidth: 1,
@@ -186,19 +188,19 @@ export default function OneRepMaxScreen() {
                 marginBottom: 20,
               }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                  Estimated 1 Rep Max
+                  {t('oneRepMax.result.label')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 48, color: Colors.text }}>
                   {displayWeight(oneRmKg)}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 14, color: Colors.textMuted }}>
-                  {unit} (average of 3 formulas)
+                  {t('oneRepMax.result.averageNote', { unit })}
                 </Text>
               </View>
 
               {/* Formula breakdown */}
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-                Formula Breakdown
+                {t('oneRepMax.formulaBreakdown')}
               </Text>
               <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 20 }}>
                 {formulas.map((f, i) => (
@@ -230,7 +232,7 @@ export default function OneRepMaxScreen() {
 
               {/* % of 1RM table */}
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-                Training Zones
+                {t('oneRepMax.trainingZones')}
               </Text>
               <View style={{ borderWidth: 1, borderColor: Colors.border, marginBottom: 20 }}>
                 {PERCENT_TABLE.map((row, i) => {
@@ -298,7 +300,7 @@ export default function OneRepMaxScreen() {
             <View style={{ alignItems: "center", paddingTop: 40 }}>
               <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, marginTop: 12, textAlign: "center" }}>
-                Enter a weight and rep count to calculate your estimated 1 rep max.
+                {t('oneRepMax.empty')}
               </Text>
             </View>
           )}

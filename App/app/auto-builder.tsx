@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -43,6 +44,7 @@ const PRIORITY_OPTIONS: { value: Priority; label: string; color: string }[] = [
 ];
 
 export default function AutoBuilderScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;

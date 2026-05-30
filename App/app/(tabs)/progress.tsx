@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -28,9 +29,11 @@ import { getVolumeLandmarks, GOAL_META, GLOSSARY, type GoalType } from "@/utils/
 function WeightChart({
   data,
   unit,
+  moreDataLabel,
 }: {
   data: { weekNumber: number; maxWeight: number }[];
   unit: string;
+  moreDataLabel: string;
 }) {
   // 24 px horizontal padding on each side, 48 px reserved for labels on left
   const W = Dimensions.get("window").width - 24 * 2 - 48;
@@ -43,7 +46,7 @@ function WeightChart({
     return (
       <View style={{ width: W, height: H, justifyContent: "center", alignItems: "center" }}>
         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>
-          More data next week
+          {moreDataLabel}
         </Text>
       </View>
     );
@@ -165,6 +168,7 @@ function VolumeBar({
 // ─── Main screen ────────────────────────────────────────────────────────────
 
 export default function ProgressScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -221,13 +225,13 @@ export default function ProgressScreen() {
       <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
         <Ionicons name="alert-circle-outline" size={48} color={Colors.danger} />
         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginTop: 16, textAlign: "center" }}>
-          Couldn't Load Progress
+          {t('progress.couldntLoad')}
         </Text>
         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, marginTop: 8, textAlign: "center", lineHeight: 20 }}>
           There was a problem reading your data. Try again.
         </Text>
         <Pressable onPress={loadData} style={({ pressed }) => ({ marginTop: 20, borderWidth: 1, borderColor: Colors.primary, paddingVertical: 12, paddingHorizontal: 24, opacity: pressed ? 0.7 : 1 })}>
-          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Retry</Text>
+          <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>{t('progress.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -238,7 +242,7 @@ export default function ProgressScreen() {
       <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: topInset, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
         <Ionicons name="trending-up-outline" size={48} color={Colors.textMuted} />
         <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 16, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginTop: 16, textAlign: "center" }}>
-          No Active Plan
+          {t('progress.noActivePlan')}
         </Text>
         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, marginTop: 8, textAlign: "center", lineHeight: 20 }}>
           Start a workout plan to see your progress charts here.
@@ -264,7 +268,7 @@ export default function ProgressScreen() {
             textTransform: "uppercase",
             letterSpacing: 3,
           }}>
-            Progress
+            {t('progress.title')}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary }}>
@@ -295,7 +299,7 @@ export default function ProgressScreen() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <Ionicons name="trending-up" size={16} color={Colors.primary} />
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Strength Progress
+                {t('progress.strengthProgress')}
               </Text>
             </View>
 
@@ -356,7 +360,7 @@ export default function ProgressScreen() {
                     <View style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
                       <View style={{ height: 1, backgroundColor: Colors.border, marginBottom: 12 }} />
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <WeightChart data={ex.dataPoints} unit={unit} />
+                        <WeightChart data={ex.dataPoints} unit={unit} moreDataLabel={t('progress.moreDataNextWeek')} />
                       </ScrollView>
                     </View>
                   )}
@@ -372,7 +376,7 @@ export default function ProgressScreen() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <Ionicons name="bar-chart-outline" size={16} color={Colors.primary} />
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Volume Tracker
+                {t('progress.volumeTracker')}
               </Text>
             </View>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 10 }}>
@@ -395,7 +399,7 @@ export default function ProgressScreen() {
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                 <View style={{ width: 10, height: 4, backgroundColor: Colors.success }} />
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>In MAV</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted }}>{t('progress.volumeStatus.inMav')}</Text>
               </View>
             </View>
 
@@ -408,22 +412,22 @@ export default function ProgressScreen() {
               let statusLabel = "";
               let statusColor = Colors.textMuted;
               if (muscle.setsThisWeek === 0) {
-                statusLabel = "Rest";
+                statusLabel = t('progress.volumeStatus.rest');
                 statusColor = Colors.textMuted;
               } else if (muscle.setsThisWeek < muscleLandmarks.mev) {
-                statusLabel = "Below MEV";
+                statusLabel = t('progress.volumeStatus.belowMev');
                 statusColor = Colors.textMuted;
               } else if (muscle.setsThisWeek >= muscleLandmarks.mav[0] && muscle.setsThisWeek <= muscleLandmarks.mav[1]) {
-                statusLabel = "In MAV ✓";
+                statusLabel = t('progress.volumeStatus.inMav');
                 statusColor = Colors.success;
               } else if (muscle.setsThisWeek > muscleLandmarks.mrv) {
-                statusLabel = "Above MRV";
+                statusLabel = t('progress.volumeStatus.aboveMrv');
                 statusColor = Colors.danger;
               } else if (muscle.setsThisWeek >= muscleLandmarks.mev && muscle.setsThisWeek < muscleLandmarks.mav[0]) {
-                statusLabel = "Building";
+                statusLabel = t('progress.volumeStatus.building');
                 statusColor = Colors.warning;
               } else {
-                statusLabel = "Near MRV";
+                statusLabel = t('progress.volumeStatus.nearMrv');
                 statusColor = Colors.warning;
               }
 
@@ -484,7 +488,7 @@ export default function ProgressScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <Ionicons name="library-outline" size={16} color={Colors.primary} />
             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-              The Science
+              {t('progress.theScience')}
             </Text>
           </View>
 

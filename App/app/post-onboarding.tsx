@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from 'react-i18next';
 import Colors from "@/constants/colors";
 import { getWeightBaselines, updateWeightBaselines, getUserUnit, getUserProfile } from "@/lib/local-db";
 import type { BaselineWeights } from "@/utils/categoryWeightMap";
@@ -31,16 +32,6 @@ const LIFTS: Array<{ key: keyof BaselineWeights; label: string; icon: string; ca
   { key: "overheadPress", label: "Overhead Press",  icon: "arrow-up-outline",        category: "Push" },
   { key: "barbellRow",    label: "Barbell Row",     icon: "swap-horizontal-outline", category: "Pull" },
   { key: "barbellCurl",   label: "Barbell Curl",    icon: "body-outline",            category: "Arms" },
-];
-
-const LIFT_SUBSTEPS: Array<{
-  title: string;
-  subtitle: string;
-  keys: (keyof BaselineWeights)[];
-}> = [
-  { title: "What do you currently lift?", subtitle: "Tap a range or enter your own — 2 lifts per step", keys: ["squat", "deadlift"] },
-  { title: "Push",        subtitle: "Horizontal and vertical pressing", keys: ["benchPress", "overheadPress"] },
-  { title: "Pull & Arms", subtitle: "Rowing and curl strength",         keys: ["barbellRow", "barbellCurl"] },
 ];
 
 // ─── Bodyweight-scaled tier system ────────────────────────────────────────────
@@ -74,6 +65,7 @@ function calcTiers(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function PostOnboardingScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -181,6 +173,17 @@ export default function PostOnboardingScreen() {
     }
   }
 
+  // ─── Substep config (computed inside render so t() is available) ─────────────
+  const LIFT_SUBSTEPS: Array<{
+    titleKey: string;
+    subtitleKey: string;
+    keys: (keyof BaselineWeights)[];
+  }> = [
+    { titleKey: "postOnboarding.weights.title",    subtitleKey: "postOnboarding.weights.subtitle", keys: ["squat", "deadlift"] },
+    { titleKey: "postOnboarding.weights.title",    subtitleKey: "postOnboarding.weights.subtitle", keys: ["benchPress", "overheadPress"] },
+    { titleKey: "postOnboarding.weights.title",    subtitleKey: "postOnboarding.weights.subtitle", keys: ["barbellRow", "barbellCurl"] },
+  ];
+
   // ─── Progress bar ────────────────────────────────────────────────────────────
   const currentStep = STEP_NUMBERS[step];
   const progressBar = (
@@ -231,7 +234,7 @@ export default function PostOnboardingScreen() {
             {/* Step label + substep dots */}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 2 }}>
-                Step {currentStep} of {TOTAL_FLOW_STEPS}
+                {t('postOnboarding.stepLabel', { current: currentStep, total: TOTAL_FLOW_STEPS })}
               </Text>
               <View style={{ flexDirection: "row", gap: 6 }}>
                 {[1, 2, 3].map(n => (
@@ -241,10 +244,10 @@ export default function PostOnboardingScreen() {
             </View>
 
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 26, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-              {substep.title}
+              {t(substep.titleKey)}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 20, marginBottom: 20 }}>
-              {substep.subtitle}
+              {t(substep.subtitleKey)}
             </Text>
 
             {/* Info box — only on first substep */}
@@ -368,7 +371,7 @@ export default function PostOnboardingScreen() {
                 <ActivityIndicator color={Colors.text} />
               ) : (
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  {isLastSubstep ? "Save & Continue →" : "Next →"}
+                  {isLastSubstep ? t('postOnboarding.weights.saveAndContinue') : t('postOnboarding.weights.next')}
                 </Text>
               )}
             </Pressable>
@@ -385,7 +388,7 @@ export default function PostOnboardingScreen() {
               })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                Skip — Use POWRLOG's Estimates
+                {t('postOnboarding.weights.skip')}
               </Text>
             </Pressable>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 19 }}>

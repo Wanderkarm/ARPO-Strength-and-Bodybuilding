@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useRef, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -70,6 +71,7 @@ function projectWeight(base: number, weekDelta: number): number {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -243,10 +245,10 @@ export default function DashboardScreen() {
 
   function handleSkipSession() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert("Skip Session", "Are you sure? This will push your targets to next week.", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('dashboard.alerts.skipSessionTitle'), t('dashboard.alerts.skipSessionMessage'), [
+      { text: t('dashboard.alerts.skipSessionCancel'), style: "cancel" },
       {
-        text: "Skip", style: "destructive",
+        text: t('dashboard.alerts.skipSessionConfirm'), style: "destructive",
         onPress: async () => {
           if (!plan) return;
           setSkipping(true);
@@ -290,7 +292,7 @@ export default function DashboardScreen() {
               <Ionicons name="barbell-outline" size={32} color={Colors.primary} />
             </View>
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 24, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, textAlign: "center", marginBottom: 8 }}>
-              No Routine Active
+              {t('dashboard.noRoutineActive')}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 }}>
               Pick a training template or build your own mesocycle to get started.
@@ -303,7 +305,7 @@ export default function DashboardScreen() {
             style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 18, alignItems: "center", marginBottom: 10, opacity: pressed ? 0.85 : 1 })}
           >
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 2 }}>
-              Browse Workout Templates →
+              {t('dashboard.browseTemplates')}
             </Text>
           </Pressable>
 
@@ -343,17 +345,17 @@ export default function DashboardScreen() {
             </Text>
             <Pressable
               onPress={() => Alert.alert(
-                "Restart Setup",
-                "This will walk you through setup again. Your existing workout history and logs will be kept, but your profile and nutrition data may be overwritten.\n\nYou can also update individual settings anytime in the Settings tab.",
+                t('dashboard.alerts.restartSetupTitle'),
+                t('dashboard.alerts.restartSetupMessage'),
                 [
-                  { text: "Cancel", style: "cancel" },
-                  { text: "Continue to Setup", onPress: () => router.replace("/onboarding") },
+                  { text: t('dashboard.alerts.restartSetupCancel'), style: "cancel" },
+                  { text: t('dashboard.alerts.restartSetupConfirm'), onPress: () => router.replace("/onboarding") },
                 ]
               )}
               style={({ pressed }) => ({ borderWidth: 1, borderColor: Colors.border, paddingVertical: 12, alignItems: "center", opacity: pressed ? 0.7 : 1 })}
             >
               <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                Restart Setup
+                {t('dashboard.alerts.restartSetupTitle')}
               </Text>
             </Pressable>
           </View>
@@ -451,7 +453,7 @@ export default function DashboardScreen() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                POWR Hub
+                {t('dashboard.powrHub')}
               </Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 }}>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
@@ -459,7 +461,7 @@ export default function DashboardScreen() {
                 </Text>
                 <Pressable onPress={() => router.push("/my-plans")} hitSlop={8}>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    MY PROGRAM →
+                    {t('dashboard.myProgram').toUpperCase()} →
                   </Text>
                 </Pressable>
               </View>
@@ -769,8 +771,8 @@ export default function DashboardScreen() {
                     letterSpacing: 0.8,
                   }}>
                     {trialWorkoutsRemaining === 1
-                      ? "Last free session — unlock to keep going"
-                      : `${trialWorkoutsRemaining} of ${TRIAL_WORKOUTS} free sessions remaining · Unlock →`}
+                      ? t('dashboard.trialCountdown_one', { count: 1 }) + ' — ' + t('dashboard.trialCountdownSub')
+                      : t('dashboard.trialCountdown_other', { count: trialWorkoutsRemaining }) + ' · ' + t('dashboard.trialCountdownSub')}
                   </Text>
                 </Pressable>
               )}
@@ -786,7 +788,7 @@ export default function DashboardScreen() {
                   <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
                   <View>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 2 }}>
-                      Session Complete
+                      {t('dashboard.sessionComplete')}
                     </Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 2 }}>
                       Next: Day {((plan.currentDay || 1) % totalDays) + 1}
@@ -807,7 +809,7 @@ export default function DashboardScreen() {
                   <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10 }}>
                     <Ionicons name="flash" size={20} color={Colors.text} />
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 3 }}>
-                      {isDeload ? "Start Deload" : "Start Workout"}
+                      {isDeload ? t('dashboard.startDeload') : t('dashboard.startWorkout')}
                     </Text>
                   </View>
                 </Pressable>
@@ -821,7 +823,7 @@ export default function DashboardScreen() {
                   style={({ pressed }) => ({ alignItems: "center", paddingVertical: 10, opacity: pressed || skipping ? 0.4 : 1 })}
                 >
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                    {skipping ? "Skipping..." : "Skip Session"}
+                    {skipping ? t('common.loading') : t('dashboard.skipSession')}
                   </Text>
                 </Pressable>
               )}
@@ -1198,7 +1200,7 @@ export default function DashboardScreen() {
                     style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, marginTop: 8 })}
                   >
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 9, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                      How is this calculated? →
+                      {t('dashboard.recoveryTile.learnMore')} →
                     </Text>
                   </Pressable>
                 </>
@@ -1279,17 +1281,17 @@ export default function DashboardScreen() {
               <Ionicons name="body-outline" size={18} color={Colors.primary} style={{ marginTop: 1 }} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.text, marginBottom: 4 }}>
-                  Track Body Composition
+                  {t('body.unlockComposition')}
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18 }}>
-                  Log waist + neck measurements to unlock body fat % and FFMI tracking using the Navy formula.
+                  {t('body.addWaistNeck')}
                 </Text>
                 <Pressable
                   onPress={() => router.push("/(tabs)/body" as any)}
                   style={({ pressed }) => ({ marginTop: 10, opacity: pressed ? 0.7 : 1 })}
                 >
                   <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>
-                    Log Measurements →
+                    {t('body.logMeasurements')} →
                   </Text>
                 </Pressable>
               </View>
@@ -1334,7 +1336,7 @@ export default function DashboardScreen() {
           <View style={{ backgroundColor: Colors.bgAccent, borderTopWidth: 1, borderTopColor: Colors.border, padding: 24, paddingBottom: 36 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 15, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                Log Today's Steps
+                {t('dashboard.stepsModal.title')}
               </Text>
               <Pressable onPress={() => setStepsModalVisible(false)} hitSlop={12}>
                 <Ionicons name="close" size={22} color={Colors.textMuted} />
@@ -1386,7 +1388,7 @@ export default function DashboardScreen() {
                         color={Colors.primary}
                       />
                       <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 13, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                        {Platform.OS === "ios" ? "Sync from Apple Health" : "Sync from Health Connect"}
+                        {t('dashboard.stepsModal.syncApple')}
                       </Text>
                     </>
                 }
@@ -1400,7 +1402,7 @@ export default function DashboardScreen() {
               value={stepsInput}
               onChangeText={setStepsInput}
               keyboardType="numeric"
-              placeholder="e.g. 7500"
+              placeholder={t('dashboard.stepsModal.placeholder')}
               placeholderTextColor={Colors.textMuted}
               style={{
                 fontFamily: "Rubik_700Bold",
@@ -1441,7 +1443,7 @@ export default function DashboardScreen() {
             >
               {savingSteps
                 ? <ActivityIndicator color="#FFF" />
-                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFF", textTransform: "uppercase", letterSpacing: 2 }}>Save Steps</Text>
+                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: "#FFF", textTransform: "uppercase", letterSpacing: 2 }}>{t('dashboard.stepsModal.save')}</Text>
               }
             </Pressable>
           </View>
@@ -1456,8 +1458,8 @@ export default function DashboardScreen() {
         >
           <View style={{ backgroundColor: Colors.bgAccent, borderWidth: 1, borderColor: Colors.border, paddingVertical: 8 }}>
             {[
-              { icon: "albums-outline" as const, label: "My Program", sub: "Mesocycle details, phase guide & plan switching", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/my-plans"); } },
-              { icon: "swap-horizontal" as const, label: "Change Routine", sub: "Pick a different template or build your own", color: Colors.primary, onPress: handleChangeRoutine },
+              { icon: "albums-outline" as const, label: t('dashboard.myProgram'), sub: "Mesocycle details, phase guide & plan switching", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/my-plans"); } },
+              { icon: "swap-horizontal" as const, label: t('dashboard.changeRoutine'), sub: "Pick a different template or build your own", color: Colors.primary, onPress: handleChangeRoutine },
               { icon: "nutrition-outline" as const, label: "Nutrition Targets", sub: "View or edit your calorie & macro goals", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/nutrition"); } },
               { icon: "scale-outline" as const, label: "Weigh-in Log", sub: "Log bodyweight and track trends", color: Colors.primary, onPress: () => { setMenuVisible(false); router.push("/body-weight-log"); } },
             ].map((item, i) => (
@@ -1479,11 +1481,11 @@ export default function DashboardScreen() {
               onPress={() => {
                 setMenuVisible(false);
                 Alert.alert(
-                  "Restart Setup",
-                  "This will walk you through onboarding again. Your workout history is kept, but profile and nutrition data may be overwritten.\n\nYou can also change individual settings anytime in the Settings tab.",
+                  t('dashboard.alerts.restartSetupTitle'),
+                  t('dashboard.alerts.restartSetupMessage'),
                   [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "Continue", onPress: () => router.replace("/onboarding") },
+                    { text: t('dashboard.alerts.restartSetupCancel'), style: "cancel" },
+                    { text: t('dashboard.alerts.restartSetupConfirm'), onPress: () => router.replace("/onboarding") },
                   ]
                 );
               }}
@@ -1491,7 +1493,7 @@ export default function DashboardScreen() {
             >
               <Ionicons name="refresh-outline" size={22} color={Colors.textMuted} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Restart Setup</Text>
+                <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 14, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{t('dashboard.alerts.restartSetupTitle')}</Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 2 }}>Re-run onboarding · history is preserved</Text>
               </View>
             </Pressable>
@@ -1501,7 +1503,7 @@ export default function DashboardScreen() {
               style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 24, paddingVertical: 16, opacity: pressed ? 0.7 : 1 })}
             >
               <Ionicons name="close" size={22} color={Colors.textMuted} />
-              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Cancel</Text>
+              <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{t('common.cancel')}</Text>
             </Pressable>
           </View>
         </Pressable>

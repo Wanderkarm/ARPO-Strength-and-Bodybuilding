@@ -67,6 +67,7 @@ import { usePurchase } from "@/contexts/PurchaseContext";
 import * as Notifications from "expo-notifications";
 import { calculatePlates, platesString, BAR_PRESETS, type PlateResult } from "@/utils/plateCalculator";
 import * as Crypto from "expo-crypto";
+import { useTranslation } from 'react-i18next';
 
 const SCIENCE_TIPS: { icon: string; text: string }[] = [
   { icon: "flask-outline",       text: "RIR 3 is the hypertrophy sweet spot — hard enough to grow, controlled enough for clean technique." },
@@ -223,8 +224,10 @@ function getFeedback(
   targetWeight: number,
   targetReps: number,
   isBodyweight = false,
-  setType: string = 'normal'
+  setType: string = 'normal',
+  t?: (key: string) => string
 ): { text: string; color: string } {
+  const tr = t ?? ((k: string) => k);
   // Myo mini-sets are taken to intentional failure — comparing their rep count
   // against the target is meaningless and the autoregulation language would
   // be incorrect (weight should never be adjusted based on mini-set reps).
@@ -251,8 +254,8 @@ function getFeedback(
     const prefix = setType === 'myo_activation' ? "Activation set — " : "";
     return {
       text: exceeded
-        ? `${prefix}Target exceeded. Progressive overload achieved.`
-        : `${prefix}Target met. Progressive overload achieved.`,
+        ? `${prefix}${tr('workout.setFeedback.targetExceeded')}`
+        : `${prefix}${tr('workout.setFeedback.targetMet')}`,
       color: Colors.success,
     };
   }
@@ -260,23 +263,24 @@ function getFeedback(
   // Give a specific reason so the user understands what to fix
   if (!isBodyweight && !weightOk && repsOk) {
     return {
-      text: "Weight below target. Increase load next set.",
+      text: tr('workout.setFeedback.weightBelowTarget'),
       color: Colors.warning,
     };
   }
   if (!repsOk && weightOk) {
     return {
-      text: "Reps below target. Autoregulation will lower weight next week.",
+      text: tr('workout.setFeedback.repsBelowTarget'),
       color: Colors.warning,
     };
   }
   return {
-    text: "Below target. Autoregulation will adjust next week.",
+    text: tr('workout.setFeedback.repsBelowTarget'),
     color: Colors.warning,
   };
 }
 
 export default function WorkoutScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -535,7 +539,7 @@ export default function WorkoutScreen() {
             repsCompleted: s.repsCompleted !== null ? String(s.repsCompleted) : "",
             weightUsed: s.weightUsed !== null ? String(s.weightUsed) : "",
             feedback: hasData
-              ? getFeedback(s.repsCompleted!, s.weightUsed ?? 0, s.targetWeight, s.targetReps, isBodyweightEx, s.setType ?? 'normal')
+              ? getFeedback(s.repsCompleted!, s.weightUsed ?? 0, s.targetWeight, s.targetReps, isBodyweightEx, s.setType ?? 'normal', t)
               : null,
             setType: s.setType ?? 'normal',
             myoGroupId: s.myoGroupId ?? null,
@@ -785,7 +789,7 @@ export default function WorkoutScreen() {
       // ── Compute feedback and timer values OUTSIDE the updater ────────────────
       if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const weight = parseFloat(snapSet.weightUsed) || 0;
-      const feedback = getFeedback(reps, weight, snapSet.targetWeight, snapSet.targetReps, isBodyweight, snapSet.setType);
+      const feedback = getFeedback(reps, weight, snapSet.targetWeight, snapSet.targetReps, isBodyweight, snapSet.setType, t);
 
       const isLastSet = setIndex === snapEx.sets.length - 1;
       const jumpingToPartner = hasActiveSupersertPartner(exIndex);

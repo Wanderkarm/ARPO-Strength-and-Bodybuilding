@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
@@ -107,6 +108,7 @@ function BodyWeightChart({ data, unit }: { data: BodyWeightEntry[]; unit: string
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function BodyWeightLogScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -211,10 +213,10 @@ export default function BodyWeightLogScreen() {
   }
 
   async function handleDelete(id: string) {
-    Alert.alert("Delete Entry", "Remove this weigh-in?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('bodyWeightLog.alerts.deleteTitle'), t('bodyWeightLog.alerts.deleteMessage'), [
+      { text: t('bodyWeightLog.alerts.deleteCancel'), style: "cancel" },
       {
-        text: "Delete",
+        text: t('bodyWeightLog.alerts.deleteConfirm'),
         style: "destructive",
         onPress: async () => {
           if (editingId === id) cancelEdit();
@@ -258,7 +260,7 @@ export default function BodyWeightLogScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            Bodyweight Log
+            {t('bodyWeightLog.title')}
           </Text>
         </View>
         <View style={{ width: 24 }} />
@@ -320,7 +322,7 @@ export default function BodyWeightLogScreen() {
           {latest && (
             <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
               <View style={{ flex: 1, borderWidth: 1, borderColor: Colors.border, padding: 12, alignItems: "center" }}>
-                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>Latest</Text>
+                <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 9, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>{t('bodyMeasurements.history.latest')}</Text>
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text }}>
                   {unit === "lbs" ? kgToLbs(latest.weightKg).toFixed(1) : latest.weightKg.toFixed(1)}
                 </Text>
@@ -342,7 +344,7 @@ export default function BodyWeightLogScreen() {
 
           {/* Log entry */}
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-            Log Today's Weight
+            {t('bodyWeightLog.logSection')}
           </Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
             <TextInput
@@ -381,7 +383,7 @@ export default function BodyWeightLogScreen() {
             >
               {saving
                 ? <ActivityIndicator color={Colors.text} size="small" />
-                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: weightInput.trim() ? Colors.text : Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Log</Text>
+                : <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 12, color: weightInput.trim() ? Colors.text : Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{t('bodyWeightLog.logButton')}</Text>
               }
             </Pressable>
           </View>
@@ -390,7 +392,7 @@ export default function BodyWeightLogScreen() {
           {displayHistory.length > 0 && (
             <>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-                History
+                {t('bodyWeightLog.history')}
               </Text>
               <View style={{ borderWidth: 1, borderColor: Colors.border }}>
                 {displayHistory.map((entry, i) => {
@@ -476,7 +478,7 @@ export default function BodyWeightLogScreen() {
             <View style={{ alignItems: "center", paddingTop: 32 }}>
               <Ionicons name="scale-outline" size={48} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted, marginTop: 12, textAlign: "center" }}>
-                Log your first weigh-in above.{"\n"}The 7-day average filters out daily fluctuations.
+                {t('bodyWeightLog.empty')}
               </Text>
             </View>
           )}

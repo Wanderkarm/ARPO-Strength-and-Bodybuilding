@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   View, Text, Pressable, Platform, ActivityIndicator,
   FlatList, Alert, ScrollView,
@@ -37,6 +38,7 @@ function formatTonnage(value: number, unit: string): string {
 type ViewMode = "calendar" | "list";
 
 export default function HistoryScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -140,12 +142,12 @@ export default function HistoryScreen() {
 
   async function handleUndoSkip(item: HistoryEntry) {
     Alert.alert(
-      "Undo Skip",
-      `This will restore W${item.weekNumber} Day ${item.dayNumber} so you can log your sets. Your plan will roll back to that session.`,
+      t('history.alerts.undoSkipTitle'),
+      t('history.alerts.undoSkipMessage'),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t('history.alerts.undoSkipCancel'), style: "cancel" },
         {
-          text: "Undo Skip",
+          text: t('history.alerts.undoSkipConfirm'),
           style: "default",
           onPress: async () => {
             setUndoingSkip(`${item.planId}-${item.weekNumber}-${item.dayNumber}`);
@@ -202,7 +204,7 @@ export default function HistoryScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <View style={{ borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 8, paddingVertical: 2 }}>
                   <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-                    Skipped
+                    {t('history.skipped')}
                   </Text>
                 </View>
                 <Pressable
@@ -212,7 +214,7 @@ export default function HistoryScreen() {
                 >
                   {undoingSkip === `${item.planId}-${item.weekNumber}-${item.dayNumber}`
                     ? <ActivityIndicator size="small" color={Colors.primary} />
-                    : <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>Undo</Text>
+                    : <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 10, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1 }}>{t('history.undo')}</Text>
                   }
                 </Pressable>
               </View>
@@ -242,7 +244,7 @@ export default function HistoryScreen() {
               >
                 <Ionicons name="create-outline" size={13} color={Colors.textSecondary} />
                 <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Edit Sets
+                  {t('history.editSets')}
                 </Text>
               </Pressable>
             )}
@@ -254,9 +256,9 @@ export default function HistoryScreen() {
                 {ex.sets.length > 0 ? (
                   <View>
                     <View style={{ flexDirection: "row", marginBottom: 4 }}>
-                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, width: 40 }}>Set</Text>
-                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flex: 1, textAlign: "center" }}>Weight</Text>
-                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flex: 1, textAlign: "right" }}>Reps</Text>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, width: 40 }}>{t('history.setTableHeaders.set')}</Text>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flex: 1, textAlign: "center" }}>{t('history.setTableHeaders.weight')}</Text>
+                      <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1, flex: 1, textAlign: "right" }}>{t('history.setTableHeaders.reps')}</Text>
                     </View>
                     {ex.sets.map((set, setIdx) => (
                       <View key={setIdx} style={{ flexDirection: "row", paddingVertical: 3, borderTopWidth: setIdx === 0 ? 1 : 0, borderTopColor: Colors.border }}>
@@ -267,7 +269,7 @@ export default function HistoryScreen() {
                     ))}
                   </View>
                 ) : (
-                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>No sets recorded</Text>
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>{t('history.noSetsRecorded')}</Text>
                 )}
               </View>
             ))}
@@ -277,7 +279,7 @@ export default function HistoryScreen() {
         {isExpanded && item.isSkipped && (
           <View style={{ marginTop: 12 }}>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted }}>
-              Session was skipped. Targets carried to next week.
+              {t('history.sessionSkippedNote')}
             </Text>
           </View>
         )}
@@ -295,10 +297,10 @@ export default function HistoryScreen() {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <View>
             <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 22, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-              History
+              {t('history.title')}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, marginTop: 2, textTransform: "uppercase", letterSpacing: 1 }}>
-              {viewMode === "calendar" ? "Training Calendar" : "Past Sessions"}
+              {viewMode === "calendar" ? t('history.trainingCalendar') : t('history.pastSessions')}
             </Text>
           </View>
 
@@ -346,7 +348,7 @@ export default function HistoryScreen() {
             <View style={{ alignItems: "center", paddingTop: 40, paddingHorizontal: 48 }}>
               <Ionicons name="calendar-outline" size={40} color={Colors.textMuted} />
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 13, color: Colors.textMuted, textAlign: "center", marginTop: 16, textTransform: "uppercase", letterSpacing: 1 }}>
-                No activity this month
+                {t('history.noActivityThisMonth')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 6 }}>
                 Complete a workout, log your weight, or hit your step goal to see activity here.
@@ -366,7 +368,7 @@ export default function HistoryScreen() {
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 48 }}>
             <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 14, color: Colors.textMuted, textAlign: "center", marginTop: 16, textTransform: "uppercase", letterSpacing: 1 }}>
-              No sessions logged yet
+              {t('history.noSessionsLogged')}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 6 }}>
               Complete a workout to see it here

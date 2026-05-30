@@ -138,6 +138,7 @@
       "devTools": "Herramientas de desarrollo"
     },
     "items": {
+      "language": "Idioma",
       "units": "Unidades",
       "lbs": "lbs",
       "kg": "kg",

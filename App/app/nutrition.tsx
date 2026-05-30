@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFocusEffect, router } from "expo-router";
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -124,6 +125,7 @@ function StatPill({ label, value, sub }: { label: string; value: string; sub?: s
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NutritionScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const { unit } = useUnit();
@@ -239,7 +241,7 @@ export default function NutritionScreen() {
             textTransform: "uppercase",
             letterSpacing: 2,
           }}>
-            Nutrition Targets
+            {t('nutrition.title')}
           </Text>
         </View>
         <Pressable
@@ -291,7 +293,7 @@ export default function NutritionScreen() {
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-              Edit
+              {t('nutrition.editButton')}
             </Text>
           </Pressable>
         </View>
@@ -379,25 +381,25 @@ export default function NutritionScreen() {
             letterSpacing: 2,
             marginBottom: 14,
           }}>
-            Daily Macros
+            {t('nutrition.dailyMacros')}
           </Text>
 
           <MacroBar
-            label="Protein"
+            label={t('body.macros.protein')}
             grams={macros.proteinG}
             calories={proteinCal}
             totalCalories={macros.calories}
             color="#3B82F6"
           />
           <MacroBar
-            label="Carbohydrates"
+            label={t('body.macros.carbs')}
             grams={macros.carbsG}
             calories={carbsCal}
             totalCalories={macros.calories}
             color="#F59E0B"
           />
           <MacroBar
-            label="Fat"
+            label={t('body.macros.fat')}
             grams={macros.fatG}
             calories={fatCal}
             totalCalories={macros.calories}
@@ -601,7 +603,7 @@ export default function NutritionScreen() {
         >
           <Ionicons name="create-outline" size={16} color={Colors.textMuted} />
           <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-            Edit Goal or Details
+            {t('nutrition.editGoal')}
           </Text>
         </Pressable>
 

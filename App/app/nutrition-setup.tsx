@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -61,6 +62,7 @@ const BODY_GOALS: { key: BodyGoal; label: string; tagline: string; icon: string;
 type Step = 1 | 2 | 3 | 4 | 5;
 
 export default function NutritionSetupScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
@@ -254,13 +256,13 @@ export default function NutritionSetupScreen() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-            {isOnboarding ? "Set Up Nutrition" : "Nutrition Setup"}
+            {isOnboarding ? t('nutritionSetup.titleOnboarding') : t('nutritionSetup.titleEdit')}
           </Text>
         </View>
         {isOnboarding && step === 1 ? (
           <Pressable onPress={() => router.replace("/templates?from=onboarding")} hitSlop={12}>
             <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 12, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>
-              Skip
+              {t('nutritionSetup.skip')}
             </Text>
           </Pressable>
         ) : (
@@ -290,7 +292,7 @@ export default function NutritionSetupScreen() {
           <>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                What's Your Goal?
+                {t('nutritionSetup.step1.title')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 28 }}>
                 This sets your calorie target and macro split. You can change it any time in Settings.
@@ -351,7 +353,7 @@ export default function NutritionSetupScreen() {
                 style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1 })}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Continue →
+                  {t('nutritionSetup.step1.continue')}
                 </Text>
               </Pressable>
             </View>
@@ -363,7 +365,7 @@ export default function NutritionSetupScreen() {
           <>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                Your Details
+                {t('nutritionSetup.step2.title')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 28 }}>
                 Used to calculate your BMR (Basal Metabolic Rate) via the Mifflin-St Jeor equation — the most validated formula for TDEE estimation.
@@ -433,7 +435,7 @@ export default function NutritionSetupScreen() {
                 style={({ pressed }) => ({ backgroundColor: canProceedStep2 ? Colors.primary : Colors.bgAccent, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1 })}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: canProceedStep2 ? Colors.text : Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Continue →
+                  {t('nutritionSetup.step2.continue')}
                 </Text>
               </Pressable>
             </View>
@@ -445,7 +447,7 @@ export default function NutritionSetupScreen() {
           <>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                Activity Level
+                {t('nutritionSetup.step3.title')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
                 Choose based on your <Text style={{ fontFamily: "Rubik_600SemiBold", color: Colors.text }}>total daily activity</Text>, including your training sessions. A desk-job lifter training 4×/week is typically Moderately Active.
@@ -492,7 +494,7 @@ export default function NutritionSetupScreen() {
                 style={({ pressed }) => ({ backgroundColor: Colors.primary, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1 })}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
-                  {bodyGoal === "recomp" ? "Calculate My Targets →" : "Continue →"}
+                  {bodyGoal === "recomp" ? t('nutritionSetup.step5.calculateTargets') : t('nutritionSetup.step3.continue')}
                 </Text>
               </Pressable>
             </View>
@@ -504,7 +506,7 @@ export default function NutritionSetupScreen() {
           <>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 }}>
               <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 20, color: Colors.text, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
-                Your Target
+                {t('nutritionSetup.step4.title')}
               </Text>
               <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 24 }}>
                 We'll check if your timeline is realistic and suggest an alternative if it isn't.
@@ -512,7 +514,7 @@ export default function NutritionSetupScreen() {
 
               {/* Current weight */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-                Current Weight ({unit})
+                {t('nutritionSetup.step4.currentWeight', { unit })}
               </Text>
               <TextInput
                 value={currentWeight}
@@ -525,7 +527,7 @@ export default function NutritionSetupScreen() {
 
               {/* Target weight */}
               <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-                Target Weight ({unit})
+                {t('nutritionSetup.step4.targetWeight', { unit })}
               </Text>
               <TextInput
                 value={targetWeight}
@@ -544,7 +546,7 @@ export default function NutritionSetupScreen() {
                 style={({ pressed }) => ({ backgroundColor: (currentWeight.trim() && targetWeight.trim()) ? Colors.primary : Colors.bgAccent, paddingVertical: 16, alignItems: "center", opacity: pressed ? 0.85 : 1 })}
               >
                 <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 14, color: (currentWeight.trim() && targetWeight.trim()) ? Colors.text : Colors.textMuted, textTransform: "uppercase", letterSpacing: 2 }}>
-                  Continue →
+                  {t('nutritionSetup.step4.continue')}
                 </Text>
               </Pressable>
             </View>
