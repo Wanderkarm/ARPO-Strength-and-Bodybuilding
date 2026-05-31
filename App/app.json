@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.powrlog.app",
-      "buildNumber": "57",
+      "buildNumber": "58",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
