@@ -864,27 +864,11 @@ export default function WorkoutScreen() {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const isBodyweight = ex.exercise.equipment === "BODYWEIGHT";
-    const feedback = getFeedback(reps, weight, set.targetWeight, set.targetReps, isBodyweight, set.setType);
+    // Pass `t` so the stored feedback text is already translated (not a raw i18n key).
+    const feedback = getFeedback(reps, weight, set.targetWeight, set.targetReps, isBodyweight, set.setType, t);
     updateSet(exIndex, setIndex, "feedback", feedback);
-
-    // Don't start the rest timer if we're about to jump to a superset partner.
-    // The timer fires after the partner set instead (end of the superset round).
-    const jumpingToPartner = hasActiveSupersertPartner(exIndex);
-    const isMyo = ex.sets[setIndex]?.setType === 'myo_activation' || ex.sets[setIndex]?.setType === 'myo_mini';
-    if (!jumpingToPartner && !isMyo) {
-      const category = ex.exercise.category;
-      const restSeconds = calculateRestTime(category, (plan?.goalType ?? "hypertrophy") as any);
-      setRestTimerSeconds(restSeconds);
-      setRestTimerKey((prev) => prev + 1);
-      setRestTimerVisible(true);
-      // Only scroll to rest timer when keyboard is NOT visible — scrolling while
-      // keyboard is open can silently unfocus the active TextInput on iOS.
-      if (!keyboardVisibleRef.current) {
-        setTimeout(() => {
-          scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
-        }, 150);
-      }
-    }
+    // Rest timer is now started by handleLogSet (reads from the guaranteed-current
+    // exerciseStates render snapshot) to avoid stale-ref races on the first set.
   }
 
   function handleLogSet(exIndex: number, setIndex: number) {
@@ -896,6 +880,23 @@ export default function WorkoutScreen() {
     const weight = isBodyweightEx ? 0 : parseFloat(set.weightUsed);
     if (!isBodyweightEx && isNaN(weight)) return;
     autoLogSet(exIndex, setIndex, reps, weight);
+
+    // Start rest timer here — exerciseStates is the guaranteed-current render snapshot,
+    // so there is no stale-ref race condition (unlike reading from exerciseStatesRef).
+    const isMyo = set.setType === 'myo_activation' || set.setType === 'myo_mini';
+    const jumpingToPartner = hasActiveSupersertPartner(exIndex);
+    if (!isMyo && !jumpingToPartner) {
+      const restSeconds = calculateRestTime(ex.exercise.category, (plan?.goalType ?? "hypertrophy") as any);
+      setRestTimerSeconds(restSeconds);
+      setRestTimerKey((prev) => prev + 1);
+      setRestTimerVisible(true);
+      if (!keyboardVisibleRef.current) {
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({ y: restTimerY.current - 16, animated: true });
+        }, 150);
+      }
+    }
+
     // If in a superset, jump to partner after a short delay (allow feedback to render)
     setTimeout(() => tryJumpToSupersetPartner(exIndex), 400);
   }
