@@ -219,7 +219,36 @@
       "thankYou": "Gracias por tu apoyo.",
       "managePurchase": "Gestionar compra"
     },
-    "legalDisclaimer": "POWRLOG es una herramienta de entrenamiento y no reemplaza el consejo médico profesional. Consulta a un profesional de la salud calificado antes de comenzar cualquier programa de ejercicios, especialmente si tienes condiciones preexistentes. Los datos de entrenamiento mostrados son solo con fines informativos."
+    "legalDisclaimer": "POWRLOG es una herramienta de entrenamiento y no reemplaza el consejo médico profesional. Consulta a un profesional de la salud calificado antes de comenzar cualquier programa de ejercicios, especialmente si tienes condiciones preexistentes. Los datos de entrenamiento mostrados son solo con fines informativos.",
+    "goalTypes": {
+      "strength": {
+        "label": "Fuerza",
+        "repRange": "1–5 reps",
+        "setsPerWeek": "4–12 series / semana"
+      },
+      "powerbuilding": {
+        "label": "Powerbuilding",
+        "repRange": "4–8 (compuestos) · 8–12 (aislamiento)",
+        "setsPerWeek": "6–16 series / semana"
+      },
+      "hypertrophy": {
+        "label": "Hipertrofia",
+        "repRange": "8–12 (compuestos) · 10–15 (aislamiento)",
+        "setsPerWeek": "10–22 series / semana"
+      }
+    },
+    "progressionMethods": {
+      "arpo": {
+        "label": "ARPO",
+        "subtitle": "Sobrecarga Progresiva Autorregulada",
+        "description": "Ajusta el volumen usando señales de bombeo y dolor muscular. Respaldado por Schoenfeld 2010 y Helms et al. — ideal para hipertrofia y levantadores que desean gestión de fatiga integrada."
+      },
+      "doubleProgression": {
+        "label": "Doble Progresión",
+        "subtitle": "Reps → Escala de peso",
+        "description": "Mantén el peso y persigue el techo de tu rango de repeticiones en todas las series. Al lograrlo, aumenta la carga y reinicia desde abajo. Simple, probado y excelente para fuerza."
+      }
+    }
   },
   "workout": {
     "recovery": {

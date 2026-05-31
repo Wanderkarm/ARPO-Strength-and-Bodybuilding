@@ -219,7 +219,36 @@
       "thankYou": "Thank you for your support.",
       "managePurchase": "Manage Purchase"
     },
-    "legalDisclaimer": "POWRLOG is a training tool and not a substitute for professional medical advice. Consult a qualified health professional before starting any exercise program, particularly if you have pre-existing conditions. Training data shown is for informational purposes only."
+    "legalDisclaimer": "POWRLOG is a training tool and not a substitute for professional medical advice. Consult a qualified health professional before starting any exercise program, particularly if you have pre-existing conditions. Training data shown is for informational purposes only.",
+    "goalTypes": {
+      "strength": {
+        "label": "Strength",
+        "repRange": "1–5 reps",
+        "setsPerWeek": "4–12 sets / week"
+      },
+      "powerbuilding": {
+        "label": "Powerbuilding",
+        "repRange": "4–8 (compounds) · 8–12 (isolation)",
+        "setsPerWeek": "6–16 sets / week"
+      },
+      "hypertrophy": {
+        "label": "Hypertrophy",
+        "repRange": "8–12 (compounds) · 10–15 (isolation)",
+        "setsPerWeek": "10–22 sets / week"
+      }
+    },
+    "progressionMethods": {
+      "arpo": {
+        "label": "ARPO",
+        "subtitle": "Autoregulated Progressive Overload",
+        "description": "Adjusts volume using pump & soreness signals. Backed by Schoenfeld 2010 and Helms et al. — ideal for hypertrophy and lifters who want built-in fatigue management."
+      },
+      "doubleProgression": {
+        "label": "Double Progression",
+        "subtitle": "Rep → Weight ladder",
+        "description": "Hold weight and chase the top of your rep range across all sets. Once you hit it, increase load and reset to the bottom. Simple, proven, and great for strength focus."
+      }
+    }
   },
   "workout": {
     "recovery": {

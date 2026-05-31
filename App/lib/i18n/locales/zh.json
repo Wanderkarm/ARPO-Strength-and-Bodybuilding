@@ -219,7 +219,36 @@
       "thankYou": "感谢您的支持。",
       "managePurchase": "管理购买"
     },
-    "legalDisclaimer": "POWRLOG 是一款训练工具，不能替代专业医疗建议。在开始任何锻炼计划前，特别是有既往病史的情况下，请咨询合格的健康专业人士。所显示的训练数据仅供参考。"
+    "legalDisclaimer": "POWRLOG 是一款训练工具，不能替代专业医疗建议。在开始任何锻炼计划前，特别是有既往病史的情况下，请咨询合格的健康专业人士。所显示的训练数据仅供参考。",
+    "goalTypes": {
+      "strength": {
+        "label": "力量",
+        "repRange": "1–5 次",
+        "setsPerWeek": "每周 4–12 组"
+      },
+      "powerbuilding": {
+        "label": "力量增肌",
+        "repRange": "4–8次（复合动作）· 8–12次（孤立动作）",
+        "setsPerWeek": "每周 6–16 组"
+      },
+      "hypertrophy": {
+        "label": "增肌",
+        "repRange": "8–12次（复合动作）· 10–15次（孤立动作）",
+        "setsPerWeek": "每周 10–22 组"
+      }
+    },
+    "progressionMethods": {
+      "arpo": {
+        "label": "ARPO",
+        "subtitle": "自动调节渐进超负荷",
+        "description": "使用泵感和酸痛信号调整训练量。得到Schoenfeld 2010和Helms等人的支持——适合增肌和希望内置疲劳管理的训练者。"
+      },
+      "doubleProgression": {
+        "label": "双重递进",
+        "subtitle": "次数 → 重量阶梯",
+        "description": "保持重量不变，追求所有组次数达到区间上限。达到后增加重量并从下限重置。简单、经过验证，非常适合力量训练。"
+      }
+    }
   },
   "workout": {
     "recovery": {

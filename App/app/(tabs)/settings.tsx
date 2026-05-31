@@ -686,10 +686,10 @@ export default function SettingsScreen() {
                         textTransform: "uppercase",
                         letterSpacing: 1,
                       }}>
-                        {g.label}
+                        {t(`settings.goalTypes.${g.key}.label`)}
                       </Text>
                       <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 2 }}>
-                        {g.repRange} · {g.setsPerWeek}
+                        {t(`settings.goalTypes.${g.key}.repRange`)} · {t(`settings.goalTypes.${g.key}.setsPerWeek`)}
                       </Text>
                     </View>
                     {goalType === g.key && (
@@ -712,16 +712,12 @@ export default function SettingsScreen() {
                 {([
                   {
                     key: "arpo" as ProgressionMode,
-                    label: "ARPO",
-                    subtitle: "Autoregulated Progressive Overload",
-                    description: "Adjusts volume using pump & soreness signals. Backed by Schoenfeld 2010 and Helms et al. — ideal for hypertrophy and lifters who want built-in fatigue management.",
+                    tKey: "arpo",
                     accentColor: Colors.primary,
                   },
                   {
                     key: "double_progression" as ProgressionMode,
-                    label: "Double Progression",
-                    subtitle: "Rep → Weight ladder",
-                    description: "Hold weight and chase the top of your rep range across all sets. Once you hit it, increase load and reset to the bottom. Simple, proven, and great for strength focus.",
+                    tKey: "doubleProgression",
                     accentColor: "#F59E0B",
                   },
                 ] as const).map((m) => (
@@ -749,10 +745,10 @@ export default function SettingsScreen() {
                           textTransform: "uppercase",
                           letterSpacing: 1,
                         }}>
-                          {m.label}
+                          {t(`settings.progressionMethods.${m.tKey}.label`)}
                         </Text>
                         <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 10, color: Colors.textMuted, marginTop: 1 }}>
-                          {m.subtitle}
+                          {t(`settings.progressionMethods.${m.tKey}.subtitle`)}
                         </Text>
                       </View>
                       {progressionMode === m.key && (
@@ -760,7 +756,7 @@ export default function SettingsScreen() {
                       )}
                     </View>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, lineHeight: 16, marginTop: 4 }}>
-                      {m.description}
+                      {t(`settings.progressionMethods.${m.tKey}.description`)}
                     </Text>
                   </Pressable>
                 ))}

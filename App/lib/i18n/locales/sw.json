@@ -219,7 +219,36 @@
       "thankYou": "Asante kwa msaada wako.",
       "managePurchase": "Simamia ununuzi"
     },
-    "legalDisclaimer": "POWRLOG ni zana ya mafunzo na si mbadala wa ushauri wa kitaalamu wa kimatibabu. Wasiliana na mtaalamu wa afya aliyeidhinishwa kabla ya kuanza mpango wowote wa mazoezi, hasa ukiwa na hali zilizopo awali. Data ya mafunzo inayoonyeshwa ni kwa madhumuni ya habari tu."
+    "legalDisclaimer": "POWRLOG ni zana ya mafunzo na si mbadala wa ushauri wa kitaalamu wa kimatibabu. Wasiliana na mtaalamu wa afya aliyeidhinishwa kabla ya kuanza mpango wowote wa mazoezi, hasa ukiwa na hali zilizopo awali. Data ya mafunzo inayoonyeshwa ni kwa madhumuni ya habari tu.",
+    "goalTypes": {
+      "strength": {
+        "label": "Nguvu",
+        "repRange": "Marudio 1–5",
+        "setsPerWeek": "Seti 4–12 / wiki"
+      },
+      "powerbuilding": {
+        "label": "Powerbuilding",
+        "repRange": "4–8 (misombo) · 8–12 (kutengwa)",
+        "setsPerWeek": "Seti 6–16 / wiki"
+      },
+      "hypertrophy": {
+        "label": "Hypertrophy",
+        "repRange": "8–12 (misombo) · 10–15 (kutengwa)",
+        "setsPerWeek": "Seti 10–22 / wiki"
+      }
+    },
+    "progressionMethods": {
+      "arpo": {
+        "label": "ARPO",
+        "subtitle": "Mzigo wa Maendeleo Unaojiratibu",
+        "description": "Inasawazisha kiasi kwa kutumia ishara za pampu na uchovu. Inategemea Schoenfeld 2010 na Helms et al. — bora kwa hypertrophy na wanaofunza wanaotaka usimamizi wa uchovu uliojengwa ndani."
+      },
+      "doubleProgression": {
+        "label": "Maendeleo Mawili",
+        "subtitle": "Marudio → Ngazi ya uzito",
+        "description": "Shika uzito na ufuate kilele cha safu yako ya marudio katika seti zote. Ukifika, ongeza mzigo na uanze upya kutoka chini. Rahisi, iliyothibitishwa, na nzuri kwa kuzingatia nguvu."
+      }
+    }
   },
   "workout": {
     "recovery": {

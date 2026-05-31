@@ -219,7 +219,36 @@
       "thankYou": "Obrigado pelo seu apoio.",
       "managePurchase": "Gerenciar compra"
     },
-    "legalDisclaimer": "O POWRLOG é uma ferramenta de treino e não substitui aconselhamento médico profissional. Consulte um profissional de saúde qualificado antes de iniciar qualquer programa de exercícios, especialmente se tiver condições preexistentes. Os dados de treino exibidos são apenas para fins informativos."
+    "legalDisclaimer": "O POWRLOG é uma ferramenta de treino e não substitui aconselhamento médico profissional. Consulte um profissional de saúde qualificado antes de iniciar qualquer programa de exercícios, especialmente se tiver condições preexistentes. Os dados de treino exibidos são apenas para fins informativos.",
+    "goalTypes": {
+      "strength": {
+        "label": "Força",
+        "repRange": "1–5 reps",
+        "setsPerWeek": "4–12 séries / semana"
+      },
+      "powerbuilding": {
+        "label": "Powerbuilding",
+        "repRange": "4–8 (compostos) · 8–12 (isolamento)",
+        "setsPerWeek": "6–16 séries / semana"
+      },
+      "hypertrophy": {
+        "label": "Hipertrofia",
+        "repRange": "8–12 (compostos) · 10–15 (isolamento)",
+        "setsPerWeek": "10–22 séries / semana"
+      }
+    },
+    "progressionMethods": {
+      "arpo": {
+        "label": "ARPO",
+        "subtitle": "Sobrecarga Progressiva Autorregulada",
+        "description": "Ajusta o volume usando sinais de pump e dor muscular. Respaldado por Schoenfeld 2010 e Helms et al. — ideal para hipertrofia e levantadores que querem gerenciamento de fadiga integrado."
+      },
+      "doubleProgression": {
+        "label": "Progressão Dupla",
+        "subtitle": "Reps → Escada de peso",
+        "description": "Mantenha o peso e busque o topo da faixa de repetições em todas as séries. Ao atingi-la, aumente a carga e recomece do início. Simples, comprovado e excelente para foco em força."
+      }
+    }
   },
   "workout": {
     "recovery": {
