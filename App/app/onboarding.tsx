@@ -709,10 +709,10 @@ export default function OnboardingScreen() {
             {bodyGoal === "recomp" && (
               <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 14, marginTop: 4, marginBottom: 16, backgroundColor: Colors.bgAccent }}>
                 <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 11, color: Colors.primary, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
-                  Who Is Recomposition For?
+                  Who Is Powerbuilding For?
                 </Text>
                 <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18 }}>
-                  Recomp works best for beginners, returning lifters, and those with higher body fat ({">"} 20% men / {">"} 28% women). Progress is slower but you avoid cycling between cut and bulk phases.
+                  Powerbuilding suits intermediate lifters who want both strength and size. You'll increase your 1RMs while building significant muscle — heavier compound work blended with hypertrophy volume.
                 </Text>
               </View>
             )}
