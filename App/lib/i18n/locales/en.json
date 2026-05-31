@@ -219,7 +219,7 @@
       "thankYou": "Thank you for your support.",
       "managePurchase": "Manage Purchase"
     },
-    "legalDisclaimer": "POWRLOG is a training tool and not a substitute for professional medical advice. Consult a qualified health professional before starting any exercise programme, particularly if you have pre-existing conditions. Training data shown is for informational purposes only."
+    "legalDisclaimer": "POWRLOG is a training tool and not a substitute for professional medical advice. Consult a qualified health professional before starting any exercise program, particularly if you have pre-existing conditions. Training data shown is for informational purposes only."
   },
   "workout": {
     "recovery": {
@@ -366,7 +366,7 @@
     },
     "identity": {
       "title": "About You",
-      "subtitle": "This helps us tailor your programme and starting weights.",
+      "subtitle": "This helps us tailor your program and starting weights.",
       "biologicalSex": "Biological Sex",
       "male": "Male",
       "female": "Female",
@@ -429,7 +429,7 @@
       "subtitle": "Here's your personalised profile.",
       "tdeeCard": "TDEE",
       "tdeeUnit": "kcal/day",
-      "continue": "Let's Build Your Programme →"
+      "continue": "Let's Build Your Program →"
     },
     "alerts": {
       "missingInfoTitle": "Missing Info",
