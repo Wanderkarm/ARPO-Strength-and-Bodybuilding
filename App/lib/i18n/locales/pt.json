@@ -254,7 +254,9 @@
         "subtitle": "Reps → Escada de peso",
         "description": "Mantenha o peso e busque o topo da faixa de repetições em todas as séries. Ao atingi-la, aumente a carga e recomece do início. Simples, comprovado e excelente para foco em força."
       }
-    }
+    },
+    "rtlRestartTitle": "Reinício necessário",
+    "rtlRestartMessage": "Feche e reabra o aplicativo para aplicar o layout em árabe."
   },
   "workout": {
     "recovery": {

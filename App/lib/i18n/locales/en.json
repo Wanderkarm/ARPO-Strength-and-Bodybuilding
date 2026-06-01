@@ -254,7 +254,9 @@
         "subtitle": "Rep → Weight ladder",
         "description": "Hold weight and chase the top of your rep range across all sets. Once you hit it, increase load and reset to the bottom. Simple, proven, and great for strength focus."
       }
-    }
+    },
+    "rtlRestartTitle": "Restart Required",
+    "rtlRestartMessage": "Close and reopen the app to apply the Arabic layout."
   },
   "workout": {
     "recovery": {

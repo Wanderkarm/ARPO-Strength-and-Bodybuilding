@@ -254,7 +254,9 @@
         "subtitle": "次数 → 重量阶梯",
         "description": "保持重量不变，追求所有组次数达到区间上限。达到后增加重量并从下限重置。简单、经过验证，非常适合力量训练。"
       }
-    }
+    },
+    "rtlRestartTitle": "需要重启",
+    "rtlRestartMessage": "关闭并重新打开应用以应用阿拉伯语布局。"
   },
   "workout": {
     "recovery": {

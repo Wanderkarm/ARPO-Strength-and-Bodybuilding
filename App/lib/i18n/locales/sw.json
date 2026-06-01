@@ -254,7 +254,9 @@
         "subtitle": "Marudio → Ngazi ya uzito",
         "description": "Shika uzito na ufuate kilele cha safu yako ya marudio katika seti zote. Ukifika, ongeza mzigo na uanze upya kutoka chini. Rahisi, iliyothibitishwa, na nzuri kwa kuzingatia nguvu."
       }
-    }
+    },
+    "rtlRestartTitle": "Anzisha upya inahitajika",
+    "rtlRestartMessage": "Funga na ufungue tena programu ili kutumia mpangilio wa Kiarabu."
   },
   "workout": {
     "recovery": {

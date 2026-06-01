@@ -13,6 +13,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Linking,
+  I18nManager,
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -297,6 +298,21 @@ export default function SettingsScreen() {
             await changeAppLanguage(code);
             setCurrentLang(code);
             if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+            // Android needs I18nManager.forceRTL + an app restart for Arabic layout to apply.
+            // iOS handles RTL automatically via the OS; no action needed there.
+            if (Platform.OS === "android") {
+              const isRTL = code === "ar";
+              if (I18nManager.isRTL !== isRTL) {
+                I18nManager.allowRTL(isRTL);
+                I18nManager.forceRTL(isRTL);
+                Alert.alert(
+                  t("settings.rtlRestartTitle"),
+                  t("settings.rtlRestartMessage"),
+                  [{ text: t("common.ok") }]
+                );
+              }
+            }
           },
         })),
         { text: t("common.cancel"), style: "cancel" as const },

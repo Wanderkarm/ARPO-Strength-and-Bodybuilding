@@ -254,7 +254,9 @@
         "subtitle": "Reps → Escala de peso",
         "description": "Mantén el peso y persigue el techo de tu rango de repeticiones en todas las series. Al lograrlo, aumenta la carga y reinicia desde abajo. Simple, probado y excelente para fuerza."
       }
-    }
+    },
+    "rtlRestartTitle": "Reinicio necesario",
+    "rtlRestartMessage": "Cierra y vuelve a abrir la app para aplicar el diseño en árabe."
   },
   "workout": {
     "recovery": {
