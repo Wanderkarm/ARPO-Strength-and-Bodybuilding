@@ -57,7 +57,13 @@
       "aboveMrv": "超过 MRV",
       "building": "增长中",
       "nearMrv": "接近 MRV"
-    }
+    },
+    "emptyState": {
+      "title": "您的数据将显示在这里",
+      "body": "完成第一次训练课程，即可解锁力量进展图表、每块肌肉的训练量追踪和每周趋势。",
+      "preview": "即将显示：每个动作的举重重量 · 组数与MEV/MAV/MRV目标对比 · 每周各肌肉群训练量"
+    },
+    "glossarySubtitle": "训练时将此作为参考指南。"
   },
   "body": {
     "title": "身体",
@@ -375,6 +381,12 @@
       "skip": "跳过",
       "next": "下一步 →",
       "gotIt": "明白了"
+    },
+    "superset": {
+      "removeTitle": "删除超级组",
+      "removeMessage": "取消这些动作的关联？它们将独立执行。",
+      "removeConfirm": "删除关联",
+      "removeCancel": "保留"
     }
   },
   "onboarding": {

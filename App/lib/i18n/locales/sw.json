@@ -57,7 +57,13 @@
       "aboveMrv": "Juu ya MRV",
       "building": "Inaongezeka",
       "nearMrv": "Karibu na MRV"
-    }
+    },
+    "emptyState": {
+      "title": "Data yako itaonekana hapa",
+      "body": "Kamilisha kipindi chako cha kwanza cha mazoezi ili kufungua grafu za maendeleo ya nguvu, ufuatiliaji wa kiasi kwa kila misuli, na mwelekeo wa kila wiki.",
+      "preview": "Inakuja: uzito ulioinuliwa kwa kila zoezi · seti dhidi ya malengo ya MEV / MAV / MRV · kiasi cha kila wiki kwa kila kundi la misuli"
+    },
+    "glossarySubtitle": "Tumia hii kama mwongozo wa kumbukumbu wakati wa mazoezi."
   },
   "body": {
     "title": "Mwili",
@@ -375,6 +381,12 @@
       "skip": "Ruka",
       "next": "Inayofuata →",
       "gotIt": "Nimeelewa"
+    },
+    "superset": {
+      "removeTitle": "Ondoa Superset",
+      "removeMessage": "Tengua mazoezi haya? Yatafanya kazi kwa kujitegemea.",
+      "removeConfirm": "Ondoa Kiungo",
+      "removeCancel": "Weka"
     }
   },
   "onboarding": {

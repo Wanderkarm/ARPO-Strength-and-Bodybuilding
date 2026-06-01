@@ -57,7 +57,13 @@
       "aboveMrv": "Above MRV",
       "building": "Building",
       "nearMrv": "Near MRV"
-    }
+    },
+    "emptyState": {
+      "title": "Your data will appear here",
+      "body": "Complete your first workout to unlock strength progress charts, per-muscle volume tracking, and weekly trends.",
+      "preview": "Coming: weight lifted per exercise · sets vs MEV / MAV / MRV targets · weekly volume by muscle group"
+    },
+    "glossarySubtitle": "Use this as your reference while you train."
   },
   "body": {
     "title": "Body",
@@ -375,6 +381,12 @@
       "skip": "Skip",
       "next": "Next →",
       "gotIt": "Got It"
+    },
+    "superset": {
+      "removeTitle": "Remove Superset",
+      "removeMessage": "Unlink these exercises? They will run independently from here.",
+      "removeConfirm": "Remove Link",
+      "removeCancel": "Keep"
     }
   },
   "onboarding": {

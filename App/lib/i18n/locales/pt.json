@@ -57,7 +57,13 @@
       "aboveMrv": "Acima do MRV",
       "building": "Aumentando",
       "nearMrv": "Perto do MRV"
-    }
+    },
+    "emptyState": {
+      "title": "Seus dados aparecerão aqui",
+      "body": "Conclua seu primeiro treino para desbloquear gráficos de progresso de força, rastreamento de volume por músculo e tendências semanais.",
+      "preview": "Em breve: peso levantado por exercício · séries vs metas MEV / MAV / MRV · volume semanal por grupo muscular"
+    },
+    "glossarySubtitle": "Use como referência enquanto treina."
   },
   "body": {
     "title": "Corpo",
@@ -375,6 +381,12 @@
       "skip": "Pular",
       "next": "Próximo →",
       "gotIt": "Entendi"
+    },
+    "superset": {
+      "removeTitle": "Remover Superset",
+      "removeMessage": "Desvincular esses exercícios? Eles serão executados de forma independente.",
+      "removeConfirm": "Remover vínculo",
+      "removeCancel": "Manter"
     }
   },
   "onboarding": {

@@ -293,6 +293,34 @@ export default function ProgressScreen() {
           </View>
         </View>
 
+        {/* ── Empty State ── */}
+        {exerciseHistory.length === 0 && muscleVolume.length === 0 && (
+          <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+            <View style={{
+              borderWidth: 1,
+              borderColor: Colors.border,
+              borderLeftWidth: 3,
+              borderLeftColor: Colors.primary,
+              padding: 16,
+            }}>
+              <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 13, color: Colors.text, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                {t('progress.emptyState.title')}
+              </Text>
+              <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18, marginBottom: 12 }}>
+                {t('progress.emptyState.body')}
+              </Text>
+              {(['strengthProgress', 'volumeTracker'] as const).map((key) => (
+                <View key={key} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <Ionicons name="checkmark-circle-outline" size={14} color={Colors.primary} />
+                  <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted }}>
+                    {t(`progress.${key}`)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* ── Exercise Weight Charts ── */}
         {exerciseHistory.length > 0 && (
           <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
@@ -485,12 +513,15 @@ export default function ProgressScreen() {
 
         {/* ── Glossary Cards ── */}
         <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <Ionicons name="library-outline" size={16} color={Colors.primary} />
             <Text style={{ fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.text, textTransform: "uppercase", letterSpacing: 2 }}>
               {t('progress.theScience')}
             </Text>
           </View>
+          <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginBottom: 12, lineHeight: 16 }}>
+            {t('progress.glossarySubtitle')}
+          </Text>
 
           {(
             [

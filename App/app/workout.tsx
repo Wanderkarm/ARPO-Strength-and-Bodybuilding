@@ -1813,7 +1813,25 @@ export default function WorkoutScreen() {
             {currentEx.exercise.name}
           </Text>
           {currentEx.supersetGroup !== null && (
-            <SupersetIcon state="active" size={22} />
+            <Pressable
+              onPress={() => {
+                Alert.alert(
+                  t('workout.superset.removeTitle'),
+                  t('workout.superset.removeMessage'),
+                  [
+                    { text: t('workout.superset.removeCancel'), style: 'cancel' },
+                    {
+                      text: t('workout.superset.removeConfirm'),
+                      style: 'destructive',
+                      onPress: () => removeFromSuperset(currentExerciseIndex),
+                    },
+                  ]
+                );
+              }}
+              hitSlop={8}
+            >
+              <SupersetIcon state="active" size={22} />
+            </Pressable>
           )}
         </View>
 
