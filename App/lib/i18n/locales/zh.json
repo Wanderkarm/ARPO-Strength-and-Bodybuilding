@@ -727,7 +727,8 @@
     "title": "连接健康数据",
     "privacyNote": "您的数据永远不会离开您的手机。",
     "connectButton": "连接 {{platform}}",
-    "skipButton": "跳过 — 稍后在设置中配置"
+    "skipButton": "跳过 — 稍后在设置中配置",
+    "continueButton": "继续"
   },
   "postOnboarding": {
     "stepLabel": "第 {{current}} 步，共 {{total}} 步",

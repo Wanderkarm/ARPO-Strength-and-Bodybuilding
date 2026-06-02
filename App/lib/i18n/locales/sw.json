@@ -727,7 +727,8 @@
     "title": "Unganisha data ya afya",
     "privacyNote": "Data yako haitaacha simu yako kamwe.",
     "connectButton": "Unganisha {{platform}}",
-    "skipButton": "Ruka — nitaweka hii baadaye katika Mipangilio"
+    "skipButton": "Ruka — nitaweka hii baadaye katika Mipangilio",
+    "continueButton": "Endelea"
   },
   "postOnboarding": {
     "stepLabel": "Hatua {{current}} kati ya {{total}}",

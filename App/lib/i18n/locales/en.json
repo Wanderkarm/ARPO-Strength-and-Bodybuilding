@@ -727,7 +727,8 @@
     "title": "Connect Health Data",
     "privacyNote": "Your data never leaves your phone.",
     "connectButton": "Connect {{platform}}",
-    "skipButton": "Skip — I'll set this up later in Settings"
+    "skipButton": "Skip — I'll set this up later in Settings",
+    "continueButton": "Continue"
   },
   "postOnboarding": {
     "stepLabel": "Step {{current}} of {{total}}",

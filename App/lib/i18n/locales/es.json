@@ -727,7 +727,8 @@
     "title": "Conectar datos de salud",
     "privacyNote": "Tus datos nunca salen de tu teléfono.",
     "connectButton": "Conectar {{platform}}",
-    "skipButton": "Omitir — lo configuraré después en Ajustes"
+    "skipButton": "Omitir — lo configuraré después en Ajustes",
+    "continueButton": "Continuar"
   },
   "postOnboarding": {
     "stepLabel": "Paso {{current}} de {{total}}",

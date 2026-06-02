@@ -727,7 +727,8 @@
     "title": "ربط بيانات الصحة",
     "privacyNote": "بياناتك لا تغادر هاتفك أبدًا.",
     "connectButton": "ربط {{platform}}",
-    "skipButton": "تخطي — سأعدّ هذا لاحقًا من الإعدادات"
+    "skipButton": "تخطي — سأعدّ هذا لاحقًا من الإعدادات",
+    "continueButton": "متابعة"
   },
   "postOnboarding": {
     "stepLabel": "الخطوة {{current}} من {{total}}",

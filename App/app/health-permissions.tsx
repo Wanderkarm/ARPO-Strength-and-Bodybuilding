@@ -304,20 +304,25 @@ export default function HealthPermissions() {
                 fontFamily: "Rubik_700Bold", fontSize: 15,
                 color: "white", textTransform: "uppercase", letterSpacing: 1.5,
               }}>
-                {t('healthPermissions.connectButton', { platform: Platform.OS === "ios" ? "Apple Health" : "Health Connect" })}
+                {t('healthPermissions.continueButton')}
               </Text>
             </>
           )}
         </Pressable>
 
-        <Pressable onPress={skipAndContinue} hitSlop={8} disabled={requesting}>
-          <Text style={{
-            fontFamily: "Rubik_400Regular", fontSize: 12,
-            color: Colors.textMuted, textAlign: "center",
-          }}>
-            {t('healthPermissions.skipButton')}
-          </Text>
-        </Pressable>
+        {/* Skip is only shown on Android — Apple guideline 5.1.1(iv) requires that
+            iOS users always proceed to the native HealthKit permission dialog.
+            They can deny within that dialog; bypassing it entirely is not allowed. */}
+        {Platform.OS === "android" && (
+          <Pressable onPress={skipAndContinue} hitSlop={8} disabled={requesting}>
+            <Text style={{
+              fontFamily: "Rubik_400Regular", fontSize: 12,
+              color: Colors.textMuted, textAlign: "center",
+            }}>
+              {t('healthPermissions.skipButton')}
+            </Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
