@@ -58,7 +58,6 @@
     "android": {
       "package": "com.powrlog.app",
       "versionCode": 1,
-      "minSdkVersion": 26,
       "adaptiveIcon": {
         "backgroundColor": "#000000",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -74,6 +73,14 @@
         "expo-router"
       ],
       "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       "expo-web-browser",
       [
         "expo-notifications",
