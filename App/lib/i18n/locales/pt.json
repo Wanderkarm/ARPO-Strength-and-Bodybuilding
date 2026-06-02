@@ -472,7 +472,23 @@
       "subtitle": "Aqui está seu perfil personalizado.",
       "tdeeCard": "TDEE",
       "tdeeUnit": "kcal/dia",
-      "continue": "Vamos montar seu programa →"
+      "continue": "Vamos montar seu programa →",
+      "targetCaloriesLabel": "Suas calorias alvo",
+      "maintenanceCut": "Manutenção ~{{maintenance}} kcal · déficit de {{amount}} kcal",
+      "maintenanceBulk": "Manutenção ~{{maintenance}} kcal · +{{amount}} kcal superávit",
+      "maintenanceRecomp": "Calorias de manutenção · recomposição corporal",
+      "macroBreakdownNote": "O detalhamento completo de macros aparecerá na aba Nutrição após a configuração.",
+      "rows": {
+        "goal": "Objetivo",
+        "training": "Treino",
+        "physique": "Físico",
+        "activity": "Atividade",
+        "target": "Meta",
+        "pace": "Ritmo",
+        "currentWeightNow": "{{weight}} {{unit}} agora"
+      },
+      "deficitPace": "{{pace}} — déficit de {{amount}} kcal",
+      "surplusPace": "{{pace}} — +{{amount}} kcal superávit"
     },
     "alerts": {
       "missingInfoTitle": "Informação faltando",
@@ -495,7 +511,21 @@
       "noPurchaseFoundTitle": "Nenhuma compra encontrada",
       "noPurchaseFoundDefault": "Nenhuma compra anterior encontrada para este Apple ID.",
       "button": "OK"
-    }
+    },
+    "features": {
+      "arpo": "Progressão automática ARPO — pesos ajustados a cada sessão",
+      "doubleProgression": "Modo de progressão dupla para blocos de força",
+      "myoreps": "Séries myo-rep — repetições mais eficientes em menos tempo",
+      "restTimer": "Temporizador de descanso inteligente de 3 níveis",
+      "calories": "Calorias e metas de macros personalizadas",
+      "bodyComp": "Composição corporal e rastreamento de FFMI",
+      "recovery": "Inteligência de recuperação do Apple Health / Health Connect",
+      "volume": "Marcos de volume e gráficos de progresso muscular"
+    },
+    "foundingPriceHeading": "Preço de membro fundador — apenas os primeiros {{count}}",
+    "regularPriceLabel": "Preço regular",
+    "oneTime": "pagamento único · seu para sempre",
+    "foundingBadge": "Preço de membro fundador · Apenas os primeiros {{count}}"
   },
   "autoBuilder": {
     "title": "Gerar rotina",

@@ -472,7 +472,23 @@
       "subtitle": "这是您的个性化档案。",
       "tdeeCard": "TDEE",
       "tdeeUnit": "千卡/天",
-      "continue": "开始制定您的计划 →"
+      "continue": "开始制定您的计划 →",
+      "targetCaloriesLabel": "你的目标卡路里",
+      "maintenanceCut": "维持热量 ~{{maintenance}} 千卡 · 亏缺 {{amount}} 千卡",
+      "maintenanceBulk": "维持热量 ~{{maintenance}} 千卡 · +{{amount}} 千卡盈余",
+      "maintenanceRecomp": "维持热量 · 身体重组",
+      "macroBreakdownNote": "完整的宏量营养素分解将在设置完成后显示在营养选项卡中。",
+      "rows": {
+        "goal": "目标",
+        "training": "训练",
+        "physique": "体型",
+        "activity": "活动量",
+        "target": "目标体重",
+        "pace": "节奏",
+        "currentWeightNow": "目前 {{weight}} {{unit}}"
+      },
+      "deficitPace": "{{pace}} — 亏缺 {{amount}} 千卡",
+      "surplusPace": "{{pace}} — +{{amount}} 千卡盈余"
     },
     "alerts": {
       "missingInfoTitle": "信息不完整",
@@ -495,7 +511,21 @@
       "noPurchaseFoundTitle": "未找到购买记录",
       "noPurchaseFoundDefault": "未找到此 Apple ID 的购买记录。",
       "button": "确定"
-    }
+    },
+    "features": {
+      "arpo": "ARPO 自动进阶 — 每次训练自动调整重量",
+      "doubleProgression": "双重进阶模式，适合力量训练阶段",
+      "myoreps": "肌肌组次 — 更高效的次数，节省时间",
+      "restTimer": "智能三级休息计时器，按动作类型校准",
+      "calories": "个性化卡路里与宏量营养素目标",
+      "bodyComp": "体脂成分与FFMI追踪",
+      "recovery": "来自 Apple Health / Health Connect 的恢复智能",
+      "volume": "训练量里程碑与肌肉进度图表"
+    },
+    "foundingPriceHeading": "创始会员价格 — 仅限前 {{count}} 名",
+    "regularPriceLabel": "原价",
+    "oneTime": "一次性付款 · 永久拥有",
+    "foundingBadge": "创始会员价格 · 仅限前 {{count}} 名"
   },
   "autoBuilder": {
     "title": "生成训练计划",

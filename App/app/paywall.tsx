@@ -18,15 +18,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/colors";
 import { usePurchase, UNLOCK_PRICE_LABEL, REGULAR_PRICE_LABEL, FOUNDING_TIER_COUNT, TRIAL_WORKOUTS } from "@/contexts/PurchaseContext";
 
-const FEATURES = [
-  { icon: "trending-up",        text: "ARPO auto-progression — weights adjust every session" },
-  { icon: "repeat-variant",     text: "Double Progression mode for strength-focused blocks" },
-  { icon: "lightning-bolt",     text: "Myo-rep sets — more effective reps, less time" },
-  { icon: "timer-outline",      text: "Smart 3-tier rest timer calibrated per movement" },
-  { icon: "restaurant-outline", text: "Personalised calories & macro targets" },
-  { icon: "body-outline",       text: "Body composition & FFMI tracking" },
-  { icon: "heart-outline",      text: "Recovery Intelligence from Apple Health / Health Connect" },
-  { icon: "bar-chart-outline",  text: "Volume landmarks & muscle progress charts" },
+const FEATURE_KEYS = [
+  { icon: "trending-up",        tKey: "arpo" },
+  { icon: "repeat-variant",     tKey: "doubleProgression" },
+  { icon: "lightning-bolt",     tKey: "myoreps" },
+  { icon: "timer-outline",      tKey: "restTimer" },
+  { icon: "restaurant-outline", tKey: "calories" },
+  { icon: "body-outline",       tKey: "bodyComp" },
+  { icon: "heart-outline",      tKey: "recovery" },
+  { icon: "bar-chart-outline",  tKey: "volume" },
 ];
 
 const DEV_TAP_TARGET = 7;
@@ -121,7 +121,7 @@ export default function PaywallScreen() {
             fontFamily: "Rubik_600SemiBold", fontSize: 12, color: Colors.primary,
             textTransform: "uppercase", letterSpacing: 1, marginBottom: 4,
           }}>
-            Founding member price — first {FOUNDING_TIER_COUNT} only
+            {t('paywall.foundingPriceHeading', { count: FOUNDING_TIER_COUNT })}
           </Text>
           <Text style={{
             fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textSecondary, lineHeight: 18,
@@ -142,14 +142,14 @@ export default function PaywallScreen() {
           {t('paywall.featuresHeading')}
         </Text>
 
-        {FEATURES.map(f => (
-          <View key={f.text} style={{
+        {FEATURE_KEYS.map(f => (
+          <View key={f.tKey} style={{
             flexDirection: "row", alignItems: "center", gap: 12,
             paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.border,
           }}>
             <Ionicons name={f.icon as any} size={18} color={Colors.primary} />
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.text, flex: 1 }}>
-              {f.text}
+              {t(`paywall.features.${f.tKey}`)}
             </Text>
             <Ionicons name="checkmark" size={16} color={Colors.primary} />
           </View>
@@ -171,7 +171,7 @@ export default function PaywallScreen() {
             fontFamily: "Rubik_400Regular", fontSize: 12, color: Colors.textMuted,
             marginBottom: 2,
           }}>
-            Regular price{" "}
+            {t('paywall.regularPriceLabel')}{" "}
             <Text style={{ textDecorationLine: "line-through" }}>{REGULAR_PRICE_LABEL}</Text>
           </Text>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
@@ -179,14 +179,14 @@ export default function PaywallScreen() {
               {UNLOCK_PRICE_LABEL}
             </Text>
             <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 13, color: Colors.textMuted }}>
-              one-time · yours forever
+              {t('paywall.oneTime')}
             </Text>
           </View>
           <Text style={{
             fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.primary,
             marginTop: 3, letterSpacing: 0.5,
           }}>
-            Founding member price · First {FOUNDING_TIER_COUNT} only
+            {t('paywall.foundingBadge', { count: FOUNDING_TIER_COUNT })}
           </Text>
         </View>
 

@@ -999,10 +999,10 @@ export default function OnboardingScreen() {
                 return (
                   <View style={{ borderWidth: 1, borderColor: Colors.border, padding: 16, marginTop: 4, backgroundColor: Colors.bgAccent }}>
                     <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 10, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>
-                      Your target calories
+                      {t('onboarding.summary.targetCaloriesLabel')}
                     </Text>
                     <Text style={{ fontFamily: "Rubik_700Bold", fontSize: 26, color: Colors.text, letterSpacing: -0.5 }}>
-                      ~{preview.toLocaleString()} kcal / day
+                      ~{preview.toLocaleString()} {t('onboarding.summary.tdeeUnit')}
                     </Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 4 }}>
                       Maintenance ~{tdeeEstimate.toLocaleString()} kcal · {selected.delta > 0 ? "+" : ""}{selected.delta} kcal {bodyGoal === "cut" ? "deficit" : "surplus"}
@@ -1034,16 +1034,17 @@ export default function OnboardingScreen() {
           : tdeeEstimate
           : null;
 
+        const paceName = deficitPace.charAt(0).toUpperCase() + deficitPace.slice(1);
         const rows: Array<{ label: string; value: string; sub?: string }> = [
-          { label: "Goal", value: goalLabel, sub: goalTagline },
-          { label: "Training", value: `${experience ?? "—"} · ${gender === "MALE" ? t('onboarding.identity.male') : t('onboarding.identity.female')}` },
-          { label: "Physique", value: [heightDisplay, age ? `${age} ${t('onboarding.physical.ageSuffix')}` : null, bodyweight ? `${bodyweight} ${weightUnit}` : null].filter(Boolean).join(" · ") || "—" },
-          { label: "Activity", value: ACTIVITY_LABELS[activityLevel]?.label ?? activityLevel },
+          { label: t('onboarding.summary.rows.goal'), value: goalLabel, sub: goalTagline },
+          { label: t('onboarding.summary.rows.training'), value: `${experience ?? "—"} · ${gender === "MALE" ? t('onboarding.identity.male') : t('onboarding.identity.female')}` },
+          { label: t('onboarding.summary.rows.physique'), value: [heightDisplay, age ? `${age} ${t('onboarding.physical.ageSuffix')}` : null, bodyweight ? `${bodyweight} ${weightUnit}` : null].filter(Boolean).join(" · ") || "—" },
+          { label: t('onboarding.summary.rows.activity'), value: ACTIVITY_LABELS[activityLevel]?.label ?? activityLevel },
           ...(bodyGoal !== "recomp" && (currentWeight || targetWeight)
-            ? [{ label: "Target", value: [currentWeight ? `${currentWeight} ${weightUnit} now` : null, targetWeight ? `→ ${targetWeight} ${weightUnit}` : null].filter(Boolean).join("  ") }]
+            ? [{ label: t('onboarding.summary.rows.target'), value: [currentWeight ? t('onboarding.summary.rows.currentWeightNow', { weight: currentWeight, unit: weightUnit }) : null, targetWeight ? `→ ${targetWeight} ${weightUnit}` : null].filter(Boolean).join("  ") }]
             : []),
           ...(bodyGoal !== "recomp"
-            ? [{ label: "Pace", value: `${deficitPace.charAt(0).toUpperCase() + deficitPace.slice(1)} — ${bodyGoal === "cut" ? Math.abs(paceDeficit) + " kcal deficit" : "+" + paceSurplus + " kcal surplus"}` }]
+            ? [{ label: t('onboarding.summary.rows.pace'), value: bodyGoal === "cut" ? t('onboarding.summary.deficitPace', { pace: paceName, amount: Math.abs(paceDeficit) }) : t('onboarding.summary.surplusPace', { pace: paceName, amount: paceSurplus }) }]
             : []),
         ];
 
@@ -1087,12 +1088,12 @@ export default function OnboardingScreen() {
                     ~{targetCalories?.toLocaleString()} {t('onboarding.summary.tdeeUnit')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textSecondary, marginTop: 4 }}>
-                    {bodyGoal === "cut" && `Maintenance ~${tdeeEstimate.toLocaleString()} kcal · ${Math.abs(paceDeficit)} kcal deficit`}
-                    {bodyGoal === "bulk" && `Maintenance ~${tdeeEstimate.toLocaleString()} kcal · +${paceSurplus} kcal surplus`}
-                    {bodyGoal === "recomp" && `Maintenance calories · body recomposition`}
+                    {bodyGoal === "cut" && t('onboarding.summary.maintenanceCut', { maintenance: tdeeEstimate.toLocaleString(), amount: Math.abs(paceDeficit) })}
+                    {bodyGoal === "bulk" && t('onboarding.summary.maintenanceBulk', { maintenance: tdeeEstimate.toLocaleString(), amount: paceSurplus })}
+                    {bodyGoal === "recomp" && t('onboarding.summary.maintenanceRecomp')}
                   </Text>
                   <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 8, lineHeight: 16 }}>
-                    Full macro breakdown will appear in the Nutrition tab after setup.
+                    {t('onboarding.summary.macroBreakdownNote')}
                   </Text>
                 </View>
               )}

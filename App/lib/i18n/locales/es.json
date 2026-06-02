@@ -472,7 +472,23 @@
       "subtitle": "Aquí está tu perfil personalizado.",
       "tdeeCard": "TDEE",
       "tdeeUnit": "kcal/día",
-      "continue": "Construir mi programa →"
+      "continue": "Construir mi programa →",
+      "targetCaloriesLabel": "Tus calorías objetivo",
+      "maintenanceCut": "Mantenimiento ~{{maintenance}} kcal · déficit de {{amount}} kcal",
+      "maintenanceBulk": "Mantenimiento ~{{maintenance}} kcal · +{{amount}} kcal superávit",
+      "maintenanceRecomp": "Calorías de mantenimiento · recomposición corporal",
+      "macroBreakdownNote": "El desglose completo de macros aparecerá en la pestaña Nutrición tras la configuración.",
+      "rows": {
+        "goal": "Objetivo",
+        "training": "Entrenamiento",
+        "physique": "Físico",
+        "activity": "Actividad",
+        "target": "Meta",
+        "pace": "Ritmo",
+        "currentWeightNow": "{{weight}} {{unit}} ahora"
+      },
+      "deficitPace": "{{pace}} — déficit de {{amount}} kcal",
+      "surplusPace": "{{pace}} — +{{amount}} kcal superávit"
     },
     "alerts": {
       "missingInfoTitle": "Información incompleta",
@@ -495,7 +511,21 @@
       "noPurchaseFoundTitle": "No se encontró ninguna compra",
       "noPurchaseFoundDefault": "No se encontró ninguna compra anterior para este Apple ID.",
       "button": "OK"
-    }
+    },
+    "features": {
+      "arpo": "Progresión automática ARPO — los pesos se ajustan en cada sesión",
+      "doubleProgression": "Modo de progresión doble para bloques de fuerza",
+      "myoreps": "Series Myo-rep — repeticiones más efectivas en menos tiempo",
+      "restTimer": "Temporizador de descanso inteligente de 3 niveles",
+      "calories": "Calorías y macros personalizados",
+      "bodyComp": "Composición corporal y rastreo de FFMI",
+      "recovery": "Inteligencia de recuperación de Apple Health / Health Connect",
+      "volume": "Hitos de volumen y gráficos de progreso muscular"
+    },
+    "foundingPriceHeading": "Precio de miembro fundador — solo los primeros {{count}}",
+    "regularPriceLabel": "Precio regular",
+    "oneTime": "único pago · tuyo para siempre",
+    "foundingBadge": "Precio de miembro fundador · Solo los primeros {{count}}"
   },
   "autoBuilder": {
     "title": "Generar rutina",

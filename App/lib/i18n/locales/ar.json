@@ -472,7 +472,23 @@
       "subtitle": "هذا ملفك الشخصي المخصص.",
       "tdeeCard": "TDEE",
       "tdeeUnit": "كيلوكالوري/يوم",
-      "continue": "هيا نبني برنامجك →"
+      "continue": "هيا نبني برنامجك →",
+      "targetCaloriesLabel": "سعراتك الحرارية المستهدفة",
+      "maintenanceCut": "الصيانة ~{{maintenance}} سعرة · عجز {{amount}} سعرة",
+      "maintenanceBulk": "الصيانة ~{{maintenance}} سعرة · +{{amount}} سعرة فائض",
+      "maintenanceRecomp": "سعرات الصيانة · إعادة تركيب الجسم",
+      "macroBreakdownNote": "سيظهر التوزيع الكامل للمغذيات في تبويب التغذية بعد الإعداد.",
+      "rows": {
+        "goal": "الهدف",
+        "training": "التدريب",
+        "physique": "البنية",
+        "activity": "النشاط",
+        "target": "المستهدف",
+        "pace": "الوتيرة",
+        "currentWeightNow": "{{weight}} {{unit}} الآن"
+      },
+      "deficitPace": "{{pace}} — عجز {{amount}} سعرة",
+      "surplusPace": "{{pace}} — +{{amount}} سعرة فائض"
     },
     "alerts": {
       "missingInfoTitle": "معلومات ناقصة",
@@ -495,7 +511,21 @@
       "noPurchaseFoundTitle": "لم يُعثر على شراء",
       "noPurchaseFoundDefault": "لم يُعثر على شراء سابق لهذا Apple ID.",
       "button": "حسناً"
-    }
+    },
+    "features": {
+      "arpo": "تقدم تلقائي ARPO — تتعدل الأوزان في كل جلسة",
+      "doubleProgression": "وضع التقدم المزدوج لمراحل التركيز على القوة",
+      "myoreps": "مجموعات ميو-ريب — تكرارات أكثر فعالية في وقت أقل",
+      "restTimer": "مؤقت راحة ذكي بثلاث مراحل معيَّر لكل تمرين",
+      "calories": "أهداف السعرات والمغذيات المخصصة",
+      "bodyComp": "تتبع تركيبة الجسم ومؤشر FFMI",
+      "recovery": "ذكاء التعافي من Apple Health / Health Connect",
+      "volume": "معالم الحجم ورسوم بيانية للتقدم العضلي"
+    },
+    "foundingPriceHeading": "سعر العضو المؤسس — أول {{count}} فقط",
+    "regularPriceLabel": "السعر العادي",
+    "oneTime": "دفعة واحدة · ملكك إلى الأبد",
+    "foundingBadge": "سعر العضو المؤسس · أول {{count}} فقط"
   },
   "autoBuilder": {
     "title": "إنشاء روتين",

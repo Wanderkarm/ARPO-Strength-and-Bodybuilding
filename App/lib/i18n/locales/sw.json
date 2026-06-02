@@ -472,7 +472,23 @@
       "subtitle": "Huu ndio wasifu wako uliobinafsishwa.",
       "tdeeCard": "TDEE",
       "tdeeUnit": "kcal/siku",
-      "continue": "Hebu tujengu mpango wako →"
+      "continue": "Hebu tujengu mpango wako →",
+      "targetCaloriesLabel": "Kalori yako ya lengo",
+      "maintenanceCut": "Matengenezo ~{{maintenance}} kcal · upungufu wa {{amount}} kcal",
+      "maintenanceBulk": "Matengenezo ~{{maintenance}} kcal · +{{amount}} kcal ziada",
+      "maintenanceRecomp": "Kalori za matengenezo · uundaji upya wa mwili",
+      "macroBreakdownNote": "Muhtasari kamili wa virutubisho utaonekana kwenye kichupo cha Lishe baada ya usanidi.",
+      "rows": {
+        "goal": "Lengo",
+        "training": "Mafunzo",
+        "physique": "Muundo",
+        "activity": "Shughuli",
+        "target": "Shabaha",
+        "pace": "Kasi",
+        "currentWeightNow": "{{weight}} {{unit}} sasa"
+      },
+      "deficitPace": "{{pace}} — upungufu wa {{amount}} kcal",
+      "surplusPace": "{{pace}} — +{{amount}} kcal ziada"
     },
     "alerts": {
       "missingInfoTitle": "Taarifa zinakosekana",
@@ -495,7 +511,21 @@
       "noPurchaseFoundTitle": "Hakuna ununuzi uliopatikana",
       "noPurchaseFoundDefault": "Hakuna ununuzi wa awali uliopatikana kwa Apple ID hii.",
       "button": "Sawa"
-    }
+    },
+    "features": {
+      "arpo": "Maendeleo ya moja kwa moja ARPO — uzito unabadilika kila kikao",
+      "doubleProgression": "Hali ya maendeleo mara mbili kwa vizuizi vya nguvu",
+      "myoreps": "Seti za Myo-rep — marudio bora zaidi, muda mfupi",
+      "restTimer": "Kipima muda cha mapumziko cha akili chenye viwango 3",
+      "calories": "Malengo ya kalori na lishe yaliyobinafsishwa",
+      "bodyComp": "Ufuatiliaji wa muundo wa mwili na FFMI",
+      "recovery": "Akili ya kupumzika kutoka Apple Health / Health Connect",
+      "volume": "Alama za kiasi na chati za maendeleo ya misuli"
+    },
+    "foundingPriceHeading": "Bei ya mwanachama mwanzilishi — wa kwanza {{count}} tu",
+    "regularPriceLabel": "Bei ya kawaida",
+    "oneTime": "malipo moja · yako milele",
+    "foundingBadge": "Bei ya mwanzilishi · Wa kwanza {{count}} tu"
   },
   "autoBuilder": {
     "title": "Tengeneza ratiba",

@@ -472,7 +472,23 @@
       "subtitle": "Here's your personalised profile.",
       "tdeeCard": "TDEE",
       "tdeeUnit": "kcal/day",
-      "continue": "Let's Build Your Program →"
+      "continue": "Let's Build Your Program →",
+      "targetCaloriesLabel": "Your target calories",
+      "maintenanceCut": "Maintenance ~{{maintenance}} kcal · {{amount}} kcal deficit",
+      "maintenanceBulk": "Maintenance ~{{maintenance}} kcal · +{{amount}} kcal surplus",
+      "maintenanceRecomp": "Maintenance calories · body recomposition",
+      "macroBreakdownNote": "Full macro breakdown will appear in the Nutrition tab after setup.",
+      "rows": {
+        "goal": "Goal",
+        "training": "Training",
+        "physique": "Physique",
+        "activity": "Activity",
+        "target": "Target",
+        "pace": "Pace",
+        "currentWeightNow": "{{weight}} {{unit}} now"
+      },
+      "deficitPace": "{{pace}} — {{amount}} kcal deficit",
+      "surplusPace": "{{pace}} — +{{amount}} kcal surplus"
     },
     "alerts": {
       "missingInfoTitle": "Missing Info",
@@ -495,7 +511,21 @@
       "noPurchaseFoundTitle": "No Purchase Found",
       "noPurchaseFoundDefault": "No previous purchase found for this Apple ID.",
       "button": "OK"
-    }
+    },
+    "features": {
+      "arpo": "ARPO auto-progression — weights adjust every session",
+      "doubleProgression": "Double Progression mode for strength-focused blocks",
+      "myoreps": "Myo-rep sets — more effective reps, less time",
+      "restTimer": "Smart 3-tier rest timer calibrated per movement",
+      "calories": "Personalised calories & macro targets",
+      "bodyComp": "Body composition & FFMI tracking",
+      "recovery": "Recovery Intelligence from Apple Health / Health Connect",
+      "volume": "Volume landmarks & muscle progress charts"
+    },
+    "foundingPriceHeading": "Founding member price — first {{count}} only",
+    "regularPriceLabel": "Regular price",
+    "oneTime": "one-time · yours forever",
+    "foundingBadge": "Founding member price · First {{count}} only"
   },
   "autoBuilder": {
     "title": "Generate Routine",
