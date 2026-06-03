@@ -52,16 +52,19 @@ jobs:
       # Generate locally with:
       #   keytool -genkey -v -keystore release.keystore -alias powrlog \
       #     -keyalg RSA -keysize 2048 -validity 10000
-      # Then base64-encode and store as ANDROID_KEYSTORE secret:
-      #   base64 -i release.keystore | pbcopy
+      # Then base64-encode (no line wrapping) and store as ANDROID_KEYSTORE secret:
+      #   base64 -i release.keystore | tr -d '\n' | pbcopy
       - name: Decode keystore
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
           # Use absolute path — Gradle resolves signing.store.file relative to the
           # module dir (android/app/) not the project root, so relative paths double up.
+          # Strip all whitespace before decoding — macOS base64 wraps at 76 chars by
+          # default so secrets encoded on macOS contain embedded newlines that corrupt
+          # the decoded output ("Tag number over 30" ASN.1 error).
           KEYSTORE_PATH="$GITHUB_WORKSPACE/App/android/app/release.keystore"
-          echo "$ANDROID_KEYSTORE" | base64 --decode > "$KEYSTORE_PATH"
+          echo "$ANDROID_KEYSTORE" | tr -d '[:space:]' | base64 --decode > "$KEYSTORE_PATH"
           echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> $GITHUB_ENV
 
       # ── 6. Build signed AAB ──────────────────────────────────────────────────
