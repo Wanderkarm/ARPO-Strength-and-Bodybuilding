@@ -719,7 +719,7 @@ export default function OnboardingScreen() {
               </View>
             )}
           </ScrollView>
-          {continueBtn(() => { haptic(); setStep("training"); }, false, t('onboarding.goals.continue'))}
+          {continueBtn(() => { haptic(); setStep("activity"); }, false, t('onboarding.goals.continue'))}
         </>
       )}
 
