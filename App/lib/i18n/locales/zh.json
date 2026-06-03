@@ -465,6 +465,8 @@
       "arpoDesc": "根据您的表现每周自动调整重量和训练量。",
       "doubleProgression": "双重进阶",
       "doubleProgressionDesc": "手动在目标次数范围内增加次数，之后再加重。",
+      "activitySubtitle": "你在健身房外的活动量如何？这影响你的卡路里目标，可随时在设置中更改。",
+      "progressionSubtitle": "POWRLOG应如何随时间推进你的重量？可随时在设置中更改。",
       "continue": "继续 →"
     },
     "summary": {

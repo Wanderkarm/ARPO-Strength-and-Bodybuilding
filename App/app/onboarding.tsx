@@ -38,7 +38,7 @@ import { useUnit, type WeightUnit } from "@/contexts/UnitContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step = "welcome" | "unit" | "identity" | "physical" | "goals" | "training" | "target" | "pace" | "summary";
+type Step = "welcome" | "unit" | "identity" | "physical" | "goals" | "activity" | "progression" | "target" | "pace" | "summary";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -104,11 +104,11 @@ export default function OnboardingScreen() {
 
   // Dynamic step config — summary always last, target+pace only for cut/bulk
   const NUMBERED_STEPS: Step[] = bodyGoal === "recomp"
-    ? ["unit", "identity", "physical", "goals", "training", "summary"]
-    : ["unit", "identity", "physical", "goals", "training", "target", "pace", "summary"];
-  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 7 : 9;
-  // recomp: 6 onboarding + templates = 7
-  // cut/bulk: 8 onboarding + templates = 9
+    ? ["unit", "identity", "physical", "goals", "activity", "progression", "summary"]
+    : ["unit", "identity", "physical", "goals", "activity", "progression", "target", "pace", "summary"];
+  const TOTAL_FLOW_STEPS = bodyGoal === "recomp" ? 8 : 10;
+  // recomp: 7 onboarding + templates = 8
+  // cut/bulk: 9 onboarding + templates = 10
 
   // Estimated TDEE for summary screen
   const tdeeEstimate = useMemo(() => {
@@ -239,14 +239,16 @@ export default function OnboardingScreen() {
       setStep("identity");
     } else if (step === "goals") {
       setStep("physical");
-    } else if (step === "training") {
+    } else if (step === "activity") {
       setStep("goals");
+    } else if (step === "progression") {
+      setStep("activity");
     } else if (step === "target") {
-      setStep("training");
+      setStep("progression");
     } else if (step === "pace") {
       setStep("target");
     } else if (step === "summary") {
-      setStep(bodyGoal === "recomp" ? "training" : "pace");
+      setStep(bodyGoal === "recomp" ? "progression" : "pace");
     }
   }
 
@@ -721,19 +723,12 @@ export default function OnboardingScreen() {
         </>
       )}
 
-      {/* ── TRAINING ────────────────────────────────────────────────────────── */}
-      {step === "training" && (
+      {/* ── ACTIVITY LEVEL ──────────────────────────────────────────────────── */}
+      {step === "activity" && (
         <>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
-            <Text style={titleStyle}>{t('settings.sections.trainingSchedule')}</Text>
-            <Text style={subtitleStyle}>
-              These two settings shape how your program progresses. Both can be changed anytime in Settings.
-            </Text>
-
-            {/* ── Activity Level ── */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              {t('onboarding.trainingSetup.activityLevel')}
-            </Text>
+            <Text style={titleStyle}>{t('onboarding.trainingSetup.activityLevel')}</Text>
+            <Text style={subtitleStyle}>{t('onboarding.trainingSetup.activitySubtitle')}</Text>
 
             {(Object.entries(ACTIVITY_LABELS) as [ActivityLevel, typeof ACTIVITY_LABELS[ActivityLevel]][]).map(([key, val]) => (
               <Pressable
@@ -765,13 +760,21 @@ export default function OnboardingScreen() {
                 </Text>
               </Pressable>
             ))}
+          </ScrollView>
+          {continueBtn(
+            () => { haptic(); setStep("progression"); },
+            false,
+            t('onboarding.trainingSetup.continue'),
+          )}
+        </>
+      )}
 
-            <View style={{ height: 28 }} />
-
-            {/* ── Progression Method ── */}
-            <Text style={{ fontFamily: "Rubik_500Medium", fontSize: 11, color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>
-              {t('onboarding.trainingSetup.progressionMethod')}
-            </Text>
+      {/* ── PROGRESSION METHOD ──────────────────────────────────────────────── */}
+      {step === "progression" && (
+        <>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+            <Text style={titleStyle}>{t('onboarding.trainingSetup.progressionMethod')}</Text>
+            <Text style={subtitleStyle}>{t('onboarding.trainingSetup.progressionSubtitle')}</Text>
 
             {([
               {

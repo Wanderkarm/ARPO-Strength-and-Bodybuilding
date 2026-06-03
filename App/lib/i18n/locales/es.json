@@ -465,6 +465,8 @@
       "arpoDesc": "Ajusta automáticamente el peso y el volumen cada semana según tu rendimiento.",
       "doubleProgression": "Progresión doble",
       "doubleProgressionDesc": "Aumenta las reps hasta el rango objetivo de forma manual, luego sube el peso.",
+      "activitySubtitle": "¿Qué tan activo eres fuera del gimnasio? Esto determina tus objetivos calóricos. Puedes cambiarlo en Configuración.",
+      "progressionSubtitle": "¿Cómo debe POWRLOG aumentar tus pesos con el tiempo? Puedes cambiarlo en Configuración.",
       "continue": "Continuar →"
     },
     "summary": {

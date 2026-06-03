@@ -465,6 +465,8 @@
       "arpoDesc": "Auto-adjusts weight and volume each week based on your performance.",
       "doubleProgression": "Double Progression",
       "doubleProgressionDesc": "Manually increase reps to target range, then increase weight.",
+      "activitySubtitle": "How active are you outside the gym? This shapes your calorie targets. Can be changed anytime in Settings.",
+      "progressionSubtitle": "How should POWRLOG advance your weights over time? Can be changed anytime in Settings.",
       "continue": "Continue →"
     },
     "summary": {
