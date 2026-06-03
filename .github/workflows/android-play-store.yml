@@ -58,7 +58,11 @@ jobs:
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
-          echo "$ANDROID_KEYSTORE" | base64 --decode > android/app/release.keystore
+          # Use absolute path — Gradle resolves signing.store.file relative to the
+          # module dir (android/app/) not the project root, so relative paths double up.
+          KEYSTORE_PATH="$GITHUB_WORKSPACE/App/android/app/release.keystore"
+          echo "$ANDROID_KEYSTORE" | base64 --decode > "$KEYSTORE_PATH"
+          echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> $GITHUB_ENV
 
       # ── 6. Build signed AAB ──────────────────────────────────────────────────
       - name: Build release AAB
@@ -70,7 +74,7 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew bundleRelease \
-            -Pandroid.injected.signing.store.file=app/release.keystore \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
             -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD" \
