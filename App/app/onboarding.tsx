@@ -1005,7 +1005,9 @@ export default function OnboardingScreen() {
                       ~{preview.toLocaleString()} {t('onboarding.summary.tdeeUnit')}
                     </Text>
                     <Text style={{ fontFamily: "Rubik_400Regular", fontSize: 11, color: Colors.textMuted, marginTop: 4 }}>
-                      Maintenance ~{tdeeEstimate.toLocaleString()} kcal · {selected.delta > 0 ? "+" : ""}{selected.delta} kcal {bodyGoal === "cut" ? "deficit" : "surplus"}
+                      {bodyGoal === "cut"
+                        ? t('onboarding.summary.maintenanceCut', { maintenance: tdeeEstimate.toLocaleString(), amount: Math.abs(selected.delta) })
+                        : t('onboarding.summary.maintenanceBulk', { maintenance: tdeeEstimate.toLocaleString(), amount: selected.delta })}
                     </Text>
                   </View>
                 );
